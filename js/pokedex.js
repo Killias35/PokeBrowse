@@ -1,13 +1,16 @@
-import { getPokemon } from "./utils.js";
+async function getPokedex() {
+  const result = await chrome.storage.local.get("pokedex");
+
+  const pokedex = result.pokedex || [];
+
+  return pokedex;
+}
 
 async function loadPokedex() {
 
-  const container =
-    document.getElementById("pokedex");
-
-  for (let i = 1; i <= 151; i++) {
-
-    const pokemon = await getPokemon(i);
+  const container = document.getElementById("pokedex");
+  const pokedex = await getPokedex();
+  pokedex.forEach((pokemon, i) => {
     const card = document.createElement("div");
     card.classList.add("pokemon-card");
     
@@ -29,7 +32,9 @@ async function loadPokedex() {
       });
 
     container.appendChild(card);
-  }
+  })
+
+    
 }
 
 loadPokedex();

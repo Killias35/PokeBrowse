@@ -57,13 +57,9 @@ function createPokemon(pokemon) {
 
 async function capturePokemon(pokemon) {
 
-  const result =
-    await chrome.storage.local.get(
-      "collection"
-    );
+  const result = await chrome.storage.local.get("collection");
 
-  const collection =
-    result.collection || [];
+  const collection = result.collection || [];
 
   collection.push(pokemon);
 
@@ -72,4 +68,24 @@ async function capturePokemon(pokemon) {
   });
 }
 
-export { getPokemon, createPokemon };
+
+async function getPokedex() {
+
+  const result = await chrome.storage.local.get("pokedex");
+
+  const pokedex = result.pokedex || [];
+
+  if (pokedex.length === 0) {
+    let pokedex = [];
+    for (let i = 1; i <= 151; i++) {
+
+      const pokemon = await getPokemon(i);
+
+      pokedex.push(pokemon);
+    }
+
+    await chrome.storage.local.set({pokedex});
+  }
+}
+
+getPokedex();
