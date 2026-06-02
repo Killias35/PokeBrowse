@@ -8,6 +8,9 @@
     "activeTab",
     "scripting"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; media-src 'self' https://raw.githubusercontent.com https://pokeapi.co"
+  },
   "host_permissions": [
     "https://pokeapi.co/*"
   ],
@@ -22,6 +25,12 @@
       "matches": ["<all_urls>"],
       "js": ["js/content.js", "js/utils.js"],
       "css": ["css/content.css"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/cries/*"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

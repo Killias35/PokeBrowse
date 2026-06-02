@@ -1,3 +1,5 @@
+// tourne avec content.js
+
 async function getPokemon(id) {
 
   const pokemonRes = await fetch(
@@ -23,36 +25,9 @@ async function getPokemon(id) {
     weight: pokemon.weight,
     types: pokemon.types.map(
       t => t.type.name
-    )
+    ),
+    cry: pokemon.cries?.latest || pokemon.cries?.legacy || null
   };
-}
-
-function createPokemon(pokemon) {
-
-  const img = document.createElement("img");
-  const Page_Width = window.innerWidth;
-  const Page_Height = window.innerHeight;
-
-  const rand_pos_width = Math.floor(Math.random() * Page_Width);
-  const rand_pos_height = Math.floor(Math.random() * Page_Height);
-
-  img.src = pokemon.sprites;
-  img.style.position = "absolute";
-  img.style.right = rand_pos_width + "px";
-  img.style.bottom = rand_pos_height + "px";
-  img.style.width = "96px";
-  img.style.zIndex = "999999";
-
-  img.addEventListener("click", () => {
-
-    capturePokemon(pokemon);
-
-    img.remove();
-  });
-
-  document.body.appendChild(img);
-  console.log(`${pokemon.name} apparaît ! Cliquez dessus pour le capturer !`);
-
 }
 
 async function capturePokemon(pokemon) {

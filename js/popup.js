@@ -26,3 +26,19 @@ document
     url: chrome.runtime.getURL("html/pokedex.html")
   });
 });
+
+document
+.getElementById("activeHunt")
+.addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { action: "activeHunt", value: true });
+  });
+});
+
+document
+.getElementById("stopHunt")
+.addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { action: "activeHunt", value: false });
+  });
+});
