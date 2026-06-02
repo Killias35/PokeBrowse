@@ -1,6 +1,6 @@
 // tourne avec utils.js
 
-let activeHunt = false;
+let setHunt = false;
 
 chrome.runtime.onMessage.addListener(
   async (message) => {
@@ -10,8 +10,8 @@ chrome.runtime.onMessage.addListener(
 );
 
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.action === "activeHunt") {
-    activeHunt = msg.value;
+  if (msg.action === "setHunt") {
+    setHunt = msg.value;
     const audio = new Audio();
     audio.volume = 0;
     audio.play().catch(() => {});
@@ -83,7 +83,7 @@ function loop() {                               // spawn moyen: 6 pkmn / heure
   const delay = Math.random() * 300000 + 60000; // entre 1 minute et 6 minutes
 
   setTimeout(async () => {
-    if (Math.random() < 0.35 && activeHunt) {                 // 35% de chance
+    if (Math.random() < 0.35 && setHunt) {                 // 35% de chance
       await spawnPokemon();
     }
     loop();

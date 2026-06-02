@@ -119,3 +119,21 @@ body {
     border-radius: 50%;
     box-shadow: 0 0 10px #22c55e;
 }
+
+.hunt-off {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.hunt-on {
+  background: #22c55e;
+  color: #04110a;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
