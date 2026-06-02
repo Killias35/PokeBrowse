@@ -94,19 +94,25 @@ body {
 }
 
 .pokemon-card {
-    background: linear-gradient(145deg, #1e293b, #334155);
-    border-radius: 16px;
+    background: linear-gradient(
+        145deg,
+        #1e293b,
+        #334155
+    );
+
+    border-radius: 18px;
     padding: 20px;
     text-align: center;
-    transition: 0.3s;
-    cursor: pointer;
+
+    transition: .3s;
+
     border: 2px solid transparent;
 }
 
 .pokemon-card:hover {
-    transform: translateY(-8px);
+    transform: translateY(-6px);
     border-color: #ffcb05;
-    box-shadow: 0 0 20px rgba(255, 203, 5, 0.4);
+    box-shadow: 0 0 20px rgba(255,203,5,.25);
 }
 
 .pokemon-card img {
@@ -116,12 +122,10 @@ body {
     image-rendering: pixelated;
 }
 
-.pokemon-card span {
-    display: block;
-    margin-top: 12px;
+.pokemon-card h3 {
+    margin-top: 15px;
     text-transform: capitalize;
-    font-weight: bold;
-    font-size: 1.1rem;
+    color: white;
 }
 
 .reset-btn {
@@ -145,4 +149,32 @@ body {
 
 .reset-btn:active {
     transform: translateY(0);
+}
+
+.capture-count {
+    margin-top: 10px;
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255, 203, 5, 0.15);
+    color: #ffcb05;
+    font-weight: bold;
+}
+
+.collection-badge {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+
+    min-width: 36px;
+    height: 36px;
+
+    margin-left: 10px;
+
+    border-radius: 50%;
+
+    background: #ffcb05;
+    color: #111;
+
+    font-weight: bold;
 }

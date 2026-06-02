@@ -2,14 +2,28 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pokédex</title>
-  <link rel="stylesheet" href="../css/pokedex.css">
+    <link rel="stylesheet" href="../css/pokedex.css">
 </head>
 <body>
-    <h1>Pokédex</h1>
 
-    <div id="pokedex"></div>
+    <main class="pokedex-app">
+
+        <header class="pokedex-header">
+            <div class="pokeball"></div>
+
+            <h1>Pokédex Kanto</h1>
+            <p>Les 151 premiers Pokémon</p>
+        </header>
+
+        <section class="pokedex-container">
+            <div id="pokedex" class="pokemon-grid"></div>
+        </section>
+
+    </main>
 
     <script type="module" src="../js/pokedex.js"></script>
+
 </body>
 </html>

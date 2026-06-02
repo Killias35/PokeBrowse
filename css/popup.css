@@ -1,0 +1,121 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 320px;
+    min-height: 420px;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(180deg, #dc2626, #991b1b);
+    color: white;
+    padding: 15px;
+}
+
+.pokedex {
+    background: #1e293b;
+    border-radius: 20px;
+    padding: 20px;
+    border: 4px solid #ef4444;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.pokeball {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    background:
+        linear-gradient(
+            to bottom,
+            #ff1f1f 0%,
+            #ff1f1f 48%,
+            #111 48%,
+            #111 52%,
+            white 52%
+        );
+    border: 4px solid #111;
+    position: relative;
+}
+
+.pokeball::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border: 4px solid #111;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.header h1 {
+    font-size: 1.8rem;
+    color: #ffcb05;
+    margin-bottom: 5px;
+}
+
+.header p {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.action-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    background: #334155;
+    color: white;
+    transition: 0.25s;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    background: #475569;
+}
+
+.primary {
+    background: #ffcb05;
+    color: #111;
+}
+
+.primary:hover {
+    background: #ffd84d;
+}
+
+.footer {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+}
+
+.status-light {
+    width: 10px;
+    height: 10px;
+    background: #22c55e;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #22c55e;
+}

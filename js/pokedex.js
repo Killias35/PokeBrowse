@@ -1,3 +1,5 @@
+import { getPokemon } from "./utils.js";
+
 async function loadPokedex() {
 
   const container =
@@ -7,13 +9,14 @@ async function loadPokedex() {
 
     const pokemon = await getPokemon(i);
     const card = document.createElement("div");
-
+    card.classList.add("pokemon-card");
+    
     card.innerHTML = `
-      <img src="${pokemon.sprites}">
-      <h3>#${pokemon.id} ${pokemon.name}</h3>
-      <button data-id="${pokemon.id}">
-        Détails
-      </button>
+        <img src="${pokemon.sprites}" alt="${pokemon.name}">
+        <h3>#${pokemon.id.toString().padStart(3, "0")} ${pokemon.name}</h3>
+        <button data-id="${pokemon.id}">
+            Voir les détails
+        </button>
     `;
 
     card

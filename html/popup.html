@@ -2,26 +2,45 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Pokemon Hunter</title>
-  <link rel="stylesheet" href="../css/popup.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon Hunter</title>
+    <link rel="stylesheet" href="../css/popup.css">
 </head>
 <body>
 
-<h2>Pokemon Hunter</h2>
+    <div class="pokedex">
 
-<button id="spawn">
-  Faire apparaître un Pokémon
-</button>
+        <header class="header">
+            <div class="pokeball"></div>
 
-<button id="collection">
-  Collection
-</button>
+            <h1>Pokémon Hunter</h1>
+            <p>Attrapez-les tous !</p>
+        </header>
 
-<button id="pokedex">
-  Pokédex
-</button>
+        <div class="menu">
 
-<script type="module" src="../js/popup.js"></script>
+            <button id="spawn" class="action-btn primary">
+                🎲 Faire apparaître un Pokémon
+            </button>
+
+            <button id="collection" class="action-btn">
+                🎒 Ma Collection
+            </button>
+
+            <button id="pokedex" class="action-btn">
+                📖 Pokédex
+            </button>
+
+        </div>
+
+        <footer class="footer">
+            <div class="status-light"></div>
+            <span>Système opérationnel</span>
+        </footer>
+
+    </div>
+
+    <script type="module" src="../js/popup.js"></script>
 
 </body>
 </html>

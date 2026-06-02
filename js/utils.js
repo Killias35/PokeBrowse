@@ -71,3 +71,5 @@ async function capturePokemon(pokemon) {
     collection
   });
 }
+
+export { getPokemon, createPokemon };

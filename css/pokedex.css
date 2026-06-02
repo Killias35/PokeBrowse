@@ -1,0 +1,137 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+}
+
+.pokedex-app {
+    max-width: 1400px;
+    margin: auto;
+    padding: 40px 20px;
+}
+
+.pokedex-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.pokedex-header h1 {
+    font-size: 3rem;
+    color: #ffcb05;
+    text-shadow: 0 0 15px rgba(255, 203, 5, 0.4);
+}
+
+.pokedex-header p {
+    margin-top: 10px;
+    color: #cbd5e1;
+}
+
+.pokeball {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background:
+        linear-gradient(
+            to bottom,
+            #ff1f1f 0%,
+            #ff1f1f 48%,
+            #111 48%,
+            #111 52%,
+            #fff 52%
+        );
+    border: 5px solid #111;
+    position: relative;
+}
+
+.pokeball::after {
+    content: "";
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    border: 5px solid #111;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.pokedex-container {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.pokemon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.pokemon-card {
+    background: linear-gradient(
+        145deg,
+        #1e293b,
+        #334155
+    );
+
+    border-radius: 18px;
+    padding: 20px;
+    text-align: center;
+    transition: 0.3s;
+    border: 2px solid transparent;
+}
+
+.pokemon-card:hover {
+    transform: translateY(-6px);
+    border-color: #ffcb05;
+    box-shadow: 0 0 20px rgba(255, 203, 5, 0.25);
+}
+
+.pokemon-card img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    image-rendering: pixelated;
+}
+
+.pokemon-card h3 {
+    margin: 15px 0;
+    text-transform: capitalize;
+    color: #fff;
+}
+
+.pokemon-card button {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    background: #ffcb05;
+    color: #111;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.pokemon-card button:hover {
+    background: #ffd84d;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 10px;
+}

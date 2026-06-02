@@ -7,10 +7,7 @@ chrome.runtime.onMessage.addListener(
     const randomId =
       Math.floor(Math.random() * 151) + 1;
 
-    console.log(`Spawning Pokémon #${randomId}`);
     const pokemon = await getPokemon(randomId);
-    console.log(`Pokémon #${randomId} apparaît ! Cliquez dessus pour le capturer !`);
-
     createPokemon(pokemon);
   }
 );
