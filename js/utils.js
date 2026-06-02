@@ -30,11 +30,16 @@ async function getPokemon(id) {
 function createPokemon(pokemon) {
 
   const img = document.createElement("img");
+  const Page_Width = window.innerWidth;
+  const Page_Height = window.innerHeight;
+
+  const rand_pos_width = Math.floor(Math.random() * Page_Width);
+  const rand_pos_height = Math.floor(Math.random() * Page_Height);
 
   img.src = pokemon.sprites;
-  img.style.position = "fixed";
-  img.style.right = "50px";
-  img.style.bottom = "50px";
+  img.style.position = "absolute";
+  img.style.right = rand_pos_width + "px";
+  img.style.bottom = rand_pos_height + "px";
   img.style.width = "96px";
   img.style.zIndex = "999999";
 
@@ -43,8 +48,6 @@ function createPokemon(pokemon) {
     capturePokemon(pokemon);
 
     img.remove();
-
-    alert(`${pokemon.name} capturé !`);
   });
 
   document.body.appendChild(img);
@@ -62,11 +65,7 @@ async function capturePokemon(pokemon) {
   const collection =
     result.collection || [];
 
-  collection.push({
-    id: pokemon.id,
-    name: pokemon.name,
-    sprites: pokemon.sprites
-  });
+  collection.push(pokemon);
 
   await chrome.storage.local.set({
     collection

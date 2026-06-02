@@ -2,15 +2,38 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Ma Collection</title>
-  <link rel="stylesheet" href="../css/collection.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Collection Pokémon</title>
+    <link rel="stylesheet" href="../css/collection.css">
 </head>
 <body>
 
-<h1>Ma Collection</h1>
+    <div class="background"></div>
 
-<div id="list"></div>
+    <main class="pokedex">
 
-<script type="module" src="../js/collection.js"></script>
+        <header class="pokedex-header">
+          <div class="pokeball"></div>
+          <h1>Pokédex Personnel</h1>
+          <p><p id="nb-pokemons"></p>Pokémon capturés</p>
+
+          <button id="reset-collection" class="reset-btn">
+              Libérer tous les Pokémon !
+          </button>
+        </header>
+
+        <section class="collection-container">
+            <h2>Ma Collection</h2>
+
+            <div id="list" class="pokemon-grid">
+                <!-- Les Pokémon seront ajoutés ici -->
+            </div>
+
+        </section>
+
+    </main>
+
+    <script type="module" src="../js/collection.js"></script>
+
 </body>
 </html>
