@@ -1,6 +1,9 @@
 // tourne avec utils.js
 
 let setHunt = false;
+let huntMusic = null;
+let maxPokemon = 3;
+let currentPokemonCount = 0;
 
 chrome.runtime.onMessage.addListener(
   async (message) => {
@@ -11,10 +14,16 @@ chrome.runtime.onMessage.addListener(
 
 chrome.runtime.onMessage.addListener((msg) => {
   if (msg.action === "setHunt") {
-    setHunt = msg.value;
-    const audio = new Audio();
-    audio.volume = 0;
-    audio.play().catch(() => {});
+    setHunt = msg.value;// déblocage audio
+    const unlock = new Audio();
+    unlock.volume = 0;
+    unlock.play().catch(() => {});
+
+    if (setHunt) {
+      startHuntMusic();
+    } else {
+      stopHuntMusic();
+    }
   }
 });
 
@@ -28,6 +37,34 @@ function playCry(pokemon) {
   };
 
   audio.play().catch(() => {});
+}
+
+function startHuntMusic() {
+
+  // évite de relancer une musique déjà en cours
+  if (huntMusic) return;
+
+  const randomMusic = Math.floor(Math.random() * 4);
+
+  huntMusic = new Audio(
+    chrome.runtime.getURL(`assets/routes/${randomMusic}.mp3`)
+  );
+
+  huntMusic.loop = true;
+  huntMusic.volume = 0.15;
+
+  huntMusic.play().catch(err => {
+    console.error("Impossible de lancer la musique :", err);
+    huntMusic = null;
+  });
+}
+
+function stopHuntMusic() {
+  if (!huntMusic) return;
+
+  huntMusic.pause();
+  huntMusic.currentTime = 0;
+  huntMusic = null;
 }
 
 async function spawnPokemon() {
@@ -69,22 +106,25 @@ async function spawnPokemon() {
     img.style.transform = "scale(1)";
   });
 
-  img.addEventListener("click", () => {
+  img.addEventListener("click", () => { // capture
     capturePokemon(pokemon);
     img.remove();
+    currentPokemonCount--;
   });
 
   document.body.appendChild(img);
 
   playCry(pokemon);
+  console.log(`Un ${pokemon.name} sauvage est apparu !`);
 }
 
 function loop() {                               // spawn moyen: 6 pkmn / heure
   const delay = Math.random() * 300000 + 60000; // entre 1 minute et 6 minutes
 
   setTimeout(async () => {
-    if (Math.random() < 0.35 && setHunt) {                 // 35% de chance
+    if (Math.random() < 0.35 && setHunt && currentPokemonCount < maxPokemon) {                 // 35% de chance
       await spawnPokemon();
+      currentPokemonCount++;
     }
     loop();
   }, delay);

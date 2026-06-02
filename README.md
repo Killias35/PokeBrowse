@@ -21,10 +21,20 @@ Le joueur peut les capturer, les collectionner et compléter son Pokédex au fil
 
 ---
 
-### 👆 Capture simple
-- Capture via un clic sur le Pokémon
-- Suppression immédiate après capture
-- Ajout automatique à la collection locale
+### 👆 Capture 
+- Choix rapide de la Ball (5 sec)
+- ↓
+- Affaiblissement
+- ↓
+- Précision du lancer
+- ↓
+- Animation de capture
+- ↓
+- Échec ?
+- ↓
+- QTE de fuite
+- ↓
+- Nouvelle tentative éventuelle
 
 ---
 
