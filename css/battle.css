@@ -79,3 +79,196 @@ body {
         transform: translateY(0);
     }
 }
+
+.encounter-effect {
+    position: fixed;
+    inset: 0;
+
+    background: white;
+
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pokemon-shadow {
+  position: absolute;
+  width: 256px;
+  height: 256px;
+
+  image-rendering: pixelated;
+
+  filter: brightness(0);
+
+  opacity: 0;
+  transform: scale(0.2) translateY(120px);
+}
+
+.pokemon-shadow.show {
+  animation: shadowEnter 0.8s ease-out forwards;
+}
+
+@keyframes shadowEnter {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) translateY(120px);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.3) translateY(-10px);
+  }
+
+  100% {
+    opacity: 0; /* IMPORTANT : disparaît */
+    transform: scale(1) translateY(0);
+  }
+}
+.pokemon-sprite {
+  width: 256px;
+  height: 256px;
+
+  image-rendering: pixelated;
+}
+
+.pokemon-hide {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.pokemon-sprite.reveal {
+  animation: reveal 0.4s ease-out forwards;
+}
+
+@keyframes reveal {
+  0% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.pokemon-sprite.idle {
+  animation: idle 1.6s ease-in-out infinite;
+}
+
+@keyframes idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.shadow-enter {
+    animation:
+        shadowEnter
+        0.8s
+        ease-out
+        forwards;
+}
+
+@keyframes shadowEnter {
+
+    0% {
+        opacity: 0;
+
+        transform:
+            scale(0.2)
+            translateY(120px);
+    }
+
+    40% {
+        opacity: 1;
+
+        transform:
+            scale(1.3)
+            translateY(-10px);
+    }
+
+    100% {
+        opacity: 1;
+
+        transform:
+            scale(1)
+            translateY(0);
+    }
+}
+
+.pokemon-reveal {
+    animation:
+        revealPokemon
+        0.45s
+        ease-out
+        forwards;
+}
+
+@keyframes revealPokemon {
+
+    0% {
+        opacity: 0;
+        transform: scale(1.4);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.flash {
+    animation:
+        flashEffect
+        0.25s
+        ease-out;
+}
+
+@keyframes flashEffect {
+
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.idle {
+
+    animation:
+        idleFloat
+        1.6s
+        ease-in-out
+        infinite;
+}
+
+@keyframes idleFloat {
+
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+.screen-shake {
+    animation:
+        shake
+        0.2s;
+}
+
+@keyframes shake {
+
+    0% { transform: translateX(-5px); }
+    25% { transform: translateX(5px); }
+    50% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+}
