@@ -9,10 +9,9 @@ async function setStockPokeball() {
         const cooldown = pokeball.cooldown * 60 * 60 * 1000;    // heure a minute a seconde a milliseconde
         
         const generated = Math.floor(elapsed / cooldown);
-        console.log(pokeball.name + " " + elapsed + " " + generated);
         if (generated >= 1) {
             pokeball.count += generated;
-            pokeball.lastUsed = now + generated * cooldown;
+            pokeball.lastUsed += generated * cooldown;
         }
     });
 

@@ -17,19 +17,16 @@
   "action": {
     "default_popup": "html/popup.html"
   },
-  "background": {
-    "service_worker": "js/utils.js"
-  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["js/content.js", "js/utils.js"],
+      "js": ["js/content-loader.js"],
       "css": ["css/content.css"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["assets/*"],
+      "resources": ["assets/*", "html/*", "js/*", "css/*"],
       "matches": ["<all_urls>"]
     }
   ]

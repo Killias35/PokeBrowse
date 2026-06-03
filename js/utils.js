@@ -1,4 +1,3 @@
-// tourne avec content.js
 
 // pokeballs au demarrage
 const POKEBALLS = [
@@ -26,7 +25,8 @@ const POKEBALLS = [
   }
 ];
 
-async function getPokemon(id) {
+// recupere un pokemon
+export async function getPokemon(id) {
 
   const pokemonRes = await fetch(
     `https://pokeapi.co/api/v2/pokemon/${id}`
@@ -56,7 +56,8 @@ async function getPokemon(id) {
   };
 }
 
-async function capturePokemon(pokemon) {
+// capture un pokemon
+export async function capturePokemon(pokemon) {
 
   const result = await chrome.storage.local.get("collection");
 
@@ -69,7 +70,7 @@ async function capturePokemon(pokemon) {
   });
 }
 
-
+// charge le pokedex dans le storage
 async function getPokedex() {
 
   const result = await chrome.storage.local.get("pokedex");
@@ -89,6 +90,7 @@ async function getPokedex() {
   }
 }
 
+// charge les pokeballs dans le storage
 async function getBalls() {
 
   const result = await chrome.storage.local.get("pokeballs");

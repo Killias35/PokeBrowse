@@ -1,4 +1,5 @@
-// tourne avec utils.js
+import { playCry, startHuntMusic, stopHuntMusic } from "./sound.js";
+import { getPokemon } from "./utils.js";
 
 let setHunt = false;
 let huntMusic = null;
@@ -26,46 +27,6 @@ chrome.runtime.onMessage.addListener((msg) => {
     }
   }
 });
-
-function playCry(pokemon) {
-  const url = chrome.runtime.getURL(`assets/cries/${pokemon.id}.ogg`);
-  console.log(url);
-  const audio = new Audio(url);
-
-  audio.onerror = () => {
-    console.warn("Cry introuvable:", pokemon.id);
-  };
-
-  audio.play().catch(() => {});
-}
-
-function startHuntMusic() {
-
-  // évite de relancer une musique déjà en cours
-  if (huntMusic) return;
-
-  const randomMusic = Math.floor(Math.random() * 4);
-
-  huntMusic = new Audio(
-    chrome.runtime.getURL(`assets/routes/${randomMusic}.mp3`)
-  );
-
-  huntMusic.loop = true;
-  huntMusic.volume = 0.15;
-
-  huntMusic.play().catch(err => {
-    console.error("Impossible de lancer la musique :", err);
-    huntMusic = null;
-  });
-}
-
-function stopHuntMusic() {
-  if (!huntMusic) return;
-
-  huntMusic.pause();
-  huntMusic.currentTime = 0;
-  huntMusic = null;
-}
 
 async function spawnPokemon() {
   const randomId = Math.floor(Math.random() * 151) + 1;
@@ -98,16 +59,22 @@ async function spawnPokemon() {
 
   img.style.transition = "transform 0.2s ease";
 
-  img.addEventListener("mouseenter", () => {
+  img.addEventListener("mouseenter", () => {  // annimation
     img.style.transform = "scale(1.2)";
   });
 
-  img.addEventListener("mouseleave", () => {
+  img.addEventListener("mouseleave", () => {  // annimation
     img.style.transform = "scale(1)";
   });
 
-  img.addEventListener("click", () => { // capture
-    capturePokemon(pokemon);
+  img.addEventListener("click", async () => { // capture
+    await chrome.storage.local.set({
+      currentBattlePokemon: pokemon
+    });
+
+    window.open(
+      chrome.runtime.getURL("html/battle.html")
+    );
     img.remove();
     currentPokemonCount--;
   });
