@@ -1,5 +1,49 @@
 import { getRemainingTime } from "./pokeballs.js";
 
+async function getDelaiFromLastSpawn() {
+  const lastSpawn = await chrome.storage.local.get("lastSpawn");
+  const lastSpawnTime = lastSpawn.lastSpawn || 0;
+  const now = Date.now();
+  const hours = (now - lastSpawnTime) / (60 * 60 * 1000);
+  return hours;
+}
+
+async function setStatusBtnSpawn() {
+  const hours = await getDelaiFromLastSpawn();
+  const minutesLeft = (1 - hours) * 60;
+  const btn = document.getElementById("spawn");
+  if(hours >= 1){   // peut spawn
+    btn.classList.remove("closed");
+    btn.classList.add("primary")
+    btn.textContent = `🎲 Faire apparaître un Pokémon`;
+  }else{            // ne peut pas spawn
+    btn.classList.remove("primary");
+    btn.classList.add("closed");
+    btn.textContent = `Apparition dans ${minutesLeft.toFixed(0)} minutes`;
+  }
+}
+
+document.getElementById("spawn").addEventListener("click", async () => {
+  const hours = await getDelaiFromLastSpawn();
+  if (hours < 1) return; // 1 spawn par heure
+
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  });
+
+  chrome.tabs.sendMessage(tab.id, {
+    action: "spawnPokemon"
+  });
+
+  await chrome.storage.local.set({
+    lastSpawn: Date.now()
+  });
+
+  setStatusBtnSpawn();
+
+});
+
 document.getElementById("collection").addEventListener("click", () => {
   chrome.tabs.create({
     url: chrome.runtime.getURL("html/collection.html")
@@ -76,3 +120,4 @@ toggleBtn.addEventListener("click", () => {
 });
 
 await setBalls();
+await setStatusBtnSpawn();
