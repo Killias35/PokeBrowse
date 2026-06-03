@@ -1,4 +1,4 @@
-import { playCry } from "./sound.js";
+import { playCry, playShinyChime, playSuspenseSound, playImpactBoom, playWhooshSound } from "./sound.js";
 
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -45,36 +45,51 @@ function spawnParticles(rarity, containerId = "particles-container") {
 function spawnShinyStars(starCount = 35) {
     const container = document.getElementById("particles-container");
     if (!container) return;
+    playShinyChime(); // Joue le son de capture Shiny
+
+    // S'assurer que le conteneur lui-même n'est pas bloqué derrière
+    container.style.zIndex = "999"; 
+    container.style.position = "absolute";
 
     for (let i = 0; i < starCount; i++) {
-        const star = document.createElement('div');
-        star.classList.add('shiny-star');
-        star.textContent = '✨';
-        
-        // Calcul d'une trajectoire circulaire avec une poussée vers le haut (asymétrique)
-        const angle = Math.random() * Math.PI * 2;
-        const distance = (Math.random() * 160) + 60;
-        
-        const tx = Math.cos(angle) * distance;
-        // Le "- (Math.random() * 80)" force les étoiles à s'envoler vers le haut de l'écran
-        const ty = Math.sin(angle) * distance - (Math.random() * 80); 
+        // L'effet "Rafale" (Stagger) : on décale la création de chaque étoile de 12ms
+        setTimeout(() => {
+            const star = document.createElement('div');
+            star.classList.add('shiny-star');
+            star.textContent = '✨';
+            
+            // Étoiles de tailles variées (entre 24px et 50px) pour plus de profondeur
+            const randomSize = Math.floor(Math.random() * 26) + 24;
+            star.style.fontSize = `${randomSize}px`;
+            
+            // Calcul de la trajectoire
+            const angle = Math.random() * Math.PI * 2;
+            const distance = (Math.random() * 180) + 70; // Légèrement plus loin
+            
+            const tx = Math.cos(angle) * distance;
+            // Poussée verticale accentuée vers le haut
+            const ty = Math.sin(angle) * distance - (Math.random() * 120 + 40); 
 
-        container.appendChild(star);
+            container.appendChild(star);
 
-        const duration = (Math.random() * 400) + 700; // Entre 700ms et 1100ms
+            const duration = (Math.random() * 300) + 800; // Entre 800ms et 1100ms
 
-        // Animation de pop, rotation, grandissement puis disparition en s'élevant
-        star.animate([
-            { transform: 'translate(0, 0) scale(0) rotate(0deg)', opacity: 0 },
-            { transform: `translate(${tx * 0.4}px, ${ty * 0.4}px) scale(1.4) rotate(180deg)`, opacity: 1, offset: 0.3 },
-            { transform: `translate(${tx}px, ${ty}px) scale(0) rotate(360deg)`, opacity: 0 }
-        ], {
-            duration: duration,
-            easing: 'cubic-bezier(0.15, 0.85, 0.45, 1)',
-            fill: 'forwards'
-        });
+            // Nouvelle courbe d'animation : l'étoile reste visible plus longtemps à son apogée
+            star.animate([
+                { transform: 'translate(0, 0) scale(0) rotate(0deg)', opacity: 0 },
+                { transform: `translate(${tx * 0.4}px, ${ty * 0.4}px) scale(1.5) rotate(180deg)`, opacity: 1, offset: 0.2 },
+                { transform: `translate(${tx * 0.8}px, ${ty * 0.8}px) scale(1.2) rotate(270deg)`, opacity: 1, offset: 0.75 },
+                { transform: `translate(${tx}px, ${ty}px) scale(0) rotate(360deg)`, opacity: 0 }
+            ], {
+                duration: duration,
+                easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)',
+                fill: 'forwards'
+            });
 
-        setTimeout(() => star.remove(), duration + i);
+            // Nettoyage après l'animation
+            setTimeout(() => star.remove(), duration);
+            
+        }, i * 12); // Délai cumulé pour l'effet cascade
     }
 }
 
@@ -105,35 +120,41 @@ async function startEncounter(pokemon) {
     const dimBg = document.getElementById("dim-background");
     const lightRays = document.getElementById("light-rays");
     const name = document.getElementById("pokemon-name");
+    const rarityDisplay = document.getElementById("pokemon-rarity");
     const speedLines = document.getElementById("speed-lines");
+
     // Définir la rareté par défaut si elle n'existe pas
-    const rarity = pokemon.rarity || 'commun'; 
-    const isShiny = pokemon.shiny || true; // Détection du Shiny
+    const rarity = pokemon.rarity;
+    const isShiny = pokemon.isShiny; // Détection du Shiny
 
     // Appliquer la couleur de rareté via la classe CSS
     container.className = `pokemon-zone rarity-${rarity}`;
     
     shadow.src = pokemon.sprites;
-    sprite.src = pokemon.sprites;
+    sprite.src = pokemon.isShiny ? pokemon.shiny : pokemon.sprites;
     
     // --- PHASE 1 : ANTICIPATION ---
     await wait(500);
 
-    // Assombrissement dramatique de l'écran pour les épiques/légendaires
-    if (rarity === 'epic') dimBg.classList.add('active');
-    if (rarity === 'legendary') dimBg.classList.add('intense');
+    if (rarity === 'epic') dimBg?.classList.add('active');
+    if (rarity === 'legendary') dimBg?.classList.add('intense');
+    if (speedLines && (rarity === 'epic' || rarity === 'legendary' || isShiny)) {
+        speedLines.classList.add("active");
+    }
 
-    shadow.classList.add("shadow-enter");
-    
-    // Le suspense s'allonge en fonction de la rareté !
+    // Calcul du temps d'attente
     let suspenseTime = 1000;
     if (rarity === 'rare') suspenseTime = 1300;
     if (rarity === 'epic') suspenseTime = 1800;
-    if (rarity === 'legendary') suspenseTime = 2500; // Fait transpirer le joueur
+    if (rarity === 'legendary') suspenseTime = 2500; 
+
+    playSuspenseSound(rarity, suspenseTime); 
+
+    shadow.classList.add("shadow-enter");
     
     await wait(suspenseTime);
 
-    // --- PHASE 2 : L'EXPLOSION (DOPAMINE) ---
+    // --- PHASE 2 : L'EXPLOSION ---
     burst.classList.add("active");
     
     // Flash de couleur
@@ -142,8 +163,8 @@ async function startEncounter(pokemon) {
     } else {
         flash.style.background = 'white';
     }
-    if (rarity === 'epic' || rarity === 'legendary') speedLines.classList.add("active");
     flash.classList.add("flash");
+    playImpactBoom();
 
     // Impact frame
     document.body.classList.add("impact-flash");
@@ -155,7 +176,7 @@ async function startEncounter(pokemon) {
     if (rarity === 'epic' || rarity === 'legendary') shakeLevel = 3;
     cryEffect(pokemon, shakeLevel);
 
-    // Les étincelles !
+    // Les étincelles
     spawnParticles(rarity);
     if (isShiny) {
         spawnShinyStars(35 * shakeLevel);
@@ -171,11 +192,23 @@ async function startEncounter(pokemon) {
     if (rarity === 'epic' || rarity === 'legendary') {
         lightRays.classList.add('active');
     }
+    
+    await wait(900);
 
     name.textContent = pokemon.name;
     name.classList.add("slam");
-    
-    await wait(450);
+    playWhooshSound();
+
+    await wait(500);
+
+    rarityDisplay.textContent = rarity; 
+    rarityDisplay.classList.add("rarity-slam");
+    playWhooshSound();
+
+    setTimeout(() => {
+        flash.classList.remove("flash");
+        flash.style.background = 'white';
+    }, 500);
 
     // --- PHASE 3 : RETOUR AU CALME ---
     sprite.classList.add("idle");
@@ -187,13 +220,9 @@ async function startEncounter(pokemon) {
     }, 500);
 }
 
-// Démarrage
 chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
     const pokemon = result.currentBattlePokemon;
     if (!pokemon) return;
-    pokemon.rarity = 'legendary';
-    
-    // Assure-toi d'injecter une rareté dans ton objet pokemon au préalable !
-    // ex: pokemon.rarity = 'legendary';
+
     await startEncounter(pokemon);
 });

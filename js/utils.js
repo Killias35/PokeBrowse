@@ -43,15 +43,29 @@ export async function getPokemon(id) {
     n => n.language.name === "fr"
   )?.name || pokemon.name;
   
+  let stats = {}
+  let sumSats = 0;
+  let rarity = 'commun';
+  for (const stat of pokemon.stats) {
+    stats[stat.name] = stat.base_stat;
+    sumSats += stat.base_stat;
+  }
+  if (sumSats >= 580) rarity = 'legendary';
+  else if (sumSats >= 500) rarity = 'epic';
+  else if (sumSats >= 400) rarity = 'rare';
+
   return {
     id: pokemon.id,
     name: frenchName,
     sprites: pokemon.sprites.front_default,
+    shiny: pokemon.sprites.front_shiny,
     height: pokemon.height,
     weight: pokemon.weight,
     types: pokemon.types.map(
       t => t.type.name
     ),
+    stats: stats,
+    rarity: rarity,
     cry: pokemon.cries?.latest || pokemon.cries?.legacy || null
   };
 }
@@ -85,7 +99,6 @@ async function getPokedex() {
 
       pokedex.push(pokemon);
     }
-
     await chrome.storage.local.set({pokedex});
   }
 }

@@ -86,7 +86,6 @@ body {
     transform: scale(0.9);
 }
 
-/* --- NOM DU POKÉMON (PLACÉ JUSTE EN DESSOUS) --- */
 #pokemon-name {
     position: absolute;
     top: 100%; /* Se place pile sous les 256px du sprite */
@@ -103,6 +102,45 @@ body {
 #pokemon-name.slam {
     animation: textSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
+
+#pokemon-rarity {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+
+    margin: 60px 0 0 0; 
+    transform: translateX(-50%) scale(0);
+    
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0;
+    
+    text-shadow: 0px 2px 4px rgba(0,0,0,0.3);
+}
+
+#pokemon-rarity.rarity-slam {
+    animation: raritySlamAnim 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes raritySlamAnim {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) scale(3); /* Pars de très grand */
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1); /* S'écrase à sa taille normale */
+    }
+}
+
+/* --- COULEURS DYNAMIQUES SELON LA RARETÉ --- */
+.rarity-commun #pokemon-rarity { color: #a0a0a0; }
+.rarity-rare #pokemon-rarity { color: #4fa6ff; text-shadow: 0 0 8px rgba(79, 166, 255, 0.6); }
+.rarity-epic #pokemon-rarity { color: #b75cff; text-shadow: 0 0 10px rgba(183, 92, 255, 0.8); }
+.rarity-legendary #pokemon-rarity { color: #ffb700; text-shadow: 0 0 15px rgba(255, 183, 0, 1); }
 
 @keyframes textSlam {
     0% { transform: translateX(-50%) translateY(-50px) scale(2); opacity: 0; filter: blur(5px); }
@@ -333,11 +371,19 @@ body.impact-flash {
 
 .shiny-star {
     position: absolute;
-    font-size: 90px; /* Taille des étoiles */
+    /* On retire la font-size fixe, on va la gérer dynamiquement en JS ! */
     pointer-events: none;
     opacity: 0;
-    z-index: 10;
-    /* Un bel éclat doré autour de l'émoji */
-    filter: drop-shadow(0 0 8px #ffd700) drop-shadow(0 0 15px #fff);
+    
+    /* CRUCIAL : Passe devant le sprite du Pokémon et devant les ombres */
+    z-index: 999; 
+    
+    /* TRIPLE GLOW NÉON (Blanc + Or + Orange ambré) */
+    filter: 
+        drop-shadow(0 0 4px #ffffff) 
+        drop-shadow(0 0 12px #ffd700) 
+        drop-shadow(0 0 25px #ff8800);
+        
     user-select: none;
+    line-height: 1;
 }

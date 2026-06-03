@@ -3,8 +3,9 @@ import { getPokemon } from "./utils.js";
 
 let setHunt = false;
 let huntMusic = null;
-let maxPokemon = 3;
+const maxPokemon = 3;
 let currentPokemonCount = 0;
+const shinyChance = 0.005; // 0.5% de chance d'être shiny
 
 chrome.runtime.onMessage.addListener(
   async (message) => {
@@ -31,7 +32,8 @@ chrome.runtime.onMessage.addListener((msg) => {
 async function spawnPokemon() {
   const randomId = Math.floor(Math.random() * 151) + 1;
   const pokemon = await getPokemon(randomId);
-
+  pokemon.isShiny = Math.random() < shinyChance ? true : false;
+  
   const img = document.createElement("img");
 
   const pageWidth = Math.max(
@@ -47,7 +49,7 @@ async function spawnPokemon() {
   const x = Math.floor(Math.random() * (pageWidth - 100));
   const y = Math.floor(Math.random() * (pageHeight - 100));
 
-  img.src = pokemon.sprites;
+  img.src = pokemon.isShiny ? pokemon.shiny : pokemon.sprites;
 
   img.style.position = "absolute";
   img.style.left = `${x}px`;

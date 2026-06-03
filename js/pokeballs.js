@@ -5,6 +5,11 @@ async function setStockPokeball() {
     const pokeballs = result.pokeballs || [];
     const now = Date.now();
     pokeballs.forEach(pokeball => {
+        if(pokeball.count >= pokeball.maxCount) {
+            pokeball.count = pokeball.maxCount;
+            pokeball.lastUsed = now;
+            return;
+        }
         const elapsed = now - pokeball.lastUsed;
         const cooldown = pokeball.cooldown * 60 * 60 * 1000;    // heure a minute a seconde a milliseconde
         
