@@ -24,15 +24,15 @@ Le joueur peut les capturer, les collectionner et compléter son Pokédex au fil
 ### 👆 Capture 
 - Choix rapide de la Ball (5 sec)
 - ↓
-- Affaiblissement
+- Affaiblissement   (avec cercle a la osu)
 - ↓
-- Précision du lancer
+- Précision du lancer   (une barre rotationne et on doit cliquer au bon moment pour qu'il soit horyzontal)
 - ↓
-- Animation de capture
+- Animation de capture  (bonus aleatoire avec 3 type de lancer)
 - ↓
 - Échec ?
 - ↓
-- QTE de fuite
+- QTE de fuite          (qte avec 1 touche, diff basé sur nb tentative et rareté pkmn)
 - ↓
 - Nouvelle tentative éventuelle
 

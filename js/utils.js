@@ -1,5 +1,30 @@
 // tourne avec content.js
 
+const POKEBALLS = [
+  {
+    name: "pokeball",
+    capacity: 15,
+    count: 0,
+    cooldown: 0.1667,
+    lastUsed: null
+    
+  },
+  {
+    name: "superball",
+    capacity: 5,
+    count: 0,
+    cooldown: 0.5,
+    lastUsed: null
+  },
+  {
+    name: "hyperball",
+    capacity: 3,
+    count: 0,
+    cooldown: 12,
+    lastUsed: null
+  }
+];
+
 async function getPokemon(id) {
 
   const pokemonRes = await fetch(
@@ -63,4 +88,17 @@ async function getPokedex() {
   }
 }
 
+async function getBalls() {
+
+  const result = await chrome.storage.local.get("pokeballs");
+
+  const pokeballs = result.pokeballs || [];
+
+  if (pokeballs.length === 0) {
+    pokeballs.push(...POKEBALLS);
+    await chrome.storage.local.set({pokeballs});
+  }
+}
+
 getPokedex();
+getBalls();

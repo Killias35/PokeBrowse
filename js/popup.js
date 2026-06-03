@@ -1,14 +1,3 @@
-document.getElementById("spawn").addEventListener("click", async () => {
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true
-  });
-
-  chrome.tabs.sendMessage(tab.id, {
-    action: "spawnPokemon"
-  });
-});
-
 document.getElementById("collection").addEventListener("click", () => {
   chrome.tabs.create({
     url: chrome.runtime.getURL("html/collection.html")
@@ -53,8 +42,33 @@ function sendState() {
   chrome.storage.local.set({ huntActive });
 }
 
+async function setBalls() {
+  const result = await chrome.storage.local.get(["pokeballs"]);
+  const container = document.getElementById("ballList");
+
+  for (const ball of result.pokeballs) {
+    const ballCard = document.createElement("div");
+    ballCard.classList.add("ball-card");
+    ballCard.classList.add(`${ball.name}-icon`);
+    const nbPerHours = 1 / ball.cooldown;
+    ballCard.innerHTML = `
+      <img class="ball-img" src="../assets/balls/${ball.name}.png">
+      <div class="ball-info">
+        <div class="ball-name">${ball.name}</div>
+        <div class="ball-count">${ball.count} / ${ball.capacity}</div>
+        <div class="ball-cooldown">+${nbPerHours.toFixed(2)} / heure</div>
+      </div>
+    `;
+
+    container.appendChild(ballCard);
+  }
+}
+
+
 toggleBtn.addEventListener("click", () => {
   huntActive = !huntActive;
   updateUI();
   sendState();
 });
+
+await setBalls();
