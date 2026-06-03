@@ -24,8 +24,7 @@ async function setStockPokeball() {
 }
 
 async function getRemainingTime(pokeball){
-    const result = await chrome.storage.local.get("pokeballs");
-    const pokeballs = result.pokeballs || [];
+    if(pokeball.count >= pokeball.maxCount) return "---";
     const now = Date.now();
     const elapsed = now - pokeball.lastUsed;
     const cooldown = pokeball.cooldown * 60 * 60 * 1000;    // heure a minute a seconde a milliseconde
@@ -45,5 +44,10 @@ async function getRemainingTime(pokeball){
     return "0 secondes restantes";
 }
 
+async function getPokeballs() {
+    const result = await chrome.storage.local.get("pokeballs");
+    return result.pokeballs || [];
+}
+
 await setStockPokeball();
-export { getRemainingTime };
+export { getRemainingTime, getPokeballs };

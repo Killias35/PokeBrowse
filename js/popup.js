@@ -1,4 +1,4 @@
-import { getRemainingTime } from "./pokeballs.js";
+import { getRemainingTime, getPokeballs } from "./pokeballs.js";
 
 async function getDelaiFromLastSpawn() {
   const lastSpawn = await chrome.storage.local.get("lastSpawn");
@@ -83,10 +83,10 @@ function sendState() {
 }
 
 async function setBalls() {
-  const result = await chrome.storage.local.get(["pokeballs"]);
+  const pokeballs = await getPokeballs();
   const container = document.getElementById("ballList");
 
-  for (const pokeball of result.pokeballs) {
+  for (const pokeball of pokeballs) {
     const ballCard = document.createElement("div");
     ballCard.classList.add("ball-card");
     ballCard.classList.add(`${pokeball.name}-icon`);
@@ -96,7 +96,7 @@ async function setBalls() {
       <img class="ball-img" src="../assets/balls/${pokeball.name}.png">
       <div class="ball-info">
         <div class="ball-name">${pokeball.name}</div>
-        <div class="ball-count">${pokeball.count} / ${pokeball.capacity}</div>
+        <div class="ball-count">${pokeball.count} / ${pokeball.maxCount}</div>
         <div class="ball-cooldown">+${nbPerHours.toFixed(2)} / heure</div>
         <div class="ball-time">${remainingTime}</div>
       </div>

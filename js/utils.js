@@ -3,7 +3,7 @@
 const POKEBALLS = [
   {
     name: "pokeball",
-    capacity: 15,
+    maxCount: 15,
     count: 10,
     cooldown: 0.1667,
     lastUsed: Date.now()
@@ -11,14 +11,14 @@ const POKEBALLS = [
   },
   {
     name: "superball",
-    capacity: 5,
+    maxCount: 5,
     count: 2,
     cooldown: 0.5,
     lastUsed: Date.now()
   },
   {
     name: "hyperball",
-    capacity: 3,
+    maxCount: 3,
     count: 1,
     cooldown: 12,
     lastUsed: Date.now()
