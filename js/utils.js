@@ -1,27 +1,28 @@
 // tourne avec content.js
 
+// pokeballs au demarrage
 const POKEBALLS = [
   {
     name: "pokeball",
     capacity: 15,
-    count: 0,
+    count: 10,
     cooldown: 0.1667,
-    lastUsed: null
+    lastUsed: Date.now()
     
   },
   {
     name: "superball",
     capacity: 5,
-    count: 0,
+    count: 2,
     cooldown: 0.5,
-    lastUsed: null
+    lastUsed: Date.now()
   },
   {
     name: "hyperball",
     capacity: 3,
-    count: 0,
+    count: 1,
     cooldown: 12,
-    lastUsed: null
+    lastUsed: Date.now()
   }
 ];
 
