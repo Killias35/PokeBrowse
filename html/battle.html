@@ -11,37 +11,33 @@
 
     <div class="battle-background"></div>
 
-    <main class="battle-container">
+    <main class="battle-container" id="container">
 
-        <header class="battle-header">
-            <h1>Pokémon Sauvage</h1>
-        </header>
+        <main class="battle-container" id="container">
+            <header class="battle-header">
+                <h1>Pokémon Sauvage</h1>
+            </header>
 
-        <section class="battle-arena">
+            <div id="dim-background" class="dim-background"></div>
 
-            <div class="pokemon-zone">
-
+            <section class="battle-arena">
+                <div class="pokemon-zone" id="pokemon-zone">
+                <div class="effects-centering-wrapper">
+                    <div id="light-rays" class="light-rays"></div>
+                    <div class="radial-burst"></div>
+                    <div id="particles-container"></div>
+                    <div id="speed-lines" class="speed-lines"></div>
+                </div>
                 <div id="encounter-effect" class="encounter-effect"></div>
 
-                <img
-                    id="pokemon-shadow"
-                    class="pokemon-shadow"
-                    src=""
-                    alt=""
-                >
-
-                <img
-                    id="pokemon-sprite"
-                    class="pokemon-sprite pokemon-hide"
-                    src=""
-                    alt=""
-                >
+                <img id="pokemon-shadow" class="pokemon-shadow" src="" alt="">
+                <img id="pokemon-sprite" class="pokemon-sprite pokemon-hide" src="" alt="">
 
                 <h2 id="pokemon-name"></h2>
 
             </div>
-
-        </section>
+            </section>
+        </main>
 
     </main>
 

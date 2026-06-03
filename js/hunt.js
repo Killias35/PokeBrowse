@@ -52,6 +52,7 @@ async function spawnPokemon() {
   img.style.position = "absolute";
   img.style.left = `${x}px`;
   img.style.top = `${y}px`;
+  img.style.filter = "brightness(0)";
 
   img.style.width = "96px";
   img.style.zIndex = "999999";
