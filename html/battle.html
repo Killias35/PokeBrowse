@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Combat Pokémon</title>
 
+    <link rel="stylesheet" href="../css/battle-annimation.css">
     <link rel="stylesheet" href="../css/battle.css">
 </head>
 <body>
@@ -35,6 +36,21 @@
 
                 <h2 id="pokemon-name"></h2>
                 <h3 id="pokemon-rarity"></h3>
+
+
+                <!-- Choix de la Pokéball -->
+                <div id="capture-ui" class="hidden">
+                    <div id="ball-selection-panel">
+                        <h2 class="urgent-text">Vite ! Choisis une Pokéball !</h2>
+                        
+                        <div class="timer-track">
+                            <div id="timer-bar"></div>
+                        </div>
+
+                        <div id="ball-container" class="ball-grid">
+                            </div>
+                    </div>
+                </div>
 
             </div>
             </section>

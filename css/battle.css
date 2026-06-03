@@ -1,389 +1,101 @@
-/* --- CONFIGURATION GÉNÉRALE --- */
-body {
-    margin: 0;
-    min-height: 100vh;
-    background: linear-gradient(to bottom, #87ceeb, #d6f5d6);
-    font-family: Arial, sans-serif;
-    overflow: hidden;
-}
-
-.battle-container {
+/* --- UI DE CAPTURE (Overlay) --- */
+#capture-ui {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    align-items: center;
+    justify-content: flex-end; /* On le place en bas de l'écran */
+    padding-bottom: 50px;
+    z-index: 2000;
+    transition: opacity 0.3s;
 }
 
-.battle-header {
+#capture-ui.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#ball-selection-panel {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    padding: 20px 30px;
+    width: 90%;
+    max-width: 600px;
     text-align: center;
-    padding: 25px;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+    transform: translateY(100px);
+    animation: slideUpPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-.battle-header h1 {
-    margin: 0;
-    color: #333;
-    font-size: 2rem;
+.urgent-text {
+    color: #ffcb05;
+    text-transform: uppercase;
+    font-style: italic;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
-.battle-arena {
-    flex: 1;
+/* --- BARRE DE TEMPS --- */
+.timer-track {
+    width: 100%;
+    height: 12px;
+    background: #334155;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 1px solid #111;
+}
+
+#timer-bar {
+    height: 100%;
+    width: 100%; /* Démarre plein */
+    background: #10b981; /* Vert au début */
+    border-radius: 6px;
+    /* Transition fluide pour la barre */
+    transition: width 0.1s linear, background-color 0.2s ease; 
+}
+
+/* --- BOUTONS POKÉBALLS --- */
+.ball-grid {
     display: flex;
     justify-content: center;
+    gap: 20px;
+}
+
+.ball-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid transparent;
+    border-radius: 15px;
+    padding: 15px;
+    cursor: pointer;
+    transition: 0.2s;
+    width: 120px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
 }
 
-/* --- ZONE DU POKÉMON (ANCRE) --- */
-.pokemon-zone {
-    position: relative; 
-    width: 256px;
-    height: 256px;
+.ball-btn:hover:not(.disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+    border-color: #ffcb05;
 }
 
-/* --- LE REFUGE DES EFFETS (SUPERPOSITION PARFAITE VIA GRID) --- */
-.effects-centering-wrapper {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    
-    width: 750px;
-    height: 750px;
-    
-    display: grid;
-    place-items: center; /* Centre horizontalement et verticalement */
-    pointer-events: none;
-    z-index: -1;
-}
-
-/* Force tous les effets enfants à se superposer sur la même case du Grid */
-.effects-centering-wrapper > * {
-    grid-area: 1 / 1;
-}
-
-/* --- SPRITE & OMBRE (SUPERPOSÉS AP PLAT) --- */
-.pokemon-shadow, 
-.pokemon-sprite {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 256px;
-    height: 256px;
-    image-rendering: pixelated;
-}
-
-.pokemon-shadow {
-    filter: brightness(0);
-    opacity: 0;
-}
-
-.pokemon-sprite {
-    filter:
-        drop-shadow(0 0 10px rgba(255,255,255,0.6))
-        drop-shadow(0 0 25px rgba(255,255,255,0.3));
-}
-
-.pokemon-hide {
-    opacity: 0;
-    transform: scale(0.9);
-}
-
-#pokemon-name {
-    position: absolute;
-    top: 100%; /* Se place pile sous les 256px du sprite */
-    left: 50%;
-    transform: translateX(-50%), scale(0);
-    margin: 20px 0 0 0;
-    color: #222;
-    font-size: 1.8rem;
-    text-transform: capitalize;
-    white-space: nowrap; /* Évite que le nom ne revienne à la ligne */
-    opacity: 0;
-}
-
-#pokemon-name.slam {
-    animation: textSlam 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-#pokemon-rarity {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-
-    margin: 60px 0 0 0; 
-    transform: translateX(-50%) scale(0);
-    
-    font-size: 1.2rem;
-    font-weight: 800;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    white-space: nowrap;
-    opacity: 0;
-    
-    text-shadow: 0px 2px 4px rgba(0,0,0,0.3);
-}
-
-#pokemon-rarity.rarity-slam {
-    animation: raritySlamAnim 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-@keyframes raritySlamAnim {
-    0% {
-        opacity: 0;
-        transform: translateX(-50%) scale(3); /* Pars de très grand */
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(-50%) scale(1); /* S'écrase à sa taille normale */
-    }
-}
-
-/* --- COULEURS DYNAMIQUES SELON LA RARETÉ --- */
-.rarity-commun #pokemon-rarity { color: #a0a0a0; }
-.rarity-rare #pokemon-rarity { color: #4fa6ff; text-shadow: 0 0 8px rgba(79, 166, 255, 0.6); }
-.rarity-epic #pokemon-rarity { color: #b75cff; text-shadow: 0 0 10px rgba(183, 92, 255, 0.8); }
-.rarity-legendary #pokemon-rarity { color: #ffb700; text-shadow: 0 0 15px rgba(255, 183, 0, 1); }
-
-@keyframes textSlam {
-    0% { transform: translateX(-50%) translateY(-50px) scale(2); opacity: 0; filter: blur(5px); }
-    70% { transform: translateX(-50%) translateY(0) scale(0.9); opacity: 1; filter: blur(0); }
-    100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
-}
-
-/* --- ANIMATIONS ET EFFETS VISUELS --- */
-.shadow-enter {
-    animation: shadowEnter 0.8s ease-out forwards;
-}
-
-@keyframes shadowEnter {
-    0% {
-        opacity: 0;
-        transform: scale(0.2) translateY(120px);
-    }
-    40% {
-        opacity: 1;
-        transform: scale(1.3) translateY(-10px);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-.pokemon-reveal {
-    animation: revealPokemon 0.45s ease-out forwards;
-}
-
-@keyframes revealPokemon {
-    0% {
-        opacity: 0;
-        transform: scale(1.4);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.idle {
-    animation: idleFloat 1.6s ease-in-out infinite;
-}
-
-@keyframes idleFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
-
-.encounter-effect {
-    position: fixed;
-    inset: 0;
-    background: white;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 10;
-}
-
-.flash {
-    animation: flashEffect 0.25s ease-out;
-}
-
-@keyframes flashEffect {
-    0% { opacity: 0; }
-    50% { opacity: 0.8; }
-    100% { opacity: 0; }
-}
-
-/* --- CONFIGURATION DES EFFETS RADIAUX & RAYONS --- */
-.radial-burst {
-    width: 750px;
-    height: 750px;
-    border-radius: 50%;
-    opacity: 0;
-    transform: scale(0.2) rotate(0deg);
-    background: radial-gradient(
-        circle,
-        rgba(255,255,255,0.9) 0%,
-        rgba(255,255,255,0.4) 20%,
-        rgba(255,255,255,0.1) 40%,
-        rgba(255,255,255,0) 70
-    );
-    filter: blur(2px);
-}
-
-.radial-burst.active {
-    animation:
-        radialBurst 0.75s cubic-bezier(.2,.9,.2,1),
-        pulseShock 0.25s ease-out;
-}
-
-.radial-burst::after {
-    content: "";
-    position: absolute;
-    inset: 50px;
-    border-radius: 50%;
-    background: white;
-    opacity: 0.8;
-    filter: blur(8px);
-}
-
-@keyframes pulseShock {
-    0% { transform: scale(0.2); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-}
-
-@keyframes radialBurst {
-    0% { opacity: 0; transform: scale(0.2) rotate(0deg); }
-    20% { opacity: 0.3; transform: scale(0.6) rotate(90deg); }
-    50% { opacity: 0.6; transform: scale(1.2) rotate(200deg); }
-    70% { opacity: 1; transform: scale(1.4) rotate(260deg); }
-    100% { opacity: 0; transform: scale(1.6) rotate(320deg); }
-}
-
-/* --- RARETÉS & EFFETS ULTRA --- */
-.rarity-commun { --glow-color: #ffffff; }
-.rarity-rare { --glow-color: #4da6ff; }
-.rarity-epic { --glow-color: #b366ff; }
-.rarity-legendary { --glow-color: #ffd700; }
-
-.dim-background {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    opacity: 0;
-    transition: opacity 1s ease-in-out;
-    z-index: -1;
-    pointer-events: none;
-}
-.dim-background.active { opacity: 0.6; }
-.dim-background.intense { opacity: 0.9; transition: opacity 2s ease-in-out;}
-
-.light-rays {
-    width: 600px;
-    height: 600px;
-    background: conic-gradient(from 0deg, transparent 0deg, var(--glow-color) 20deg, transparent 40deg, var(--glow-color) 60deg, transparent 80deg, var(--glow-color) 100deg, transparent 120deg, var(--glow-color) 140deg, transparent 160deg, var(--glow-color) 180deg, transparent 200deg, var(--glow-color) 220deg, transparent 240deg, var(--glow-color) 260deg, transparent 280deg, var(--glow-color) 300deg, transparent 320deg, var(--glow-color) 340deg, transparent 360deg);
-    opacity: 0;
-    border-radius: 50%;
-    transform: scale(0);
-    transition: opacity 0.5s;
-    filter: blur(8px);
-}
-
-.light-rays.active {
+.ball-btn.disabled {
     opacity: 0.4;
-    transform: scale(1);
-    animation: spinRays 10s linear infinite;
+    cursor: not-allowed;
+    filter: grayscale(1);
 }
 
-@keyframes spinRays {
-    100% { transform: scale(1) rotate(360deg); }
-}
+.ball-img { width: 50px; height: 50px; margin-bottom: 10px; }
+.ball-name { color: white; font-weight: bold; text-transform: capitalize; font-size: 1rem;}
+.ball-count { color: #cbd5e1; font-size: 0.85rem; margin-top: 5px; }
 
-.pokemon-sprite.reveal {
-    animation: reveal 0.4s ease-out forwards;
-    filter: 
-        drop-shadow(0 0 10px var(--glow-color)) 
-        drop-shadow(0 0 30px var(--glow-color));
-}
-
-.particle {
-    position: absolute;
-    width: 8px;
-    height: 8px;
-    background-color: var(--glow-color);
-    border-radius: 50%;
-    pointer-events: none;
-    opacity: 0;
-    box-shadow: 0 0 10px var(--glow-color);
-}
-
-/* --- SECOUSSES SISMISQUES --- */
-.screen-shake-little { animation: shake-little 0.3s; }
-.screen-shake-medium { animation: shake-medium 0.4s; }
-.screen-shake-big { animation: shake-big 0.6s; }
-
-@keyframes shake-little {
-    0%, 100% { transform: translateX(0); }
-    25%, 75% { transform: translateX(4px); }
-    50% { transform: translateX(-4px); }
-}
-@keyframes shake-medium {
-    0%, 100% { transform: translateX(0); }
-    25%, 75% { transform: translateX(8px); }
-    50% { transform: translateX(-8px); }
-}
-@keyframes shake-big {
-    0%, 100% { transform: translateX(0); }
-    25%, 75% { transform: translateX(15px); }
-    50% { transform: translateX(-15px); }
-}
-
-.speed-lines {
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    background: radial-gradient(circle, transparent 30%, rgba(255,255,255,0.2) 70%),
-                repeating-conic-gradient(from 0deg, transparent 0deg 2deg, rgba(255,255,255,0.1) 3deg 5deg);
-    opacity: 0;
-    transform: scale(1.5);
-    pointer-events: none;
-    z-index: -2;
-}
-
-.speed-lines.active {
-    animation: speedLinesZoom 0.5s ease-in infinite;
-    opacity: 1;
-}
-
-@keyframes speedLinesZoom {
-    0% { transform: scale(1.5) rotate(0deg); opacity: 0.5; }
-    50% { transform: scale(1.3) rotate(1deg); opacity: 1; }
-    100% { transform: scale(1.4) rotate(-1deg); opacity: 0.5; }
-}
-
-body.impact-flash {
-    animation: impactFrame 0.12s steps(2) forwards infinite;
-}
-
-@keyframes impactFrame {
-    0% { filter: invert(1) brightness(1.8); }
-    50% { filter: contrast(3) saturate(2); }
-    100% { filter: none; }
-}
-
-.shiny-star {
-    position: absolute;
-    /* On retire la font-size fixe, on va la gérer dynamiquement en JS ! */
-    pointer-events: none;
-    opacity: 0;
-    
-    /* CRUCIAL : Passe devant le sprite du Pokémon et devant les ombres */
-    z-index: 999; 
-    
-    /* TRIPLE GLOW NÉON (Blanc + Or + Orange ambré) */
-    filter: 
-        drop-shadow(0 0 4px #ffffff) 
-        drop-shadow(0 0 12px #ffd700) 
-        drop-shadow(0 0 25px #ff8800);
-        
-    user-select: none;
-    line-height: 1;
+@keyframes slideUpPop {
+    to { transform: translateY(0); }
 }

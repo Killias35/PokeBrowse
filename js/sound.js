@@ -252,3 +252,57 @@ export function playWhooshSound() {
     noise.start(now);
     noise.stop(now + duration);
 }
+
+let rummageTimer;
+
+// Fonction qui génère un court bruit de froissement
+export function playRustle() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const audioCtx = new AudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const bufferSize = audioCtx.sampleRate * 0.1; // 100 millisecondes
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    
+    // Génération de bruit blanc
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+    }
+    
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    
+    // On filtre le son pour enlever les aigus agressifs (effet "tissu/sac")
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    // Fréquence aléatoire pour que chaque froissement soit unique
+    filter.frequency.value = Math.random() * 800 + 400; 
+    
+    // On gère le volume (attaque rapide, fondu rapide)
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    
+    // Connexions
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    noise.start();
+}
+// Boucle qui déclenche les froissements de manière chaotique
+export function startRummageSound() {
+    const trigger = () => {
+        playRustle();
+        // Relance un bruit entre 50ms et 150ms plus tard
+        rummageTimer = setTimeout(trigger, Math.random() * 100 + 50);
+    };
+    trigger();
+}
+// Fonction pour tout couper
+export const stopRummageSound = () => {
+    clearTimeout(rummageTimer);
+};
+
