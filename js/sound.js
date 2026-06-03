@@ -39,7 +39,7 @@ export function stopHuntMusic() {
   huntMusic = null;
 }
 
-export function playShinyChime() {  // Bruit d'étoile
+export function playShiny() {  // Bruit d'étoile
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();

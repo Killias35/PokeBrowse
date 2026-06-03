@@ -3,25 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokédex</title>
+    <title>Pokédex - Collection</title>
     <link rel="stylesheet" href="../css/pokedex.css">
 </head>
 <body>
 
     <main class="pokedex-app">
-
         <header class="pokedex-header">
-            <div class="pokeball"></div>
-
+            <div class="header-top">
+                <div class="pokeball"></div>
+                <div class="completion-container">
+                    <span id="nb-pokemons-badge" class="completion-badge">0%</span>
+                    <span class="completion-text">Complété</span>
+                </div>
+            </div>
+            
             <h1>Pokédex Kanto</h1>
-            <p>Les 151 premiers Pokémon</p>
+            <p>Attrape-les tous pour débloquer leurs secrets</p>
+
+            <button id="reset-collection" class="danger-btn">⚠️ Libérer tous les Pokémon</button>
         </header>
 
         <section class="pokedex-container">
             <div id="pokedex" class="pokemon-grid"></div>
         </section>
-
     </main>
+
+    <div id="pokemon-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="close-modal" class="close-btn">&times;</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
 
     <script type="module" src="../js/pokedex.js"></script>
 

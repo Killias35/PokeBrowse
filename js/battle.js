@@ -1,4 +1,4 @@
-import { playCry, playShinyChime, playSuspenseSound, playImpactBoom, playWhooshSound } from "./sound.js";
+import { playCry, playShiny, playSuspenseSound, playImpactBoom, playWhooshSound } from "./sound.js";
 
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -45,7 +45,7 @@ function spawnParticles(rarity, containerId = "particles-container") {
 function spawnShinyStars(starCount = 35) {
     const container = document.getElementById("particles-container");
     if (!container) return;
-    playShinyChime(); // Joue le son de capture Shiny
+    playShiny(); // Joue le son de capture Shiny
 
     // S'assurer que le conteneur lui-même n'est pas bloqué derrière
     container.style.zIndex = "999"; 

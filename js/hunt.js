@@ -1,5 +1,5 @@
 import { playCry, startHuntMusic, stopHuntMusic } from "./sound.js";
-import { getPokemon } from "./utils.js";
+import { getPokemon, capturePokemon } from "./utils.js";
 
 let setHunt = false;
 let huntMusic = null;

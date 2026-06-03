@@ -44,12 +44,6 @@ document.getElementById("spawn").addEventListener("click", async () => {
 
 });
 
-document.getElementById("collection").addEventListener("click", () => {
-  chrome.tabs.create({
-    url: chrome.runtime.getURL("html/collection.html")
-  });
-});
-
 document.getElementById("pokedex").addEventListener("click", () => {
   chrome.tabs.create({
     url: chrome.runtime.getURL("html/pokedex.html")

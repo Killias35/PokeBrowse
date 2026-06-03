@@ -47,7 +47,7 @@ export async function getPokemon(id) {
   let sumSats = 0;
   let rarity = 'commun';
   for (const stat of pokemon.stats) {
-    stats[stat.name] = stat.base_stat;
+    stats[stat.stat.name] = stat.base_stat;
     sumSats += stat.base_stat;
   }
   if (sumSats >= 580) rarity = 'legendary';
