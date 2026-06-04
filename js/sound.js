@@ -1,4 +1,6 @@
 const GLOBAL_VOLUME = 0.3; // Volume global pour tous les sons (entre 0.0 et 1.0)
+const GLOBAL_MUSIC_VOLUME = 0.2; // Volume spécifique pour la musique de chasse (plus bas que les effets)
+let Music = null;
 
 export function playCry(pokemon) {
   const url = chrome.runtime.getURL(`assets/cries/${pokemon.id}.ogg`);
@@ -12,32 +14,44 @@ export function playCry(pokemon) {
 }
 
 
-export function startHuntMusic() {
+export function startMusic(type) {
+    stopMusic();
+    let nbMusic = 4;
+    let path = "routes";
+    if (type === "hunt") {
+        path = "routes";
+        nbMusic = 4;
+    }
+    else if (type === "capture") {
+        path = "fight";
+        nbMusic = 0;
+    }
+    else if (type === "rare_capture") {
+        path = "rare_fight";
+        nbMusic = 0;
+    }
 
-  // évite de relancer une musique déjà en cours
-  if (huntMusic) return;
+    const randomMusic = Math.floor(Math.random() * nbMusic);
+    
+    Music = new Audio(
+        chrome.runtime.getURL(`assets/${path}/${randomMusic}.mp3`)
+    );
 
-  const randomMusic = Math.floor(Math.random() * 4);
+    Music.loop = true;
+    Music.volume = GLOBAL_MUSIC_VOLUME;
 
-  huntMusic = new Audio(
-    chrome.runtime.getURL(`assets/routes/${randomMusic}.mp3`)
-  );
-
-  huntMusic.loop = true;
-  huntMusic.volume = 0.15;
-
-  huntMusic.play().catch(err => {
-    console.error("Impossible de lancer la musique :", err);
-    huntMusic = null;
-  });
+    Music.play().catch(err => {
+        console.error("Impossible de lancer la musique :", err);
+        Music = null;
+    });
 }
 
-export function stopHuntMusic() {
-  if (!huntMusic) return;
+export function stopMusic() {
+  if (!Music) return;
 
-  huntMusic.pause();
-  huntMusic.currentTime = 0;
-  huntMusic = null;
+  Music.pause();
+  Music.currentTime = 0;
+  Music = null;
 }
 
 export function playShiny() {  // Bruit d'étoile
