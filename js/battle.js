@@ -1,12 +1,15 @@
-import { startEncounter } from "./battle-annimation.js";
+import { startEncounter, showSplashText } from "./battle-annimation.js";
 import { getPokeballs } from "./pokeballs.js";
-import { startRummageSound, stopRummageSound } from "./sound.js";
+import { startRummageSound, stopRummageSound, playHitSound } from "./sound.js";
 
 const POKEBALL_CHOICE_DURATION = 3000; // Durée pour choisir une ball (en ms)
+const COMBO_DURATION = 5000; // Durée de la phase de combo (en ms)
+let POKEMON_FIGHTING = null; // Variable globale pour stocker le Pokémon en combat
 
 // --- LOGIQUE DU MINI-JEU 1 : CHOIX DE LA BALL ---
 async function phaseChoixBall() {
     return new Promise(async (resolve) => {
+        await showSplashText("CHOISIR UNE BALL !", 500);
         startRummageSound(); // Démarre le son de fouille
 
         const ui = document.getElementById("capture-ui");
@@ -32,7 +35,7 @@ async function phaseChoixBall() {
                     cancelAnimationFrame(timerFrame); // Arrête le timer
                     ui.classList.add("hidden"); // Cache l'UI
                     stopRummageSound(); // Arrête le son de fouille
-                    resolve(ball.name); // Renvoie la ball choisie à la suite du code
+                    resolve(ball); // Renvoie la ball choisie à la suite du code
                 });
             }
             container.appendChild(btn);
@@ -68,7 +71,7 @@ async function phaseChoixBall() {
                 // TEMPS ÉCOULÉ !
                 ui.classList.add("hidden");
                 // On peut décider de renvoyer 'null' ou forcer la ball de base
-                resolve("timeout"); 
+                resolve(null); 
                 stopRummageSound();
             }
         }
@@ -77,24 +80,98 @@ async function phaseChoixBall() {
         timerFrame = requestAnimationFrame(updateTimer);
     });
 }
+async function phaseAffaiblissement() {
+    const rarity = POKEMON_FIGHTING.rarity;
+    const hpBar = document.getElementById("hp-bar-fill");
+    const container = document.getElementById("combat-click-area");
+    
+    // Définir la vie totale basée sur la rareté
+    let targetCPS = 6;
+    if (rarity === "rare") targetCPS = 8;
+    else if (rarity === "epic") targetCPS = 11;
+    else if (rarity === "legendary") targetCPS = 13;
+    let totalHp = targetCPS * (COMBO_DURATION / 1000);
+    let currentHp = totalHp;
+
+    container.classList.remove("hidden");
+    
+    return new Promise((resolve) => {
+        const startTime = performance.now();
+        
+        const onClick = (e) => {
+            currentHp--;
+            
+            // Mise à jour visuelle
+            const percent = (currentHp / totalHp) * 100;
+            hpBar.style.width = `${percent}%`;
+            
+            // Changement de couleur
+            if (percent < 30) hpBar.style.background = "#ef4444";
+            else if (percent < 60) hpBar.style.background = "#f59e0b";
+            
+            playHitSound(percent / 100);
+
+            if (percent < 75) {
+                document.getElementById("hp-bar-bg").classList.add("hp-shake");
+            }
+            if (percent < 50) {
+                document.getElementById("hp-bar-bg").classList.add("global-shake");
+            }
+            if (percent < 25) {
+                document.getElementById("hp-bar-bg").classList.add("hp-stress");
+            }
+            
+            // Effet d'étincelle
+            const spark = document.createElement("div");
+            spark.className = "hit-spark";
+            spark.style.left = (e.clientX - 40) + "px";
+            spark.style.top = (e.clientY - 40) + "px";
+            document.body.appendChild(spark);
+            setTimeout(() => spark.remove(), 300);
+
+            // Victoire si HP à 0
+            if (currentHp <= 0) {
+                cleanup();
+                resolve(100);
+            }
+        };
+
+        const cleanup = () => {
+            container.removeEventListener("mousedown", onClick);
+        };
+
+        container.addEventListener("mousedown", onClick);
+
+        // Timer de fin
+        setTimeout(() => {
+            cleanup();
+            let leftoverHpPercent = Math.min(100, Math.round((1 - (currentHp / totalHp)) * 100));
+            resolve(leftoverHpPercent);
+        }, COMBO_DURATION);
+    });
+}
 
 async function lancerSequenceCapture() {
     console.log("Phase 1 : Choix de la Ball...");
     const ballChoisie = await phaseChoixBall();
 
-    if (ballChoisie === "timeout") {
+    if (ballChoisie === null) {
         console.log("Trop lent ! Le Pokémon s'enfuit !");
         // Gérer la fuite ou forcer une Pokéball
         return;
     }
 
-    console.log(`Le joueur a choisi : ${ballChoisie}`);
-    // Passer à la phase 2 : Affaiblissement (Osu circle)...
+    console.log(`Le joueur a choisi : ${ballChoisie.name} avec une puissance de capture de ${ballChoisie.power} !`);
+    const puissance = await phaseAffaiblissement();
+    console.log(`Phase de combo terminée avec ${puissance}% de puissance !`);
+
 }
 
 chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
     const pokemon = result.currentBattlePokemon;
     if (!pokemon) return;
+
+    POKEMON_FIGHTING = pokemon; // Stocke le Pokémon en combat dans la variable globale
 
     await startEncounter(pokemon);
     await lancerSequenceCapture();

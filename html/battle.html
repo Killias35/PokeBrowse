@@ -21,7 +21,7 @@
 
             <div id="dim-background" class="dim-background"></div>
 
-            <section class="battle-arena">
+            <section class="battle-arena" id="battle-arena">
                 <div class="pokemon-zone" id="pokemon-zone">
                 <div class="effects-centering-wrapper">
                     <div id="light-rays" class="light-rays"></div>
@@ -37,6 +37,10 @@
                 <h2 id="pokemon-name"></h2>
                 <h3 id="pokemon-rarity"></h3>
 
+                <!-- Splash screen -->
+                <div id="splash-screen" class="hidden">
+                    <h1 id="splash-text">ACTION !</h1>
+                </div>
 
                 <!-- Choix de la Pokéball -->
                 <div id="capture-ui" class="hidden">
@@ -50,6 +54,14 @@
                         <div id="ball-container" class="ball-grid">
                             </div>
                     </div>
+                </div>
+
+                <!-- Combat -->
+                <div id="combat-click-area" class="hidden">
+                    <div class="hp-wrapper" id="hp-wrapper">
+                        <div id="hp-bar-bg"><div id="hp-bar-fill"></div></div>
+                    </div>
+                    <div id="impact-container"></div> </div>
                 </div>
 
             </div>

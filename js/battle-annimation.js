@@ -221,3 +221,23 @@ export async function startEncounter(pokemon) {
 
     await wait(500);
 }
+
+export function showSplashText(text, duration = 1000) {
+    return new Promise((resolve) => {
+        const splashScreen = document.getElementById("splash-screen");
+        const splashText = document.getElementById("splash-text");
+        
+        splashText.textContent = text;
+        splashScreen.classList.remove("hidden");
+        
+        // On réinitialise l'animation pour qu'elle rejoue à chaque fois
+        splashText.style.animation = 'none';
+        splashText.offsetHeight; /* Trigger reflow */
+        splashText.style.animation = null;
+
+        setTimeout(() => {
+            splashScreen.classList.add("hidden");
+            setTimeout(resolve, 200); // Petit délai pour le fade out
+        }, duration);
+    });
+}

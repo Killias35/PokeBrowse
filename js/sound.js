@@ -1,6 +1,7 @@
+const GLOBAL_VOLUME = 0.3; // Volume global pour tous les sons (entre 0.0 et 1.0)
+
 export function playCry(pokemon) {
   const url = chrome.runtime.getURL(`assets/cries/${pokemon.id}.ogg`);
-  console.log(url);
   const audio = new Audio(url);
 
   audio.onerror = () => {
@@ -306,3 +307,23 @@ export const stopRummageSound = () => {
     clearTimeout(rummageTimer);
 };
 
+// --- GÉNÉRATEUR DE SON : COUP / IMPACT ---
+export function playHitSound(hpPercent) {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    // Le volume augmente plus la vie baisse (1 - hpPercent)
+    const intensity = 1 - hpPercent;
+    gain.gain.setValueAtTime(GLOBAL_VOLUME + (intensity * 0.5), ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    
+    osc.type = 'sawtooth';
+    // La fréquence devient plus grave et percutante quand la vie est basse
+    osc.frequency.setValueAtTime(150 - (intensity * 100), ctx.currentTime);
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
+}
