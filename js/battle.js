@@ -1,14 +1,29 @@
 import { startEncounter, showSplashText } from "./battle-annimation.js";
 import { getPokeballs } from "./pokeballs.js";
-import { startRummageSound, stopRummageSound, playHitSound } from "./sound.js";
+import { startMusic, stopMusic, startRummageSound, stopRummageSound, playHitSound } from "./sound.js";
 
 const POKEBALL_CHOICE_DURATION = 3000; // Durée pour choisir une ball (en ms)
 const COMBO_DURATION = 5000; // Durée de la phase de combo (en ms)
 let POKEMON_FIGHTING = null; // Variable globale pour stocker le Pokémon en combat
+const pokemon_sprite = document.getElementById("pokemon-sprite");
+
+function removeHpStatus() {
+    pokemon_sprite.classList.remove("hp-90", "hp-70", "hp-50", "hp-25", "hp-0");
+}
+
+function setHpStatus(percent) {
+    removeHpStatus();
+    if (percent > 70) pokemon_sprite.classList.add("hp-90");
+    else if (percent > 50) pokemon_sprite.classList.add("hp-70");
+    else if (percent > 25) pokemon_sprite.classList.add("hp-50");
+    else if (percent > 0) pokemon_sprite.classList.add("hp-25");
+    else pokemon_sprite.classList.add("hp-0");
+}
 
 // --- LOGIQUE DU MINI-JEU 1 : CHOIX DE LA BALL ---
 async function phaseChoixBall() {
     return new Promise(async (resolve) => {
+        setHpStatus(100);
         await showSplashText("CHOISIR UNE BALL !", 500);
         startRummageSound(); // Démarre le son de fouille
 
@@ -80,7 +95,9 @@ async function phaseChoixBall() {
         timerFrame = requestAnimationFrame(updateTimer);
     });
 }
+
 async function phaseAffaiblissement() {
+    await showSplashText("ATTAQUE LE !", 300);
     const rarity = POKEMON_FIGHTING.rarity;
     const hpBar = document.getElementById("hp-bar-fill");
     const container = document.getElementById("combat-click-area");
@@ -97,14 +114,27 @@ async function phaseAffaiblissement() {
     
     return new Promise((resolve) => {
         const startTime = performance.now();
-        
-        const onClick = (e) => {
+        let resolved = false;
+        const onClick = async (e) => {
             currentHp--;
             
             // Mise à jour visuelle
             const percent = (currentHp / totalHp) * 100;
             hpBar.style.width = `${percent}%`;
             
+            // effet sur pokemon
+            removeHpStatus();
+            let shakeX = (Math.random() - 0.5) * 30; // Décalage aléatoire entre -5px et 5px
+            let shakeY = (Math.random() - 0.5) * 30;
+            pokemon_sprite.classList.add("pokemon-hit");
+            pokemon_sprite.style.setProperty('--shake-x', `${shakeX}px`);
+            pokemon_sprite.style.setProperty('--shake-y', `${shakeY}px`);
+ 
+            setTimeout(() => {
+                pokemon_sprite.classList.remove("pokemon-hit");
+                setHpStatus(percent);
+            }, 50);
+
             // Changement de couleur
             if (percent < 30) hpBar.style.background = "#ef4444";
             else if (percent < 60) hpBar.style.background = "#f59e0b";
@@ -131,7 +161,9 @@ async function phaseAffaiblissement() {
 
             // Victoire si HP à 0
             if (currentHp <= 0) {
+                resolved = true;
                 cleanup();
+                await showSplashText("!!!", 100);
                 resolve(100);
             }
         };
@@ -143,9 +175,11 @@ async function phaseAffaiblissement() {
         container.addEventListener("mousedown", onClick);
 
         // Timer de fin
-        setTimeout(() => {
+        setTimeout(async () => {
+            if (resolved) return;
             cleanup();
             let leftoverHpPercent = Math.min(100, Math.round((1 - (currentHp / totalHp)) * 100));
+            await showSplashText("!", 100);
             resolve(leftoverHpPercent);
         }, COMBO_DURATION);
     });
@@ -171,7 +205,12 @@ chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
     const pokemon = result.currentBattlePokemon;
     if (!pokemon) return;
 
-    POKEMON_FIGHTING = pokemon; // Stocke le Pokémon en combat dans la variable globale
+    POKEMON_FIGHTING = pokemon;
+    if (pokemon.rarity === "legendary" || pokemon.rarity === "epic") {
+        startMusic("rare_capture");
+    } else {
+        startMusic("capture");
+    }
 
     await startEncounter(pokemon);
     await lancerSequenceCapture();

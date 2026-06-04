@@ -1,8 +1,7 @@
-import { playCry, startHuntMusic, stopHuntMusic } from "./sound.js";
+import { playCry, startMusic, stopMusic } from "./sound.js";
 import { getPokemon, capturePokemon } from "./utils.js";
 
 let setHunt = false;
-let huntMusic = null;
 const maxPokemon = 3;
 let currentPokemonCount = 0;
 const shinyChance = 0.005; // 0.5% de chance d'être shiny
@@ -22,9 +21,9 @@ chrome.runtime.onMessage.addListener((msg) => {
     unlock.play().catch(() => {});
 
     if (setHunt) {
-      startHuntMusic();
+      startMusic("hunt");
     } else {
-      stopHuntMusic();
+      stopMusic();
     }
   }
 });
@@ -74,6 +73,8 @@ async function spawnPokemon() {
     await chrome.storage.local.set({
       currentBattlePokemon: pokemon
     });
+
+    stopMusic();
 
     window.open(
       chrome.runtime.getURL("html/battle.html")

@@ -185,14 +185,14 @@ export async function startEncounter(pokemon) {
     shadow.classList.remove("shadow-enter");
 
     // Révélation
-    sprite.classList.add("pokemon-reveal");
     sprite.classList.remove("pokemon-hide");
+    sprite.classList.add("pokemon-reveal");
 
     // Activation des rayons de lumière permanents pour les top tiers
     if (rarity === 'epic' || rarity === 'legendary') {
         lightRays.classList.add('active');
     }
-    
+
     await wait(900);
 
     name.textContent = pokemon.name;
@@ -211,7 +211,6 @@ export async function startEncounter(pokemon) {
     }, 500);
 
     // --- PHASE 3 : RETOUR AU CALME ---
-    sprite.classList.add("idle");
     dimBg.classList.remove('intense', 'active'); // La lumière du jour revient
     
     setTimeout(() => {
@@ -220,6 +219,7 @@ export async function startEncounter(pokemon) {
     }, 500);
 
     await wait(500);
+    sprite.classList.remove("pokemon-reveal");
 }
 
 export function showSplashText(text, duration = 1000) {

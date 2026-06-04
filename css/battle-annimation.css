@@ -176,20 +176,17 @@ body {
     0% {
         opacity: 0;
         transform: scale(1.4);
+        transform: translateY(0);
     }
+    50% {
+        transform: scale(0.9);
+        transform: translateY(-10px);
+        }
     100% {
         opacity: 1;
         transform: scale(1);
+        transform: translateY(0);
     }
-}
-
-.idle {
-    animation: idleFloat 1.6s ease-in-out infinite;
-}
-
-@keyframes idleFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
 }
 
 .encounter-effect {
