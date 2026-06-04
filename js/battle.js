@@ -5,6 +5,7 @@ import { startMusic, stopMusic, startRummageSound, stopRummageSound, playHitSoun
 const POKEBALL_CHOICE_DURATION = 3000; // Durée pour choisir une ball (en ms)
 const COMBO_DURATION = 5000; // Durée de la phase de combo (en ms)
 let POKEMON_FIGHTING = null; // Variable globale pour stocker le Pokémon en combat
+const MAX_RETRY_TARGETING = 5;
 
 const pokemon_sprite = document.getElementById("pokemon-sprite");
 const combat_bg = document.getElementById("combat-bg");
@@ -12,13 +13,12 @@ const combat_bg = document.getElementById("combat-bg");
 let currentHpTier = null;    // evite les changements de classe inutiles et les animations à répétition quand on clique très vite sur le pokemon
 
 const RARITY_SETTINGS = {   // pour étape de viser
-    commun:     { duration: 1.6, targetSize: 110, pitchMax: 280, severity: 0.8 },
-    rare:       { duration: 1.0, targetSize: 80,  pitchMax: 380, severity: 1.25 },
-    epic:       { duration: 0.8, targetSize: 60,  pitchMax: 450, severity: 2.0 },
-    legendary:  { duration: 0.5, targetSize: 45,  pitchMax: 550, severity: 2.5 },
+    commun:     { resistence: 20, targetCPS: 8, duration: 1.6, targetSize: 80, pitchMax: 280, severity: 1 },
+    rare:       { resistence: 30, targetCPS: 10, duration: 1.0, targetSize: 100,  pitchMax: 380, severity: 1.5 },
+    epic:       { resistence: 45, targetCPS: 12, duration: 0.5, targetSize: 125,  pitchMax: 450, severity: 3.5 },
+    legendary:  { resistence: 60, targetCPS: 15, duration: 0.4, targetSize: 150,  pitchMax: 550, severity: 5 },
 };
 
-const MAX_RETRY_TARGETING = 3;
 
 function removeHpStatusBg() {
     combat_bg.classList.remove("bg-hp-50", "bg-hp-25", "bg-hp-0");
@@ -284,6 +284,7 @@ async function startCaptureMinigame() {
         setTimeout(async () => {
             if (resolved) return;
             window.removeEventListener("click", onCaptureClick);
+            stopTargetingSound();
             await showScore(0);
             zone.classList.add("hidden");
             pulseRing.style.animation = "";
@@ -296,6 +297,24 @@ async function startCaptureMinigame() {
     });
 }
 
+function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
+    let baseSkill = (puissance + capture) /2;
+    let finalChance = Math.round(baseSkill * ballPower) - resistance;
+
+    if (finalChance > 100) finalChance = 100;
+    if (finalChance < 0) finalChance = 0;
+
+    const roll = (Math.random() * 100).toFixed(2);
+    const isCaught = roll <= finalChance;
+
+    // On retourne le résultat et le pourcentage exact pour l'afficher ou débugger
+    return {
+        isCaught: isCaught,
+        chance: finalChance,
+        roll: roll
+    };
+}
+
 async function lancerSequenceCapture() {
     console.log("Phase 1 : Choix de la Ball...");
     const ballChoisie = await phaseChoixBall();
@@ -305,22 +324,24 @@ async function lancerSequenceCapture() {
         // Gérer la fuite ou forcer une Pokéball
         return;
     }
-    console.log(`Le joueur a choisi : ${ballChoisie.name} avec une puissance de capture de ${ballChoisie.power} !`);
     
     // laisser un pourcentage de chance que le pokemon s'enfuit tout de suite si pas assez affaibli
     const puissance = await phaseAffaiblissement();
-    console.log(`Phase de combo terminée avec ${puissance}% de puissance !`);
     
     const captureScore = await startCaptureMinigame();
-    console.log(`Score de capture : ${captureScore}/100`);
-    
-    let finalCaptureValue = captureScore * (ballChoisie.power / 100);
-    console.log(`Valeur finale de capture : ${finalCaptureValue}`);
+    const resistence = RARITY_SETTINGS[POKEMON_FIGHTING.rarity].resistence;
+    const {isCaught, chance, roll} = calculateCaptureSuccess(puissance, captureScore, ballChoisie.power, resistence);
+
+    await showSplashText(isCaught ? "Capture !" : "Rate !", 1000);
+    await showSplashText(`Chance de capture : ${chance}% (Roll : ${roll})`, 10000);
+
 }
 
 chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
     const pokemon = result.currentBattlePokemon;
     if (!pokemon) return;
+    // pokemon.rarity = "commun"    // DEBUG
+    // pokemon.isShiny = true       // DEBUG
 
     POKEMON_FIGHTING = pokemon;
     if (pokemon.rarity === "legendary" || pokemon.rarity === "epic") {
