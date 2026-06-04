@@ -15,7 +15,7 @@ const POKEBALLS = [
     count: 2,
     cooldown: 0.5,
     lastUsed: Date.now(), 
-    power: 2
+    power: 1.25
   },
   {
     name: "hyperball",
@@ -23,7 +23,7 @@ const POKEBALLS = [
     count: 1,
     cooldown: 12,
     lastUsed: Date.now(),
-    power: 3
+    power: 1.5
   }
 ];
 
