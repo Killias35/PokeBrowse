@@ -1,6 +1,8 @@
 const GLOBAL_VOLUME = 0.3; // Volume global pour tous les sons (entre 0.0 et 1.0)
 const GLOBAL_MUSIC_VOLUME = 0.2; // Volume spécifique pour la musique de chasse (plus bas que les effets)
+
 let Music = null;
+let ctx = null;
 
 export function playCry(pokemon) {
   const url = chrome.runtime.getURL(`assets/cries/${pokemon.id}.ogg`);
@@ -55,9 +57,11 @@ export function stopMusic() {
 }
 
 export function playShiny() {  // Bruit d'étoile
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
+    if(!ctx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        ctx = new AudioContext();
+    }
 
     // Fréquences des petites clochettes cristallines
     const frequencies = [1046.50, 1318.51, 1567.98, 2093.00, 2637.02, 3135.96];
@@ -90,9 +94,11 @@ export function playShiny() {  // Bruit d'étoile
 }
 
 export function playSuspenseSound(rarity, durationMs) {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
+    if(!ctx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        ctx = new AudioContext();
+    }
     const duration = durationMs / 1000; // Temps en secondes
     const now = ctx.currentTime;
 
@@ -199,9 +205,11 @@ export function playSuspenseSound(rarity, durationMs) {
 }
 
 export function playImpactBoom() {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
+    if(!ctx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        ctx = new AudioContext();
+    }
     const now = ctx.currentTime;
 
     const osc = ctx.createOscillator();
@@ -226,9 +234,11 @@ export function playImpactBoom() {
 }
 
 export function playWhooshSound() {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
+    if(!ctx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        ctx = new AudioContext();
+    }
     const now = ctx.currentTime;
     const duration = 0.35; // Légèrement rallongé (350ms) pour donner plus de corps
 
@@ -335,7 +345,11 @@ function makeDistortionCurve(amount = 50) {
 }
 
 export function playHitSound(hpPercent, isFinalHit = false) {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!ctx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        ctx = new AudioContext();
+    }
     const now = ctx.currentTime;
     const intensity = 1 - hpPercent;
 
@@ -389,7 +403,7 @@ export function playHitSound(hpPercent, isFinalHit = false) {
         gainCrack.connect(ctx.destination);
 
         oscCrack.start(now);
-        oscCrack.stop(now + 0.01);
+        oscCrack.stop(now + 0.05);
 
         // --- COUCHE 2 : L'ONDE DE CHOC (BASS THUMP) ---
         const oscThump = ctx.createOscillator();
@@ -436,4 +450,75 @@ function playNoiseBuffer(ctx, startTime, volume, duration) {
     noiseGain.connect(ctx.destination);
     noiseNode.start(startTime);
     noiseNode.stop(startTime + duration);
+}
+
+let currentTargetingGain = null;
+let targetingInterval = null;
+
+export function startTargetingSound(config) {
+    const playTargetingPulse = () => {
+        if (!ctx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            ctx = new AudioContext();
+        }
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+
+        // Onde en dents de scie (sawtooth) pour le côté laser/électrique
+        osc.type = 'sawtooth';
+        
+        // 📈 LE PITCH MONTE : Commence bas (tension), monte aigu (aligné sur l'anneau qui rétrécit)
+        osc.frequency.setValueAtTime(80, now);
+        osc.frequency.exponentialRampToValueAtTime(config.pitchMax, now + (config.duration * 0.8));
+        
+        // FILTRE PASSE-BAS évolutif pour ouvrir le son au fur et à mesure
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(200, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + config.duration);
+        
+        // GESTION DU VOLUME : Léger crescendo pour accentuer l'urgence
+        gainNode.gain.setValueAtTime(0.001, now);
+        gainNode.gain.linearRampToValueAtTime(GLOBAL_VOLUME * 1.5, now + 0.2); // Entrée douce
+        gainNode.gain.linearRampToValueAtTime(GLOBAL_VOLUME * 2, now + 0.9); // Pic de tension
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1.2);          // Chute si pas cliqué
+
+        // Connexions
+        osc.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + config.duration);
+        
+        // On garde une référence du gain actuel pour pouvoir le couper proprement au clic
+        currentTargetingGain = gainNode;
+    };
+
+    // Lance le premier cycle immédiatement
+    playTargetingPulse();
+    // Boucle toutes les 1200ms (Pile le temps de l'animation CSS !)
+    targetingInterval = setInterval(playTargetingPulse, config.duration * 1000);
+}
+
+/**
+ * Coupe instantanément et proprement le son d'attente
+ */
+export function stopTargetingSound() {
+    // On nettoie l'intervalle pour stopper la boucle
+    if (targetingInterval) {
+        clearInterval(targetingInterval);
+        targetingInterval = null;
+    }
+
+    // 🛡️ SÉCURITÉ ANTI-POP : Fondu de fermeture éclair (50ms)
+    if (currentTargetingGain && ctx) {
+        const now = ctx.currentTime;
+        try {
+            currentTargetingGain.gain.setValueAtTime(currentTargetingGain.gain.value, now);
+            currentTargetingGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        } catch(e) { /* Sécurité si le nœud est déjà mort */ }
+    }
 }

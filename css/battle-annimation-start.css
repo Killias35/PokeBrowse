@@ -4,6 +4,13 @@ body {
     min-height: 100vh;
     font-family: Arial, sans-serif;
     overflow: hidden;
+    background: radial-gradient(circle at center, #1e3a8a 0%, #000000 100%);
+    
+    /* 🛡️ LE BOUCLIER ANTI-SÉLECTION : Empêche le surlignage bleu */
+    -webkit-user-select: none; /* Safari / iOS */
+    -moz-user-select: none;    /* Firefox */
+    -ms-user-select: none;     /* Ancien Edge / IE */
+    user-select: none;         /* Standard moderne */
 }
 
 .battle-container {

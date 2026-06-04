@@ -391,3 +391,139 @@
     0% { opacity: 0.5; transform: translateY(-10px) scale(0.9); }
     100% { opacity: 1; transform: translateY(0) scale(1.1); }
 }
+
+
+/* --- ANNIMATION DE L'ETAPE 3 --- */
+
+#capture-zone {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px; height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    pointer-events: none;
+}
+
+.hidden { display: none !important; }
+
+/* 🌟 1. LE NOYAU D'ÉNERGIE CENTRAL */
+.energy-core {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 20px #10b981, 0 0 40px #10b981;
+    animation: corePulse 0.4s infinite alternate;
+}
+@keyframes corePulse {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(1.3); opacity: 1; }
+}
+
+/* 🟢 2. LE RÉTICULE ROTOR FIXE (Look Haute-Technologie) */
+.target-ring {
+    position: absolute;
+    width: var(--target-size, 80px);
+    height: var(--target-size, 80px);
+    border: 3px dashed #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+    /* Le viseur tourne lentement sur lui-même */
+    animation: targetRotate 8s linear infinite;
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+/* On ajoute un deuxième cercle interne plus fin pour l'effet "radar" */
+.target-ring::after {
+    content: '';
+    position: absolute;
+    top: 6px; left: 6px; right: 6px; bottom: 6px;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 50%;
+}
+
+@keyframes targetRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 🔵 L'ANNEAU DE TIMING CORRIGÉ (Un seul cercle, net et électrique) */
+.pulse-ring {
+    position: absolute;
+    width: var(--target-size, 80px);
+    height: var(--target-size, 80px);
+    border: 3px solid #06b6d4; /* Ligne unique et bien visible */
+    border-radius: 50%;
+    /* Lueur diffuse qui ne gêne pas la lecture de la ligne */
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.7), inset 0 0 10px rgba(6, 182, 212, 0.3);
+    
+    animation: shrink var(--shrink-duration, 1s) linear infinite;
+    transform-origin: center;
+}
+
+@keyframes shrink {
+    0% { 
+        transform: scale(3.5); 
+        opacity: 0; 
+    }
+    10% { 
+        opacity: 1; /* Apparition rapide */
+    }
+    80% { 
+        transform: scale(1); /* S'arrête PILE sur la taille de la cible */
+        opacity: 1; 
+        border-color: #34d399; /* Devient vert flash à l'impact */
+        box-shadow: 0 0 25px #34d399;
+    }
+    100% { 
+        transform: scale(0.5); 
+        opacity: 0; 
+    }
+}
+
+/* 💥 LE TEXTE JUICY STYLE ARCADE */
+#capture-feedback {
+    position: absolute;
+    top: -60px;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    font-style: italic;
+    font-size: 2.8rem; /* Plus gros, plus imposant */
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    opacity: 0;
+    pointer-events: none;
+    
+    /* Effet 3D Multi-couches + Lueur Néon (Utilise une variable CSS pour la couleur) */
+    text-shadow: 
+        1px 1px 0 #000, 2px 2px 0 #000, 3px 3px 0 #000, 4px 4px 0 #000, 5px 5px 0 #000,
+        0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
+    
+    transition: transform 0.1s ease;
+}
+
+/* L'animation d'entrée : Grosse claque visuelle */
+.pop-feedback {
+    animation: arcadePop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes arcadePop {
+    0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+    50% { transform: scale(1.4) rotate(10deg); opacity: 1; }
+    70% { transform: scale(0.9) rotate(-5deg); }
+    100% { transform: scale(1) rotate(-3deg); opacity: 1; } /* Reste légèrement incliné pour le style */
+}
+
+/* ⚡ EFFET BONUS : Le texte tremble de rage si c'sest un coup critique */
+.critical-panic {
+    animation: arcadePop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards,
+               textVibration 0.05s infinite alternate !important;
+}
+
+@keyframes textVibration {
+    0% { transform: scale(1) rotate(-3deg) translate(-2px, 2px); }
+    100% { transform: scale(1.05) rotate(-2deg) translate(2px, -2px); }
+}

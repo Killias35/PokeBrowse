@@ -1,6 +1,6 @@
-import { startEncounter, showSplashText } from "./battle-annimation.js";
+import { startEncounter, showSplashText, showScore } from "./battle-annimation.js";
 import { getPokeballs } from "./pokeballs.js";
-import { startMusic, stopMusic, startRummageSound, stopRummageSound, playHitSound } from "./sound.js";
+import { startMusic, stopMusic, startRummageSound, stopRummageSound, playHitSound, startTargetingSound, stopTargetingSound } from "./sound.js";
 
 const POKEBALL_CHOICE_DURATION = 3000; // Durée pour choisir une ball (en ms)
 const COMBO_DURATION = 5000; // Durée de la phase de combo (en ms)
@@ -11,10 +11,18 @@ const combat_bg = document.getElementById("combat-bg");
 
 let currentHpTier = null;    // evite les changements de classe inutiles et les animations à répétition quand on clique très vite sur le pokemon
 
+const RARITY_SETTINGS = {   // pour étape de viser
+    commun:     { duration: 1.6, targetSize: 110, pitchMax: 280, severity: 0.8 },
+    rare:       { duration: 1.0, targetSize: 80,  pitchMax: 380, severity: 1.25 },
+    epic:       { duration: 0.8, targetSize: 60,  pitchMax: 450, severity: 2.0 },
+    legendary:  { duration: 0.5, targetSize: 45,  pitchMax: 550, severity: 2.5 },
+};
+
+const MAX_RETRY_TARGETING = 3;
+
 function removeHpStatusBg() {
     combat_bg.classList.remove("bg-hp-50", "bg-hp-25", "bg-hp-0");
 }
-
 
 function setHpStatusBg(percent) {
     let targetTier;
@@ -155,6 +163,7 @@ async function phaseAffaiblissement() {
         const startTime = performance.now();
         let resolved = false;
         const onClick = async (e) => {
+            if (e.button !== 0) return;
             currentHp--;
             
             // Mise à jour visuelle
@@ -209,10 +218,10 @@ async function phaseAffaiblissement() {
         };
 
         const cleanup = () => {
-            container.removeEventListener("mousedown", onClick);
+            container.removeEventListener("click", onClick);
         };
 
-        container.addEventListener("mousedown", onClick);
+        container.addEventListener("click", onClick);
 
         // Timer de fin
         setTimeout(async () => {
@@ -225,6 +234,68 @@ async function phaseAffaiblissement() {
     });
 }
 
+async function startCaptureMinigame() {
+    await showSplashText("VISE !", 600);
+
+    return new Promise((resolve) => {
+        const zone = document.getElementById("capture-zone");
+        const pulseRing = document.getElementById("pulse-ring");
+        const feedback = document.getElementById("capture-feedback");
+        const targetRing = document.querySelector(".target-ring");
+        const config = RARITY_SETTINGS[POKEMON_FIGHTING.rarity];
+        let resolved = false;
+
+        targetRing.style.setProperty('--target-size', `${config.targetSize}px`);
+        pulseRing.style.setProperty('--target-size', `${config.targetSize}px`);
+        pulseRing.style.setProperty('--shrink-duration', `${config.duration}s`);
+
+        zone.classList.remove("hidden");
+        feedback.className = ""; // Reset du texte
+        startTargetingSound(config);
+
+        const onCaptureClick = async (e) => {
+            window.removeEventListener("click", onCaptureClick);
+            stopTargetingSound();
+
+            // GELER L'ANIMATION au moment exact du clic pour le feedback visuel
+            const computedStyle = window.getComputedStyle(pulseRing);
+            const currentTransform = computedStyle.transform;
+            pulseRing.style.animation = "none";
+            pulseRing.style.transform = currentTransform;
+
+            // 3. CALCUL DU SCORE PAR LA TAILLE (getBoundingClientRect)
+            const targetWidth = targetRing.offsetWidth; 
+            const pulseWidth = pulseRing.getBoundingClientRect().width;
+
+            const pixelDiff = Math.abs(targetWidth - pulseWidth);
+
+            const severity = config.severity;
+            let score = Math.round(100 - (pixelDiff * severity));
+            if (score < 0) score = 0;
+            await showScore(score);
+                
+            zone.classList.add("hidden");
+            pulseRing.style.animation = "";
+            pulseRing.style.transform = "";
+            resolved = true;
+            resolve(score);
+        };
+
+        setTimeout(async () => {
+            if (resolved) return;
+            window.removeEventListener("click", onCaptureClick);
+            await showScore(0);
+            zone.classList.add("hidden");
+            pulseRing.style.animation = "";
+            pulseRing.style.transform = "";
+            resolved = true;
+            resolve(0);
+        }, MAX_RETRY_TARGETING * config.duration * 1000);
+
+        window.addEventListener("click", onCaptureClick);
+    });
+}
+
 async function lancerSequenceCapture() {
     console.log("Phase 1 : Choix de la Ball...");
     const ballChoisie = await phaseChoixBall();
@@ -234,11 +305,17 @@ async function lancerSequenceCapture() {
         // Gérer la fuite ou forcer une Pokéball
         return;
     }
-
     console.log(`Le joueur a choisi : ${ballChoisie.name} avec une puissance de capture de ${ballChoisie.power} !`);
+    
+    // laisser un pourcentage de chance que le pokemon s'enfuit tout de suite si pas assez affaibli
     const puissance = await phaseAffaiblissement();
     console.log(`Phase de combo terminée avec ${puissance}% de puissance !`);
-
+    
+    const captureScore = await startCaptureMinigame();
+    console.log(`Score de capture : ${captureScore}/100`);
+    
+    let finalCaptureValue = captureScore * (ballChoisie.power / 100);
+    console.log(`Valeur finale de capture : ${finalCaptureValue}`);
 }
 
 chrome.storage.local.get(["currentBattlePokemon"], async (result) => {

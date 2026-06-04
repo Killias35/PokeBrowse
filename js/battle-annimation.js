@@ -1,4 +1,4 @@
-import { playCry, playShiny, playSuspenseSound, playImpactBoom, playWhooshSound } from "./sound.js";
+import { playCry, playShiny, playSuspenseSound, playImpactBoom, playWhooshSound, playHitSound } from "./sound.js";
 
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -240,4 +240,47 @@ export function showSplashText(text, duration = 1000) {
             setTimeout(resolve, 200); // Petit délai pour le fade out
         }, duration);
     });
+}
+
+export async function showScore(score){
+    const feedback = document.getElementById("capture-feedback");
+
+    let text = "MISS...";
+    let color = "#ef4444"; // Rouge
+    let isCritical = false;
+
+    if (score >= 95) {
+        text = "CRITICAL PERFECT !!!";
+        color = "#f59e0b"; // Or ardent
+        isCritical = true;
+
+        document.body.style.animation = "none";
+        setTimeout(() => document.body.style.animation = "violence 0.3s ease-in-out", 10);
+        playHitSound(1.5, true);
+    } else if (score >= 80) {
+        text = "PERFECT !";
+        color = "#10b981"; // Vert émeraude
+        document.body.style.animation = "none";
+        setTimeout(() => document.body.style.animation = "violence 0.2s ease-in-out", 10);
+        playHitSound(1, true);
+    } else if (score >= 50) {
+        text = "GREAT";
+        color = "#06b6d4"; // Cyan
+        playHitSound(1, false);
+    } else if (score >= 20) {
+        text = "NICE";
+        color = "#3b82f6"; // Bleu
+        playHitSound(1, false);
+    }
+
+    feedback.style.setProperty('--glow-color', color);
+    feedback.innerText = text;
+    feedback.style.color = "#fff";
+
+    if (isCritical) {
+        feedback.className = "critical-panic";
+    } else {
+        feedback.className = "pop-feedback";
+    }
+    return new Promise((resolve) => setTimeout(resolve, 300));
 }
