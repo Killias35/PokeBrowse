@@ -5,19 +5,58 @@ import { startMusic, stopMusic, startRummageSound, stopRummageSound, playHitSoun
 const POKEBALL_CHOICE_DURATION = 3000; // Durée pour choisir une ball (en ms)
 const COMBO_DURATION = 5000; // Durée de la phase de combo (en ms)
 let POKEMON_FIGHTING = null; // Variable globale pour stocker le Pokémon en combat
+
 const pokemon_sprite = document.getElementById("pokemon-sprite");
+const combat_bg = document.getElementById("combat-bg");
+
+let currentHpTier = null;    // evite les changements de classe inutiles et les animations à répétition quand on clique très vite sur le pokemon
+
+function removeHpStatusBg() {
+    combat_bg.classList.remove("bg-hp-50", "bg-hp-25", "bg-hp-0");
+}
+
+
+function setHpStatusBg(percent) {
+    let targetTier;
+    if (percent > 70) targetTier = "90";
+    else if (percent > 50) targetTier = "70";
+    else if (percent > 25) targetTier = "50";
+    else if (percent > 0) targetTier = "25";
+    else targetTier = "0";
+
+    if (currentHpTier === targetTier) return;
+    removeHpStatusBg(); 
+    
+    if (targetTier === "50") {
+        combat_bg.classList.add("bg-hp-50");
+    } else if (targetTier === "25") {
+        combat_bg.classList.add("bg-hp-25");
+    } else if (targetTier === "0") {
+        combat_bg.classList.add("bg-hp-0");
+    }
+
+    currentHpTier = targetTier;
+}
 
 function removeHpStatus() {
     pokemon_sprite.classList.remove("hp-90", "hp-70", "hp-50", "hp-25", "hp-0");
 }
 
 function setHpStatus(percent) {
-    removeHpStatus();
-    if (percent > 70) pokemon_sprite.classList.add("hp-90");
-    else if (percent > 50) pokemon_sprite.classList.add("hp-70");
-    else if (percent > 25) pokemon_sprite.classList.add("hp-50");
-    else if (percent > 0) pokemon_sprite.classList.add("hp-25");
-    else pokemon_sprite.classList.add("hp-0");
+    setHpStatusBg(percent);
+    removeHpStatus(); 
+
+    if (percent > 70) {
+        pokemon_sprite.classList.add("hp-90");
+    } else if (percent > 50) {
+        pokemon_sprite.classList.add("hp-70");
+    } else if (percent > 25) {
+        pokemon_sprite.classList.add("hp-50");
+    } else if (percent > 0) {
+        pokemon_sprite.classList.add("hp-25");
+    } else {
+        pokemon_sprite.classList.add("hp-0");
+    }
 }
 
 // --- LOGIQUE DU MINI-JEU 1 : CHOIX DE LA BALL ---
@@ -139,7 +178,8 @@ async function phaseAffaiblissement() {
             if (percent < 30) hpBar.style.background = "#ef4444";
             else if (percent < 60) hpBar.style.background = "#f59e0b";
             
-            playHitSound(percent / 100);
+            if (percent == 0) playHitSound(percent / 100, true);
+            else playHitSound(percent / 100);
 
             if (percent < 75) {
                 document.getElementById("hp-bar-bg").classList.add("hp-shake");

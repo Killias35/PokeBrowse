@@ -317,3 +317,77 @@
     animation: stunned-glitch 1.5s step-end infinite;
     transform-origin: center bottom;
 }
+
+/* --- EFFETS SUR BG --- */
+
+/* --- LE FOND DE BASE --- */
+#combat-bg {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -10; /* Tout au fond */
+    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); /* Bleu nuit par défaut */
+    transition: background 0.3s ease;
+}
+
+/* Couche de superposition pour les effets spéciaux */
+#combat-bg::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease, background 0.4s ease;
+    will-change: transform, opacity;
+}
+
+/* --- ÉTAPE 1 : HP 50-70 (Tension qui monte) --- */
+/* On assombrit les bords pour forcer le regard sur le centre (Vignette) */
+#combat-bg.bg-hp-50::after {
+    opacity: 1;
+    background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+/* --- ÉTAPE 2 : HP 25 (URGENCE ORGANIQUE / BATTEMENTS) --- */
+#combat-bg.bg-hp-25 {
+    /* Le fond global devient légèrement plus oppressant en douceur */
+    background: radial-gradient(circle at center, #1e293b 0%, #1a0505 100%);
+}
+
+#combat-bg.bg-hp-25::after {
+    opacity: 1;
+    /* Une aura sombre aux bords, teintée d'un rouge très profond (pas pétant) */
+    background: radial-gradient(circle at center, transparent 40%, rgba(80, 0, 10, 0.6) 80%, rgba(0, 0, 0, 0.95) 100%);
+    /* Animation de pulsation (battement de cœur) */
+    animation: heartbeat-vignette 0.25s cubic-bezier(0.25, 1, 0.5, 1) infinite alternate;
+}
+
+@keyframes heartbeat-vignette {
+    0% { 
+        transform: scale(0.8); 
+        opacity: 0.7; 
+    }
+    100% { 
+        transform: scale(1.2); 
+        opacity: 1; 
+        /* La bordure se resserre légèrement sur le Pokémon */
+        box-shadow: inset 0 0 100px rgba(0,0,0,0.8); 
+    }
+}
+
+/* --- ÉTAPE 3 : HP 0 (K.O.) --- */
+#combat-bg.bg-hp-0 {
+    background: #000 !important;
+    animation: none;
+}
+
+#combat-bg.bg-hp-0::after {
+    opacity: 1;
+    background: radial-gradient(ellipse at 50% 60%, rgba(255, 255, 255, 0.2) 0%, transparent 40%);
+    animation: spotlight-breathe 2s ease-in-out infinite alternate;
+    transform: none;
+}
+
+@keyframes spotlight-breathe {
+    0% { opacity: 0.5; transform: translateY(-10px) scale(0.9); }
+    100% { opacity: 1; transform: translateY(0) scale(1.1); }
+}

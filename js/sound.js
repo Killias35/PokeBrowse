@@ -321,23 +321,119 @@ export const stopRummageSound = () => {
     clearTimeout(rummageTimer);
 };
 
-// --- GÉNÉRATEUR DE SON : COUP / IMPACT ---
-export function playHitSound(hpPercent) {
+// Fonction utilitaire pour créer une distorsion de type "clipping" (saturation arcade)
+function makeDistortionCurve(amount = 50) {
+    const k = typeof amount === 'number' ? amount : 50;
+    const n_samples = 44100;
+    const curve = new Float32Array(n_samples);
+    const deg = Math.PI / 180;
+    for (let i = 0; i < n_samples; ++i) {
+        const x = (i * 2) / n_samples - 1;
+        curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+    }
+    return curve;
+}
+
+export function playHitSound(hpPercent, isFinalHit = false) {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    
-    // Le volume augmente plus la vie baisse (1 - hpPercent)
+    const now = ctx.currentTime;
     const intensity = 1 - hpPercent;
-    gain.gain.setValueAtTime(GLOBAL_VOLUME + (intensity * 0.5), ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-    
-    osc.type = 'sawtooth';
-    // La fréquence devient plus grave et percutante quand la vie est basse
-    osc.frequency.setValueAtTime(150 - (intensity * 100), ctx.currentTime);
-    
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.2);
+
+    if (isFinalHit) {
+        // --- COUP FINAL (CONSERVE TON SUB-BOOM EXPLOSIF) ---
+        const oscFinal = ctx.createOscillator();
+        const gainFinal = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        
+        oscFinal.type = 'sawtooth';
+        oscFinal.frequency.setValueAtTime(350, now);
+        oscFinal.frequency.exponentialRampToValueAtTime(20, now + 0.6);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(500, now);
+        
+        gainFinal.gain.setValueAtTime(GLOBAL_VOLUME * 2, now);
+        gainFinal.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+        
+        oscFinal.connect(filter);
+        filter.connect(gainFinal);
+        gainFinal.connect(ctx.destination);
+        
+        oscFinal.start(now);
+        oscFinal.stop(now + 0.8);
+        playNoiseBuffer(ctx, now, 0.5, 0.6);
+    } else {
+        // ==========================================
+        // 🥊 LE COUP NORMAL VERSION "IMPACT BRUTAL"
+        // ==========================================
+
+        // --- COUCHE 1 : LE CRACK INITIAL (OVERSHOOT ULTRA-SEC) ---
+        const oscCrack = ctx.createOscillator();
+        const gainCrack = ctx.createGain();
+        const distortion = ctx.createWaveShaper();
+
+        oscCrack.type = 'square'; // L'onde carrée est la plus agressive et brute
+        oscCrack.frequency.setValueAtTime(1800, now); // Fréquence très haute pour le claquement
+        
+        // CONFIGURATION DISTORSION (Le secret du côté "Brusque")
+        distortion.curve = makeDistortionCurve(80); // Grosse saturation
+        distortion.oversample = '4x';
+
+        // Énorme pic de volume (2.5x le volume global) qui s'effondre en 0.008s (8ms)
+        const peakVol = (GLOBAL_VOLUME + (intensity * 0.3)) * 2.5;
+        gainCrack.gain.setValueAtTime(peakVol, now);
+        gainCrack.gain.exponentialRampToValueAtTime(0.001, now + 0.01); // Disparaît instantanément
+
+        oscCrack.connect(distortion);
+        distortion.connect(gainCrack);
+        gainCrack.connect(ctx.destination);
+
+        oscCrack.start(now);
+        oscCrack.stop(now + 0.01);
+
+        // --- COUCHE 2 : L'ONDE DE CHOC (BASS THUMP) ---
+        const oscThump = ctx.createOscillator();
+        const gainThump = ctx.createGain();
+        
+        oscThump.type = 'triangle';
+        const randomPitch = (Math.random() * 30) - 15;
+        const baseFreq = 180 - (intensity * 80) + randomPitch;
+        
+        oscThump.frequency.setValueAtTime(baseFreq, now);
+        oscThump.frequency.exponentialRampToValueAtTime(baseFreq * 0.3, now + 0.08);
+        
+        // Volume du corps du son (normalisé)
+        gainThump.gain.setValueAtTime(GLOBAL_VOLUME + (intensity * 0.4), now);
+        gainThump.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        
+        oscThump.connect(gainThump);
+        gainThump.connect(ctx.destination);
+        
+        oscThump.start(now);
+        oscThump.stop(now + 0.12);
+
+        // --- COUCHE 3 : LE SOUFFLE DE L'IMPACT ---
+        playNoiseBuffer(ctx, now, (GLOBAL_VOLUME + (intensity * 0.2)) * 0.4, 0.04);
+    }
+}
+
+// Laisse ta fonction playNoiseBuffer identique à la précédente
+function playNoiseBuffer(ctx, startTime, volume, duration) {
+    const bufferSize = ctx.sampleRate * duration;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+    const noiseNode = ctx.createBufferSource();
+    noiseNode.buffer = buffer;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(volume, startTime);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.setValueAtTime(1200, startTime);
+    noiseNode.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noiseNode.start(startTime);
+    noiseNode.stop(startTime + duration);
 }
