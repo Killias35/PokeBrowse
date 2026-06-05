@@ -315,14 +315,16 @@ export function playWhooshSound() {
 let rummageTimer;
 
 // Fonction qui génère un court bruit de froissement
-export function playRustle() {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const audioCtx = new AudioContext();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+function playRustle() {
+    if(!ctx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        ctx = new AudioContext();
+    }
+    if (ctx.state === 'suspended') ctx.resume();
     
-    const bufferSize = audioCtx.sampleRate * 0.1; // 100 millisecondes
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const bufferSize = ctx.sampleRate * 0.1; // 100 millisecondes
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const data = buffer.getChannelData(0);
     
     // Génération de bruit blanc
@@ -330,25 +332,24 @@ export function playRustle() {
         data[i] = Math.random() * 2 - 1;
     }
     
-    const noise = audioCtx.createBufferSource();
+    const noise = ctx.createBufferSource();
     noise.buffer = buffer;
     
     // On filtre le son pour enlever les aigus agressifs (effet "tissu/sac")
-    const filter = audioCtx.createBiquadFilter();
+    const filter = ctx.createBiquadFilter();
     filter.type = 'bandpass';
     // Fréquence aléatoire pour que chaque froissement soit unique
     filter.frequency.value = Math.random() * 800 + 400; 
     
     // On gère le volume (attaque rapide, fondu rapide)
-    const gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-    gain.gain.volume = GLOBAL_SFX_VOLUME * 50;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.3 * GLOBAL_SFX_VOLUME * 5, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01 * GLOBAL_SFX_VOLUME * 5, ctx.currentTime + 0.1);
     
     // Connexions
     noise.connect(filter);
     filter.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(ctx.destination);
     
     noise.start();
 }
