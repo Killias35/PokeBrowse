@@ -600,7 +600,7 @@ async function phaseFall() {
     shadow.className = "shadow-visible";
 }
 
-async function phaseShake(isCaught, chancePercent) {
+async function phaseShake(isCaught, chanceDistence) {
     const ballWrap  = document.getElementById("cap-ball-wrap");
     const shadow    = document.getElementById("cap-shadow");
 
@@ -608,8 +608,8 @@ async function phaseShake(isCaught, chancePercent) {
     setState(ballWrap, "ground");
 
     const shakeCount = isCaught ? 3
-        : chancePercent >= 60 ? 2
-        : chancePercent >= 30 ? 1
+        : chanceDistence <= 20 ? 2
+        : chanceDistence <= 50 ? 1
         : 0;
 
     const groundCenter = getBallGroundCenter();

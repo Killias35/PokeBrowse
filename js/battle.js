@@ -316,6 +316,8 @@ function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
 
     const roll = (Math.random() * 100).toFixed(2);
     let isCaught;
+    let distance = Math.abs(finalChance - roll);
+    console.log("baseSkill:", baseSkill, "finalChance:", finalChance, "roll:", roll, "distance:", distance);
     if (roll <= 1){         // Capture critique
         isCaught = true;
         console.log("Capture critique !");
@@ -331,7 +333,7 @@ function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
     // On retourne le résultat et le pourcentage exact pour l'afficher ou débugger
     return {
         isCaught: isCaught,
-        chance: finalChance,
+        chance: distance,
         roll: roll
     };
 }
