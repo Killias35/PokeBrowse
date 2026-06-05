@@ -25,7 +25,8 @@ async function setStatusBtnSpawn() {
 
 document.getElementById("spawn").addEventListener("click", async () => {
   const hours = await getDelaiFromLastSpawn();
-  if (hours <= 0) return; // 1 spawn par heure | mis a 0 pour test
+  if (hours <= 0) return; // DEBUG
+  // if (hours <= 1) return;
 
   const [tab] = await chrome.tabs.query({
     active: true,

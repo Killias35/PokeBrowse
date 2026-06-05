@@ -528,3 +528,57 @@
     0% { transform: scale(1) rotate(-3deg) translate(-2px, 2px); }
     100% { transform: scale(1.05) rotate(-2deg) translate(2px, -2px); }
 }
+
+.fleeing-sprite {
+    /* Timing hyper dynamique : lent au début, puis accélération brutale (ease-in) */
+    animation: fleeSequence 0.7s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+    transform-origin: bottom center; /* Important pour que l'écrasement se fasse par le bas */
+}
+
+@keyframes fleeSequence {
+    /* 1. État normal */
+    0% { 
+        transform: scale(1) translate(0, 0); 
+        filter: brightness(1) drop-shadow(0 0 0 transparent); 
+    }
+    
+    /* 2. Anticipation (Squash) : Il s'écrase, s'élargit et brille en blanc */
+    20% { 
+        transform: scale(1.3, 0.6) translate(0, 20px); 
+        filter: brightness(1.5) drop-shadow(0 0 15px white); 
+    }
+    
+    /* 3. L'Impulsion (Stretch) : Il s'étire violemment vers le haut avant de partir */
+    35% { 
+        transform: scale(0.6, 1.4) translate(0, -40px); 
+        filter: brightness(1.2); 
+    }
+    
+    /* 4. Le Dash : Disparition ultra-rapide en diagonale avec un effet de flou (Blur) */
+    100% { 
+        transform: scale(0) translate(400px, -500px) rotate(45deg); 
+        opacity: 0; 
+        filter: blur(8px); 
+    }
+}
+
+/* --- LE NUAGE DE FUMÉE (L'effet "Pop" dramatique) --- */
+
+.smoke-puff {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, #fff 30%, #d1d5db 60%, transparent 70%);
+    border-radius: 50%;
+    /* On le centre par rapport à l'emplacement d'origine du sprite */
+    top: 50%; left: 50%;
+    pointer-events: none;
+    z-index: 100;
+    animation: puffCloud 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes puffCloud {
+    0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+    100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+}
