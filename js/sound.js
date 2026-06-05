@@ -14,7 +14,7 @@ export function playCry(pokemon) {
   };
 
   audio.play().catch(() => {});
-  audio.volume = GLOBAL_VOLUME * 0.5;
+  audio.volume = GLOBAL_VOLUME * 2;
 }
 
 
