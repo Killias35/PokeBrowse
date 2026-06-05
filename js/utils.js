@@ -82,7 +82,6 @@ export async function capturePokemon(pokemon) {
   collection.push(pokemon);
 
   await chrome.storage.local.set({collection});
-  await chrome.storage.local.remove("currentBattlePokemon");
 }
 
 // charge le pokedex dans le storage

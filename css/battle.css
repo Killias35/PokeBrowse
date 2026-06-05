@@ -403,7 +403,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 50;
+    z-index: 3000;
     pointer-events: none;
 }
 
@@ -496,6 +496,7 @@
     text-transform: uppercase;
     opacity: 0;
     pointer-events: none;
+    z-index: 2000;
     
     /* Effet 3D Multi-couches + Lueur Néon (Utilise une variable CSS pour la couleur) */
     text-shadow: 

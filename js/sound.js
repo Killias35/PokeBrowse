@@ -1,5 +1,6 @@
 const GLOBAL_VOLUME = 0.3; // Volume global pour tous les sons (entre 0.0 et 1.0)
-const GLOBAL_MUSIC_VOLUME = 0.2; // Volume spécifique pour la musique de chasse (plus bas que les effets)
+const GLOBAL_MUSIC_VOLUME = 0.3; // Volume spécifique pour la musique de chasse (plus bas que les effets)
+const GLOBAL_SFX_VOLUME = 0.3;
 
 let Music = null;
 let ctx = null;
@@ -13,10 +14,11 @@ export function playCry(pokemon) {
   };
 
   audio.play().catch(() => {});
+  audio.volume = GLOBAL_VOLUME * 0.5;
 }
 
 
-export function startMusic(type) {
+export function startMusic(type, loop = true) {
     stopMusic();
     let nbMusic = 4;
     let path = "routes";
@@ -32,6 +34,10 @@ export function startMusic(type) {
         path = "rare_fight";
         nbMusic = 0;
     }
+    else if (type === "captured") {
+        path = "captured";
+        nbMusic = 0;
+    }
 
     const randomMusic = Math.floor(Math.random() * nbMusic);
     
@@ -39,7 +45,7 @@ export function startMusic(type) {
         chrome.runtime.getURL(`assets/${path}/${randomMusic}.mp3`)
     );
 
-    Music.loop = true;
+    Music.loop = loop;
     Music.volume = GLOBAL_MUSIC_VOLUME;
 
     Music.play().catch(err => {
@@ -56,6 +62,28 @@ export function stopMusic() {
   Music = null;
 }
 
+const sfxCache = new Map();
+
+export function preloadSfx(name) {
+    const url = chrome.runtime.getURL(`assets/sfx/${name}.mp3`);
+    const audio = new Audio(url);
+    audio.preload = "auto";
+    sfxCache.set(name, audio);
+}
+
+export function playSfx(name) {
+    let base = sfxCache.get(name);
+
+    if (!base) {
+        preloadSfx(name);
+        base = sfxCache.get(name);
+    }
+
+    const clone = base.cloneNode();
+    clone.volume = GLOBAL_SFX_VOLUME;
+    clone.play().catch(() => {});
+}
+
 export function playShiny() {  // Bruit d'étoile
     if(!ctx) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -67,7 +95,7 @@ export function playShiny() {  // Bruit d'étoile
     const frequencies = [1046.50, 1318.51, 1567.98, 2093.00, 2637.02, 3135.96];
     
     // --- RÉGLAGE DU VOLUME MAXIMUM (Entre 0.1 et 1.0) ---
-    const maxVolume = 0.5; 
+    const maxVolume = GLOBAL_SFX_VOLUME * 0.5; 
 
     frequencies.forEach((freq, index) => {
         // On accélère un poil le rythme (50ms au lieu de 60ms) pour cumuler la puissance des notes
@@ -189,6 +217,7 @@ export function playSuspenseSound(rarity, durationMs) {
     subGain.connect(masterGain);
 
     // --- 5. BRANCHEMENT FINAL AU CASQUE/HAUT-PARLEURS ---
+    masterGain.gain.value = GLOBAL_VOLUME * 2;
     masterGain.connect(ctx.destination);
 
     // Start
@@ -220,11 +249,14 @@ export function playImpactBoom() {
     osc.frequency.exponentialRampToValueAtTime(20, now + 0.8);
 
     // --- RÉGLAGE DU VOLUME DU BOOM ---
-    const boomVolume = 1.0; // Augmenté (était à 0.4). Tu peux tester 1.2 si besoin.
+    const boomVolume = 1; // Augmenté (était à 0.4). Tu peux tester 1.2 si besoin.
     
     gainNode.gain.setValueAtTime(boomVolume, now);
     // On rallonge l'extinction à 1.2s pour que la vibration dure un peu plus longtemps
     gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 1.2); 
+
+    // --- BRANCHEMENT ---
+    gainNode.gain.value = GLOBAL_SFX_VOLUME * 10;
 
     osc.connect(gainNode);
     gainNode.connect(ctx.destination);
@@ -263,12 +295,14 @@ export function playWhooshSound() {
     const gainNode = ctx.createGain();
     
     // --- RÉGLAGE DU VOLUME DU WHOOSH ---
-    const whooshVolume = 0.6; // Augmenté (était à 0.2)
+    const whooshVolume = 0.6; 
 
     gainNode.gain.setValueAtTime(0, now);
     // C'est cette ligne qui gère le pic de volume du whoosh :
     gainNode.gain.linearRampToValueAtTime(whooshVolume, now + 0.06); 
     gainNode.gain.linearRampToValueAtTime(0, now + duration); 
+
+    gainNode.gain.value = GLOBAL_SFX_VOLUME;
 
     noise.connect(filter);
     filter.connect(gainNode);
@@ -309,6 +343,7 @@ export function playRustle() {
     const gain = audioCtx.createGain();
     gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    gain.gain.volume = GLOBAL_SFX_VOLUME * 50;
     
     // Connexions
     noise.connect(filter);
@@ -317,6 +352,7 @@ export function playRustle() {
     
     noise.start();
 }
+
 // Boucle qui déclenche les froissements de manière chaotique
 export function startRummageSound() {
     const trigger = () => {
@@ -366,7 +402,7 @@ export function playHitSound(hpPercent, isFinalHit = false) {
         filter.type = 'lowpass';
         filter.frequency.setValueAtTime(500, now);
         
-        gainFinal.gain.setValueAtTime(GLOBAL_VOLUME * 2, now);
+        gainFinal.gain.setValueAtTime(GLOBAL_SFX_VOLUME * 2, now);
         gainFinal.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
         
         oscFinal.connect(filter);
@@ -394,7 +430,7 @@ export function playHitSound(hpPercent, isFinalHit = false) {
         distortion.oversample = '4x';
 
         // Énorme pic de volume (2.5x le volume global) qui s'effondre en 0.008s (8ms)
-        const peakVol = (GLOBAL_VOLUME + (intensity * 0.3)) * 2.5;
+        const peakVol = GLOBAL_SFX_VOLUME * 5 + (intensity * 0.3) * 2.5;
         gainCrack.gain.setValueAtTime(peakVol, now);
         gainCrack.gain.exponentialRampToValueAtTime(0.001, now + 0.01); // Disparaît instantanément
 
@@ -417,7 +453,7 @@ export function playHitSound(hpPercent, isFinalHit = false) {
         oscThump.frequency.exponentialRampToValueAtTime(baseFreq * 0.3, now + 0.08);
         
         // Volume du corps du son (normalisé)
-        gainThump.gain.setValueAtTime(GLOBAL_VOLUME + (intensity * 0.4), now);
+        gainThump.gain.setValueAtTime(GLOBAL_SFX_VOLUME * 5 + (intensity * 0.4), now);
         gainThump.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
         
         oscThump.connect(gainThump);
@@ -427,7 +463,7 @@ export function playHitSound(hpPercent, isFinalHit = false) {
         oscThump.stop(now + 0.12);
 
         // --- COUCHE 3 : LE SOUFFLE DE L'IMPACT ---
-        playNoiseBuffer(ctx, now, (GLOBAL_VOLUME + (intensity * 0.2)) * 0.4, 0.04);
+        playNoiseBuffer(ctx, now, (GLOBAL_SFX_VOLUME * 5 + (intensity * 0.2)) * 0.4, 0.04);
     }
 }
 
@@ -489,6 +525,7 @@ export function startTargetingSound(config) {
         osc.connect(filter);
         filter.connect(gainNode);
         gainNode.connect(ctx.destination);
+        gainNode.gain.value = GLOBAL_SFX_VOLUME * 2;
 
         osc.start(now);
         osc.stop(now + config.duration);

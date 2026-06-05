@@ -1,4 +1,4 @@
-import { playCry, playShiny, playSuspenseSound, playImpactBoom, playWhooshSound, playHitSound } from "./sound.js";
+import { playCry, playShiny, playSuspenseSound, playImpactBoom, playWhooshSound, playHitSound, playSfx, stopMusic, startMusic } from "./sound.js";
 
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -543,6 +543,7 @@ async function phaseAbsorb(pokeCenter) {
     const sprite   = document.getElementById("pokemon-sprite");
     const ghost    = document.getElementById("cap-poke-ghost");
     const ballWrap = document.getElementById("cap-ball-wrap");
+    playSfx("pokeball capture");
 
     const { x: pokeCx, y: pokeCy, rect } = pokeCenter;
     const ballAir = getBallAirCenter();
@@ -592,6 +593,7 @@ async function phaseFall() {
     void shadow.offsetWidth;
     shadow.classList.add("shadow-appear");
 
+    playSfx("pokeball fall");
     await waitForAnim(ballWrap, 750);
 
     // Retirer la classe d'animation du shadow et le laisser visible
@@ -614,6 +616,7 @@ async function phaseShake(isCaught, chancePercent) {
 
     for (let i = 1; i <= shakeCount; i++) {
         await wait(380);
+        playSfx("shaking"+i);
 
         // Zoom cumulatif via CSS var
         ballWrap.style.setProperty("--cap-zoom", 1 + (i - 1) * 0.22);
@@ -638,7 +641,7 @@ async function phaseSuccess(shakeCount) {
     const ballWrap    = document.getElementById("cap-ball-wrap");
     const shadow      = document.getElementById("cap-shadow");
     const groundCenter = getBallGroundCenter();
-
+    stopMusic();
     // Zoom final conservé depuis le dernier tremblement
     setState(ballWrap, "caught");
 
@@ -649,16 +652,17 @@ async function phaseSuccess(shakeCount) {
     setTimeout(() => spawnRipple(groundCenter.x, groundCenter.y, "rgba(255,180,0,0.55)"), 220);
     setTimeout(() => spawnRipple(groundCenter.x, groundCenter.y, "rgba(255,140,0,0.4)"),  450);
     spawnFallingStars(14);
+    playSfx("pokeball captured");
 
     await wait(900);
-
+    startMusic("captured", false);
     // Message
     const msg = document.getElementById("cap-message");
     msg.textContent = "✦ Pokémon capturé ! ✦";
     msg.className = "msg-success";
     void msg.offsetWidth;
     msg.classList.add("msg-show");
-
+    
     await wait(2000);
 
     // Fade out shadow
@@ -671,6 +675,7 @@ async function phaseEscape(shakeCount) {
     const ghost       = document.getElementById("cap-poke-ghost");
     const sprite      = document.getElementById("pokemon-sprite");
     const shadow      = document.getElementById("cap-shadow");
+    playSfx("pokeball escape");
 
     // Conserver le zoom du dernier tremblement
     setState(ballWrap, "open");

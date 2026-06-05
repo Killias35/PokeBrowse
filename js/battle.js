@@ -1,6 +1,6 @@
 import { startEncounter, showSplashText, showScore, playCaptureSequence } from "./battle-annimation.js";
 import { getPokeballs, usePokeball } from "./pokeballs.js";
-import { startMusic, stopMusic, startRummageSound, stopRummageSound, playHitSound, startTargetingSound, stopTargetingSound } from "./sound.js";
+import { startMusic, stopMusic, startRummageSound, stopRummageSound, playHitSound, startTargetingSound, stopTargetingSound, playCry } from "./sound.js";
 import { capturePokemon } from "./utils.js";
 
 const POKEBALL_CHOICE_DURATION = 3000; // Durée pour choisir une ball (en ms)
@@ -16,11 +16,15 @@ const container = document.getElementById("combat-click-area");
 
 let currentHpTier = null;    // evite les changements de classe inutiles et les animations à répétition quand on clique très vite sur le pokemon
 
-const RARITY_SETTINGS = {   // pour étape de viser
-    commun:     { resistence: 20, targetCPS: 8, duration: 1.6, targetSize: 80, pitchMax: 280, severity: 1 },
-    rare:       { resistence: 30, targetCPS: 10, duration: 1.0, targetSize: 100,  pitchMax: 380, severity: 1.5 },
-    epic:       { resistence: 45, targetCPS: 12, duration: 0.5, targetSize: 125,  pitchMax: 450, severity: 3.5 },
-    legendary:  { resistence: 60, targetCPS: 15, duration: 0.4, targetSize: 150,  pitchMax: 550, severity: 5 },
+// commun : 70% max de capture
+// rare : 50% max de capture
+// epic : 35% max de capture
+// legendary : 20% max de capture
+const RARITY_SETTINGS = {
+    commun:     { resistence: 30, targetCPS: 8, duration: 1.6, targetSize: 80, pitchMax: 280, severity: 1 },
+    rare:       { resistence: 50, targetCPS: 10, duration: 1.0, targetSize: 100,  pitchMax: 380, severity: 1.5 },
+    epic:       { resistence: 65, targetCPS: 12, duration: 0.5, targetSize: 125,  pitchMax: 450, severity: 3.5 },
+    legendary:  { resistence: 80, targetCPS: 15, duration: 0.4, targetSize: 150,  pitchMax: 550, severity: 5 },
 };
 
 
@@ -218,7 +222,7 @@ async function phaseAffaiblissement() {
             if (currentHp <= 0) {
                 resolved = true;
                 cleanup();
-                await showSplashText("!!!", 100);
+                await showSplashText("!!!", 300);
                 resolve(100);
             }
         };
@@ -234,7 +238,7 @@ async function phaseAffaiblissement() {
             if (resolved) return;
             cleanup();
             let leftoverHpPercent = Math.min(100, Math.round((1 - (currentHp / totalHp)) * 100));
-            await showSplashText("!", 100);
+            await showSplashText("!", 300);
             resolve(leftoverHpPercent);
         }, COMBO_DURATION);
     });
@@ -304,14 +308,25 @@ async function startCaptureMinigame() {
 }
 
 function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
-    let baseSkill = (puissance + capture) /2;
-    let finalChance = Math.round(baseSkill * ballPower) - resistance;
+    let baseSkill = Math.min(100, Math.round((puissance + capture) /2 * ballPower));
+    let finalChance = baseSkill - resistance;
 
     if (finalChance > 100) finalChance = 100;
     if (finalChance < 0) finalChance = 0;
 
     const roll = (Math.random() * 100).toFixed(2);
-    const isCaught = roll <= finalChance;
+    let isCaught;
+    if (roll <= 1){         // Capture critique
+        isCaught = true;
+        console.log("Capture critique !");
+    }
+    else if (roll >= 99){   // Echec critique
+        isCaught = false;
+        console.log("Echec critique !");
+    }
+    else if (roll <= finalChance){  // Capture normale
+        isCaught = true;
+    }
 
     // On retourne le résultat et le pourcentage exact pour l'afficher ou débugger
     return {
@@ -346,8 +361,11 @@ async function lancerSequenceCapture() {
         await playCaptureSequence(isCaught, chance, ballChoisie, POKEMON_FIGHTING);
         if (isCaught) {
             await capturePokemon(POKEMON_FIGHTING);
+            if(roll < 1) showSplashText("Capture critique !", 1000);
+            else if(roll > 99) showSplashText("Echec critique !", 1000);
             break;
         }
+        playCry(POKEMON_FIGHTING);
     }
 
 }
@@ -355,6 +373,7 @@ async function lancerSequenceCapture() {
 chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
     const pokemon = result.currentBattlePokemon;
     if (!pokemon) return;
+    await chrome.storage.local.remove("currentBattlePokemon");
     // pokemon.rarity = "commun"    // DEBUG
     // pokemon.isShiny = true       // DEBUG
 
