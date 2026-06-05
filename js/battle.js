@@ -17,6 +17,13 @@ const RARITY_SETTINGS = {
     legendary:  { resistence: 80, targetCPS: 15, duration: 0.4, targetSize: 150,  pitchMax: 550, severity: 5 },
 };
 
+function calculateFleeSiccess(puissance) {
+    const chance = 50 - puissance   // 50% de chance de fuite si pv 100%, 0% de chance de fuite si pv < 50%
+    const roll = (Math.random() * 100).toFixed(2);
+    const hasFled = roll <= chance;
+    return hasFled;
+}
+
 function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
     let baseSkill = Math.min(100, Math.round((puissance + capture) /2 * ballPower));
     let finalChance = baseSkill - resistance;
@@ -55,14 +62,20 @@ async function lancerSequenceCapture() {
         const ballChoisie = await phaseChoixBall();
 
         if (ballChoisie === null) {
-            console.log("Trop lent ! Le Pokémon s'enfuit !");
             await triggerPokemonFlee();
+            showSplashText("Trop lent ! Le Pokémon s'enfuit !", 2000);
             stopMusic();
             return;
         }
         
-        // laisser un pourcentage de chance que le pokemon s'enfuit tout de suite si pas assez affaibli
         const puissance = await phaseAffaiblissement(POKEMON_FIGHTING);
+        const hasFled = calculateFleeSiccess(puissance);
+        if (hasFled) {
+            await triggerPokemonFlee();
+            showSplashText("Le Pokémon n'était pas assez affaibli !", 2000);
+            stopMusic();
+            return;
+        }
         const captureScore = await startCaptureMinigame(config);
         const resistence = config.resistence;
         await usePokeball(ballChoisie);
@@ -72,10 +85,10 @@ async function lancerSequenceCapture() {
         await playCaptureSequence(isCaught, chance, ballChoisie, POKEMON_FIGHTING);
         if (isCaught) {
             await capturePokemon(POKEMON_FIGHTING);
-            if(roll < 1) showSplashText("Capture critique !", 1000);
-            else if(roll > 99) showSplashText("Echec critique !", 1000);
+            if(roll < 1) showSplashText("Capture critique !", 3000);
             break;
         }
+        if(roll > 99) showSplashText("Echec critique !", 3000);
         playCry(POKEMON_FIGHTING);
     }
 
