@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="../css/battle-annimation-start.css">
     <link rel="stylesheet" href="../css/battle.css">
+    <link rel="stylesheet" href="../css/battle-capture.css">
 </head>
 <body>
     <main class="battle-container" id="container">
@@ -67,6 +68,34 @@
                     <div class="energy-core"></div>
                     <div class="target-ring"></div>
                     <div id="pulse-ring" class="pulse-ring"></div>
+                </div>
+
+                <!-- Stage de capture -->
+                <div id="cap-stage" class="hidden">
+
+                    <!-- Flash plein écran -->
+                    <div id="cap-flash"></div>
+
+                    <!-- Ombre de la Pokéball -->
+                    <div id="cap-shadow"></div>
+
+                    <!-- Conteneur animé de la Pokéball -->
+                    <div id="cap-ball-wrap" class="state-ready">
+                        <img
+                            id="cap-ball"
+                            src="../assets/balls/pokeball.png"
+                            alt="Pokéball">
+                    </div>
+
+                    <!-- Clone temporaire du Pokémon utilisé pour l'aspiration -->
+                    <img
+                        id="cap-poke-ghost"
+                        class="hidden"
+                        alt="Pokémon fantôme">
+
+                    <!-- Message final -->
+                    <div id="cap-message" class="hidden"></div>
+
                 </div>
 
             </div>

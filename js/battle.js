@@ -1,6 +1,7 @@
-import { startEncounter, showSplashText, showScore } from "./battle-annimation.js";
-import { getPokeballs } from "./pokeballs.js";
+import { startEncounter, showSplashText, showScore, playCaptureSequence } from "./battle-annimation.js";
+import { getPokeballs, usePokeball } from "./pokeballs.js";
 import { startMusic, stopMusic, startRummageSound, stopRummageSound, playHitSound, startTargetingSound, stopTargetingSound } from "./sound.js";
+import { capturePokemon } from "./utils.js";
 
 const POKEBALL_CHOICE_DURATION = 3000; // Durée pour choisir une ball (en ms)
 const COMBO_DURATION = 5000; // Durée de la phase de combo (en ms)
@@ -9,6 +10,9 @@ const MAX_RETRY_TARGETING = 5;
 
 const pokemon_sprite = document.getElementById("pokemon-sprite");
 const combat_bg = document.getElementById("combat-bg");
+const hpBar = document.getElementById("hp-bar-fill");
+const hpBarBg = document.getElementById("hp-bar-bg");
+const container = document.getElementById("combat-click-area");
 
 let currentHpTier = null;    // evite les changements de classe inutiles et les animations à répétition quand on clique très vite sur le pokemon
 
@@ -22,6 +26,8 @@ const RARITY_SETTINGS = {   // pour étape de viser
 
 function removeHpStatusBg() {
     combat_bg.classList.remove("bg-hp-50", "bg-hp-25", "bg-hp-0");
+    hpBarBg.classList.remove("hp-shake", "global-shake", "hp-stress");
+    hpBar.style.background = "";
 }
 
 function setHpStatusBg(percent) {
@@ -34,13 +40,27 @@ function setHpStatusBg(percent) {
 
     if (currentHpTier === targetTier) return;
     removeHpStatusBg(); 
-    
-    if (targetTier === "50") {
+
+    if (targetTier === "70") {
+        hpBarBg.classList.add("hp-shake");
+    }
+    else if (targetTier === "50") {
         combat_bg.classList.add("bg-hp-50");
+        hpBar.style.background = "#f59e0b";
+        hpBarBg.classList.add("hp-shake");
+        hpBarBg.classList.add("global-shake");
     } else if (targetTier === "25") {
         combat_bg.classList.add("bg-hp-25");
+        hpBar.style.background = "#ef4444";
+        hpBarBg.classList.add("hp-shake");
+        hpBarBg.classList.add("global-shake");
+        hpBarBg.classList.add("hp-stress");
     } else if (targetTier === "0") {
         combat_bg.classList.add("bg-hp-0");
+        hpBar.style.background = "#ef4444";
+        hpBarBg.classList.add("hp-shake");
+        hpBarBg.classList.add("global-shake");
+        hpBarBg.classList.add("hp-stress");
     }
 
     currentHpTier = targetTier;
@@ -146,8 +166,6 @@ async function phaseChoixBall() {
 async function phaseAffaiblissement() {
     await showSplashText("ATTAQUE LE !", 300);
     const rarity = POKEMON_FIGHTING.rarity;
-    const hpBar = document.getElementById("hp-bar-fill");
-    const container = document.getElementById("combat-click-area");
     
     // Définir la vie totale basée sur la rareté
     let targetCPS = 6;
@@ -184,21 +202,9 @@ async function phaseAffaiblissement() {
             }, 50);
 
             // Changement de couleur
-            if (percent < 30) hpBar.style.background = "#ef4444";
-            else if (percent < 60) hpBar.style.background = "#f59e0b";
             
             if (percent == 0) playHitSound(percent / 100, true);
             else playHitSound(percent / 100);
-
-            if (percent < 75) {
-                document.getElementById("hp-bar-bg").classList.add("hp-shake");
-            }
-            if (percent < 50) {
-                document.getElementById("hp-bar-bg").classList.add("global-shake");
-            }
-            if (percent < 25) {
-                document.getElementById("hp-bar-bg").classList.add("hp-stress");
-            }
             
             // Effet d'étincelle
             const spark = document.createElement("div");
@@ -316,24 +322,33 @@ function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
 }
 
 async function lancerSequenceCapture() {
-    console.log("Phase 1 : Choix de la Ball...");
-    const ballChoisie = await phaseChoixBall();
+    while (true) {
+        currentHpTier = null;
+        hpBar.style.width = `100%`;
 
-    if (ballChoisie === null) {
-        console.log("Trop lent ! Le Pokémon s'enfuit !");
-        // Gérer la fuite ou forcer une Pokéball
-        return;
+        setHpStatus(100);
+        const ballChoisie = await phaseChoixBall();
+
+        if (ballChoisie === null) {
+            console.log("Trop lent ! Le Pokémon s'enfuit !");
+            // Gérer la fuite ou forcer une Pokéball
+            return;
+        }
+        
+        // laisser un pourcentage de chance que le pokemon s'enfuit tout de suite si pas assez affaibli
+        const puissance = await phaseAffaiblissement();
+        const captureScore = await startCaptureMinigame();
+        const resistence = RARITY_SETTINGS[POKEMON_FIGHTING.rarity].resistence;
+        await usePokeball(ballChoisie);
+
+        const {isCaught, chance, roll} = calculateCaptureSuccess(puissance, captureScore, ballChoisie.power, resistence);
+    
+        await playCaptureSequence(isCaught, chance, ballChoisie, POKEMON_FIGHTING);
+        if (isCaught) {
+            await capturePokemon(POKEMON_FIGHTING);
+            break;
+        }
     }
-    
-    // laisser un pourcentage de chance que le pokemon s'enfuit tout de suite si pas assez affaibli
-    const puissance = await phaseAffaiblissement();
-    
-    const captureScore = await startCaptureMinigame();
-    const resistence = RARITY_SETTINGS[POKEMON_FIGHTING.rarity].resistence;
-    const {isCaught, chance, roll} = calculateCaptureSuccess(puissance, captureScore, ballChoisie.power, resistence);
-
-    await showSplashText(isCaught ? "Capture !" : "Rate !", 1000);
-    await showSplashText(`Chance de capture : ${chance}% (Roll : ${roll})`, 10000);
 
 }
 

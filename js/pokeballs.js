@@ -51,5 +51,19 @@ async function getPokeballs() {
     return result.pokeballs || [];
 }
 
+async function usePokeball(pokeball) {
+    await setStockPokeball();
+    const result = await chrome.storage.local.get("pokeballs");
+    const pokeballs = result.pokeballs || [];
+    
+    pokeballs.forEach(poke => {
+        if(poke.name === pokeball.name) {
+            poke.count -= 1;
+            poke.lastUsed -= poke.cooldown * 60 * 60 * 1000;    // heure a minute a seconde a milliseconde
+        }
+    });
+    await chrome.storage.local.set({ pokeballs });
+}
+
 await setStockPokeball();
-export { getRemainingTime, getPokeballs };
+export { getRemainingTime, getPokeballs, usePokeball };

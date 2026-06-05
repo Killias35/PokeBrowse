@@ -1,0 +1,554 @@
+/* ============================================================
+   battle-capture-animation.css
+   Animation de capture Pokémon — approche CSS-first
+   Tout se passe dans #cap-stage (position:fixed, 100vw x 100vh)
+   La pokéball est TOUJOURS centrée horizontalement dans ce stage.
+   Les classes pilotent les états, le JS ne fait qu'orchestrer.
+   ============================================================ */
+
+/* ── Stage principal ──────────────────────────────────────── */
+
+#cap-stage {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+#cap-stage.hidden {
+    display: none;
+}
+
+/* ── Overlay flash (impact, succès, échec) ────────────────── */
+
+#cap-flash {
+    position: absolute;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#cap-flash.flash-white  { animation: capFlashOnce 0.18s ease-out forwards; }
+#cap-flash.flash-orange { background: rgba(255,130,0,0.5); animation: capFlashOnce 0.3s ease-out forwards; }
+#cap-flash.flash-red    { background: rgba(255,60,60,0.5); animation: capFlashOnce 0.3s ease-out forwards; }
+#cap-flash.flash-gold   { background: rgba(255,210,0,0.55); animation: capFlashOnce 0.45s ease-out forwards; }
+
+@keyframes capFlashOnce {
+    0%   { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* ── Pokéball ─────────────────────────────────────────────── */
+
+/*
+  La ball vit dans #cap-ball-wrap, un conteneur absolument positionné
+  centré horizontalement dans le stage. On anime bottom/transform
+  UNIQUEMENT dans le keyframe, jamais via style inline concurrent.
+  Le wrap garantit que left:50% + translateX(-50%) ne drift jamais.
+*/
+
+#cap-ball-wrap {
+    position: absolute;
+    left: 50%;
+    /* bottom est animé via les classes */
+    transform: translateX(-50%);
+    width: 64px;
+    height: 64px;
+    z-index: 20;
+}
+
+#cap-ball {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    display: block;
+    filter: drop-shadow(0 0 8px rgba(255, 220, 100, 0.4));
+}
+
+/* --- État initial : hors écran bas-gauche, prêt à être lancé --- */
+#cap-ball-wrap.state-ready {
+    bottom: -80px;
+    left: 18%;
+    transform: none;
+}
+
+/* --- Lancer : arc vers le centre-haut --- */
+#cap-ball-wrap.state-throw {
+    animation: capThrow 0.65s cubic-bezier(0.3, 0, 0.4, 1) forwards;
+}
+
+@keyframes capThrow {
+    0% {
+        bottom: 8%;
+        left: 18%;
+        transform: rotate(0deg) scale(1);
+        filter: drop-shadow(0 0 4px rgba(255,255,255,0.2));
+    }
+    45% {
+        bottom: 58%;
+        left: 45%;
+        transform: rotate(-200deg) scale(1.15);
+        filter: drop-shadow(0 0 18px rgba(255,210,60,0.9));
+    }
+    100% {
+        bottom: 55%;
+        left: 50%;
+        transform: translateX(-50%) rotate(-360deg) scale(1);
+        filter: drop-shadow(0 0 10px rgba(255,210,60,0.5));
+    }
+}
+
+/* --- Après absorption : la ball s'illumine puis se stabilise --- */
+#cap-ball-wrap.state-absorbed {
+    bottom: 55%;
+    left: 50%;
+    transform: translateX(-50%) scale(1);
+    animation: capBallAbsorbPop 0.35s ease-out forwards;
+}
+
+@keyframes capBallAbsorbPop {
+    0%   { filter: drop-shadow(0 0 10px rgba(255,100,50,0.5)) brightness(1); transform: translateX(-50%) scale(1); }
+    40%  { filter: drop-shadow(0 0 40px rgba(255,100,50,1)) brightness(2.8); transform: translateX(-50%) scale(1.35); }
+    100% { filter: drop-shadow(0 0 12px rgba(255,100,50,0.5)) brightness(1); transform: translateX(-50%) scale(1); }
+}
+
+/* --- Chute au sol : arc vers le bas-centre --- */
+#cap-ball-wrap.state-fall {
+    animation: capFall 0.7s cubic-bezier(0.3, 0, 0.6, 1) forwards;
+}
+
+@keyframes capFall {
+    0% {
+        bottom: 55%;
+        left: 50%;
+        transform: translateX(-50%) rotate(0deg) scale(1);
+    }
+    /* Arrive sur le sol avec un léger rebond */
+    65% {
+        bottom: 27%;
+        left: 50%;
+        transform: translateX(-50%) rotate(150deg) scale(0.92);
+    }
+    78% {
+        bottom: 30%;
+        transform: translateX(-50%) rotate(260deg) scale(1.06);
+    }
+    90% {
+        bottom: 27.5%;
+        transform: translateX(-50%) rotate(340deg) scale(0.97);
+    }
+    100% {
+        bottom: 28%;
+        left: 50%;
+        /* On fixe l'orientation "couchée" : 180deg = couture à l'horizontal */
+        transform: translateX(-50%) rotate(360deg) scale(1);
+    }
+}
+
+/* --- Au sol : position de repos avant tremblement --- */
+#cap-ball-wrap.state-ground {
+    bottom: 28%;
+    left: 50%;
+    transform: translateX(-50%) scale(1);
+}
+
+/*
+  Tremblements — on part toujours de rotate(180deg) "couchée"
+  Le zoom est géré par --cap-zoom (CSS var, défini via JS une seule fois par tremblement)
+*/
+#cap-ball-wrap.state-shake-1 {
+    animation: capShake 0.5s ease-in-out forwards;
+    --cap-zoom: 1;
+}
+#cap-ball-wrap.state-shake-2 {
+    animation: capShake 0.5s ease-in-out forwards;
+    --cap-zoom: 1.2;
+}
+#cap-ball-wrap.state-shake-3 {
+    animation: capShake 0.5s ease-in-out forwards;
+    --cap-zoom: 1.45;
+}
+
+@keyframes capShake {
+    0%   { transform: translateX(-50%) rotate(0deg) scale(var(--cap-zoom, 1)); }
+    12%  { transform: translateX(calc(-50% - 14px)) rotate(-22deg) scale(var(--cap-zoom, 1)); }
+    28%  { transform: translateX(calc(-50% + 16px)) rotate(26deg) scale(var(--cap-zoom, 1)); }
+    44%  { transform: translateX(calc(-50% - 10px)) rotate(-17deg) scale(var(--cap-zoom, 1)); }
+    60%  { transform: translateX(calc(-50% + 7px))  rotate(17deg) scale(var(--cap-zoom, 1)); }
+    76%  { transform: translateX(calc(-50% - 4px))  rotate(-5deg) scale(var(--cap-zoom, 1)); }
+    88%  { transform: translateX(calc(-50% + 2px))  rotate(2deg) scale(var(--cap-zoom, 1)); }
+    100% { transform: translateX(-50%) rotate(0deg) scale(var(--cap-zoom, 1)); }
+}
+
+/* --- Succès : scintillement doré --- */
+#cap-ball-wrap.state-caught {
+    animation: capCaught 1.4s ease-in-out forwards;
+}
+
+@keyframes capCaught {
+    0%   { filter: drop-shadow(0 0 10px rgba(255,215,0,0.5)) brightness(1); }
+    18%  { filter: drop-shadow(0 0 45px rgba(255,215,0,1))   brightness(3); }
+    38%  { filter: drop-shadow(0 0 18px rgba(255,215,0,0.7)) brightness(1.4); }
+    58%  { filter: drop-shadow(0 0 38px rgba(255,215,0,1))   brightness(2.6); }
+    78%  { filter: drop-shadow(0 0 14px rgba(255,215,0,0.6)) brightness(1.2); }
+    100% { filter: drop-shadow(0 0 22px rgba(255,215,0,1))   brightness(2); }
+}
+
+/* --- Évasion : la ball s'ouvre et tombe --- */
+#cap-ball-wrap.state-open {
+    animation: capOpenBurst 0.3s ease-out forwards;
+}
+@keyframes capOpenBurst {
+    0%   { filter: brightness(1) drop-shadow(0 0 8px rgba(255,80,80,0.4)); transform: translateX(-50%) rotate(0deg) scale(var(--cap-zoom,1)); }
+    50%  { filter: brightness(3.5) drop-shadow(0 0 30px rgba(255,80,80,0.9)); transform: translateX(-50%) rotate(0deg) scale(calc(var(--cap-zoom,1)*1.5)); }
+    100% { filter: brightness(1.3); transform: translateX(-50%) rotate(0deg) scale(var(--cap-zoom,1)); }
+}
+
+#cap-ball-wrap.state-escape-fall {
+    animation: capEscapeFall 0.55s ease-in forwards;
+}
+@keyframes capEscapeFall {
+    to {
+        bottom: -10%;
+        left: 58%;
+        transform: translateX(-50%) rotate(0deg) scale(0.4);
+        opacity: 0;
+    }
+}
+
+/* ── Ombre au sol ─────────────────────────────────────────── */
+
+#cap-shadow {
+    position: absolute;
+    bottom: 23.5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 52px;
+    height: 14px;
+    background: radial-gradient(ellipse, rgba(0,0,0,0.5) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0;
+    z-index: 15;
+}
+
+#cap-shadow.shadow-appear  { animation: capShadowIn  0.4s ease forwards 0.3s; }
+#cap-shadow.shadow-visible { opacity: 0.7; }
+#cap-shadow.shadow-gone    { animation: capShadowOut 0.3s ease forwards; }
+
+@keyframes capShadowIn  { from { opacity: 0; transform: translateX(-50%) scaleX(0.2); } to { opacity: 0.7; transform: translateX(-50%) scaleX(1); } }
+@keyframes capShadowOut { to   { opacity: 0; } }
+
+
+#cap-poke-ghost {
+    position: fixed;   /* fixed pour matcher les coordonnées du sprite réel */
+    image-rendering: pixelated;
+    pointer-events: none;
+    z-index: 30;
+    /* position initiale = calquée sur le sprite original */
+    left:   var(--poke-l);
+    top:    var(--poke-t);
+    width:  var(--poke-w);
+    height: var(--poke-h);
+    transform-origin: center center;
+}
+
+#cap-poke-ghost.hidden { display: none; }
+
+/* Destination d'aspiration = centre de la ball (environ 50vw, 45vh) */
+#cap-poke-ghost.state-sucked {
+    animation: capPokeSuck 0.75s cubic-bezier(0.4, 0, 0.7, 0.6) forwards;
+}
+
+@keyframes capPokeSuck {
+    0% {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+        filter: brightness(1) drop-shadow(0 0 0px transparent);
+        opacity: 1;
+    }
+    /* Légère résistance initiale — le Pokémon "recule" */
+    8% {
+        transform: translate(-8px, -6px) scale(1.08) rotate(-5deg);
+        filter: brightness(1.2);
+    }
+    /* Début de l'aspiration : couleur vive */
+    25% {
+        transform: translate(
+            calc((50vw - var(--poke-l) - var(--poke-w)/2) * 0.2),
+            calc((45vh - var(--poke-t) - var(--poke-h)/2) * 0.2)
+        ) scale(0.75) rotate(20deg);
+        filter: brightness(1.8) hue-rotate(40deg) drop-shadow(0 0 12px rgba(100,180,255,0.9));
+        opacity: 1;
+    }
+    /* Mi-chemin : distorsion maximale */
+    55% {
+        transform: translate(
+            calc((50vw - var(--poke-l) - var(--poke-w)/2) * 0.62),
+            calc((45vh - var(--poke-t) - var(--poke-h)/2) * 0.62)
+        ) scale(0.28) rotate(130deg);
+        filter: brightness(3) hue-rotate(180deg) saturate(2) drop-shadow(0 0 20px rgba(200,100,255,1));
+        opacity: 0.85;
+    }
+    /* Final : disparaît dans la ball */
+    100% {
+        transform: translate(
+            calc(50vw - var(--poke-l) - var(--poke-w)/2),
+            calc(45vh - var(--poke-t) - var(--poke-h)/2)
+        ) scale(0) rotate(360deg);
+        filter: brightness(5);
+        opacity: 0;
+    }
+}
+
+/* Évasion : Pokémon jaillit de la ball */
+#cap-poke-ghost.state-escape {
+    /* Point de départ = position ball (~50vw, ~55vh), on translate depuis là */
+    left: 50vw;
+    top:  45vh;
+    width:  var(--poke-w);
+    height: var(--poke-h);
+    transform: translate(-50%, -50%) scale(0);
+    animation: capPokeEscape 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes capPokeEscape {
+    0%   { transform: translate(-50%, -50%) scale(0) rotate(-120deg);    filter: brightness(4) saturate(0); opacity: 0; }
+    25%  { transform: translate(-50%, -50%) scale(1.4) rotate(15deg);    filter: brightness(2.5) saturate(1.5); opacity: 1; }
+    55%  { transform: translate(-50%, -50%) scale(0.88) rotate(-6deg);   filter: brightness(1.3); opacity: 1; }
+    80%  { transform: translate(-50%, -50%) scale(1.05) rotate(2deg);    filter: brightness(1.1); opacity: 1; }
+    100% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        filter: brightness(1);
+        opacity: 1;
+    }
+}
+
+/* ── Effets de particules ─────────────────────────────────── */
+
+/* Anneau d'absorption */
+.cap-absorb-ring {
+    position: fixed;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid rgba(100, 200, 255, 0.9);
+    box-shadow: 0 0 12px rgba(100, 200, 255, 0.6);
+    margin-left: -8px;
+    margin-top:  -8px;
+    pointer-events: none;
+    z-index: 35;
+    animation: capAbsorbRingAnim 0.5s ease-out forwards;
+}
+
+.cap-absorb-ring.ring-2 {
+    border-color: rgba(180, 100, 255, 0.8);
+    animation-delay: 0.1s;
+    animation-duration: 0.6s;
+}
+
+.cap-absorb-ring.ring-3 {
+    border-color: rgba(255, 200, 50, 0.7);
+    animation-delay: 0.22s;
+    animation-duration: 0.7s;
+}
+
+@keyframes capAbsorbRingAnim {
+    0%   { transform: scale(0);  opacity: 1; }
+    100% { transform: scale(12); opacity: 0; }
+}
+
+/* Vortex de particules colorées aspirées */
+.cap-vortex-particle {
+    position: fixed;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 34;
+    animation: capVortexPart var(--vd, 0.55s) ease-in var(--vdel, 0s) forwards;
+}
+
+@keyframes capVortexPart {
+    0%   {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--vtx), var(--vty)) scale(0.1) rotate(var(--vrot, 180deg));
+        opacity: 0;
+    }
+}
+
+/* Trainées de lumière aspirées (lignes) */
+.cap-absorb-streak {
+    position: fixed;
+    width: 3px;
+    height: 24px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 33;
+    transform-origin: center bottom;
+    animation: capAbsorbStreak var(--sd, 0.6s) ease-in var(--sdel, 0s) forwards;
+}
+
+@keyframes capAbsorbStreak {
+    0%   { transform: translate(0, 0) scaleY(1) rotate(var(--srot, 0deg)); opacity: 0.8; }
+    60%  { opacity: 0.6; }
+    100% { transform: translate(var(--stx), var(--sty)) scaleY(0) rotate(var(--srot, 0deg)); opacity: 0; }
+}
+
+/* Ondulation (ripple) */
+.cap-ripple {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid;
+    margin-left: -10px;
+    margin-top:  -10px;
+    pointer-events: none;
+    z-index: 36;
+    animation: capRippleAnim 0.75s ease-out forwards;
+}
+
+@keyframes capRippleAnim {
+    0%   { transform: scale(0); opacity: 0.9; }
+    100% { transform: scale(9); opacity: 0; }
+}
+
+/* Lueur de tremblement */
+.cap-shake-glow {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-left: -10px;
+    margin-top:  -10px;
+    background: radial-gradient(circle,
+        rgba(255, 210, 0, 1)    0%,
+        rgba(255, 150, 0, 0.5) 45%,
+        transparent            70%
+    );
+    pointer-events: none;
+    z-index: 36;
+    animation: capShakeGlowAnim 0.55s ease-out forwards;
+}
+
+@keyframes capShakeGlowAnim {
+    0%   { transform: scale(0.3); opacity: 0; }
+    25%  { transform: scale(4);   opacity: 1; }
+    100% { transform: scale(9);   opacity: 0; }
+}
+
+/* Particules d'explosion */
+.cap-particle {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 37;
+    animation: capParticleAnim 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes capParticleAnim {
+    0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+    70%  { opacity: 0.7; }
+    100% { transform: translate(var(--px), var(--py)) scale(0.1); opacity: 0; }
+}
+
+/* Étoiles */
+.cap-star {
+    position: fixed;
+    font-size: 22px;
+    color: #ffd700;
+    text-shadow: 0 0 10px #ffd700, 0 0 22px rgba(255,215,0,0.5);
+    pointer-events: none;
+    z-index: 37;
+    animation: capStarAnim 0.9s ease-out forwards;
+}
+
+@keyframes capStarAnim {
+    0%   { transform: scale(0) rotate(-30deg); opacity: 0; }
+    30%  { transform: scale(1.5) rotate(10deg); opacity: 1; }
+    65%  { transform: scale(1) rotate(0deg);   opacity: 1; }
+    100% { transform: scale(0.2) rotate(20deg); opacity: 0; }
+}
+
+/* Étoiles tombantes (succès) */
+.cap-falling-star {
+    position: fixed;
+    top: -40px;
+    pointer-events: none;
+    z-index: 37;
+    text-shadow: 0 0 10px currentColor, 0 0 20px rgba(255,215,0,0.5);
+    animation: capFallingStarAnim var(--fs-dur, 1s) var(--fs-del, 0s) ease-in both;
+}
+
+@keyframes capFallingStarAnim {
+    0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+    10%  { opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateY(110vh) rotate(360deg) scale(0.2); opacity: 0; }
+}
+
+/* ── Message final ────────────────────────────────────────── */
+
+#cap-message {
+    position: fixed;
+    left: 50%;
+    top:  46%;
+    transform: translateX(-50%) translateY(0) scale(0.5);
+    padding: 16px 40px;
+    border-radius: 10px;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: clamp(12px, 2.2vw, 20px);
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0;
+    transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+                opacity   0.25s ease;
+}
+
+#cap-message.hidden { display: none; }
+
+#cap-message.msg-show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+}
+
+#cap-message.msg-success {
+    color: #ffd700;
+    background: linear-gradient(135deg, #0d0d2a 0%, #111c3a 100%);
+    border: 2.5px solid #ffd700;
+    text-shadow: 0 0 12px #ffd700, 0 0 24px rgba(255,215,0,0.4);
+    box-shadow: 0 0 30px rgba(255,215,0,0.45), 0 0 60px rgba(255,215,0,0.2),
+                inset 0 0 30px rgba(255,215,0,0.04);
+    animation: capMsgPulse 1.6s ease-in-out infinite 0.4s;
+}
+
+#cap-message.msg-fail {
+    color: #ff6b6b;
+    background: linear-gradient(135deg, #1a0505 0%, #2e1010 100%);
+    border: 2.5px solid #c0392b;
+    text-shadow: 0 0 10px #ff6b6b;
+    box-shadow: 0 0 24px rgba(192,57,43,0.45), inset 0 0 20px rgba(192,57,43,0.05);
+}
+
+@keyframes capMsgPulse {
+    0%, 100% { box-shadow: 0 0 30px rgba(255,215,0,0.45), 0 0 60px rgba(255,215,0,0.2); }
+    50%       { box-shadow: 0 0 50px rgba(255,215,0,0.8), 0 0 90px rgba(255,215,0,0.4); }
+}
+
+#cap-ball-wrap.state-shake-1,
+#cap-ball-wrap.state-shake-2,
+#cap-ball-wrap.state-shake-3,
+#cap-ball-wrap.state-caught,
+#cap-ball-wrap.state-ground,
+#cap-ball-wrap.state-open,
+#cap-ball-wrap.state-escape-fall {
+    bottom: 28%;
+    left: 50%;
+}
