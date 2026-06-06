@@ -75,7 +75,7 @@ async function startDefenseMinigame(pokemon, baseDifficulty) {
 }
 
 async function launchMinigameEngine(type, difficulty) {
-    // type = "fire";   // DEBUG
+    type = "fire";   // DEBUG
     console.log("type:", type, "difficulty:", difficulty);
 
     if (type === "fire" || type === "rock" || type === "electric" || type === "flying") {
@@ -93,8 +93,8 @@ async function lancerSequenceCapture() {
     const baseDifficulty = config.defenseDifficulty;
     while (true) {
         setHpStatus(100, true);
+        while (true) {await startDefenseMinigame(POKEMON_FIGHTING, baseDifficulty); await showSplashText("Retour au combat !", 1000);}   // DEBUG
         const ballChoisie = await phaseChoixBall();
-        // await startDefenseMinigame(POKEMON_FIGHTING, baseDifficulty);   // DEBUG
 
         if (ballChoisie === null) {
             await triggerPokemonFlee();

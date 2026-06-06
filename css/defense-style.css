@@ -1,0 +1,525 @@
+/* ============================================================
+   DEFENSE MINI-GAME — defense-style.css
+   Thèmes visuels pour chaque type Pokémon + effets dopamine
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,700;0,900;1,900&family=Rajdhani:wght@600;700&display=swap');
+
+/* ─── VARIABLES GLOBALES ──────────────────────────────────── */
+:root {
+  --arena-w: 600px;
+  --arena-h: 400px;
+  --player-size: 32px;
+}
+
+/* ─── STAGE (fond plein écran) ────────────────────────────── */
+#defense-stage {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 8, 20, 0.92);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 4000;
+  font-family: 'Exo 2', sans-serif;
+  cursor: none;
+}
+
+/* ─── HEADER ──────────────────────────────────────────────── */
+#defense-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 10;
+}
+
+#attack-name-display {
+  font-family: 'Exo 2', sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: 2.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  opacity: 0;
+}
+#attack-name-display.attack-name-enter {
+  animation: attackNamePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.4) forwards;
+}
+@keyframes attackNamePop {
+  0%   { opacity: 0; transform: scale(0.4) translateY(20px); }
+  60%  { opacity: 1; transform: scale(1.15) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+#defense-warning {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: pulseText 0.8s ease-in-out infinite alternate;
+}
+#defense-timer {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: 0.05em;
+}
+
+@keyframes pulseText {
+  from { opacity: 0.7; }
+  to   { opacity: 1; }
+}
+
+/* ─── BARRE DE SURVIE ─────────────────────────────────────── */
+#survival-bar-track {
+  width: var(--arena-w);
+  height: 6px;
+  background: #1e293b;
+  border-radius: 3px;
+  margin-bottom: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 6px rgba(0,0,0,0.5);
+}
+#survival-bar-fill {
+  height: 100%;
+  width: 100%;
+  background: #22c55e;
+  border-radius: 3px;
+  transition: width 0.1s linear, background 0.3s;
+}
+
+/* ─── ARÈNE ───────────────────────────────────────────────── */
+#defense-arena {
+  width: var(--arena-w);
+  height: var(--arena-h);
+  background: #0f172a;
+  border: 3px solid #334155;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  cursor: none;
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.9), 0 0 40px rgba(0,0,0,0.6);
+  transition: box-shadow 0.4s ease;
+}
+
+/* Overlay flash (JS : arena-flash-overlay) */
+#arena-flash-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9;
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+  border-radius: 10px;
+}
+
+/* ─── AVATAR POKÉBALL ─────────────────────────────────────── */
+#player-avatar {
+  width: var(--player-size);
+  height: var(--player-size);
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 8;
+
+  /* Pokéball en image */
+  background-image: url('../../assets/balls/pokeball.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  /* Halo blanc permanent */
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.5));
+
+  transition: filter 0.2s, box-shadow 0.2s;
+}
+
+/* ─── ANIMATIONS D'ARÈNE PAR TYPE ─────────────────────────── */
+
+/* 🔥 FEU */
+.theme-fire {
+  border-color: #ef4444 !important;
+  background: radial-gradient(ellipse at center bottom, #3b0a0a 0%, #0f172a 60%) !important;
+  animation: firePulse 1.2s ease-in-out infinite alternate !important;
+}
+@keyframes firePulse {
+  0%   { box-shadow: inset 0 0 60px rgba(239,68,68,0.3),  0 0 20px rgba(239,68,68,0.2); }
+  100% { box-shadow: inset 0 0 140px rgba(239,68,68,0.7), 0 0 50px rgba(255,100,0,0.4); }
+}
+.theme-fire::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255,100,0,0.03) 0px, rgba(255,100,0,0.03) 2px,
+    transparent 2px, transparent 12px
+  );
+  pointer-events: none;
+  animation: heatRise 2s linear infinite;
+}
+@keyframes heatRise {
+  0%   { background-position: 0 100%; }
+  100% { background-position: 0 0; }
+}
+
+/* 💧 EAU */
+.theme-water {
+  border-color: #38bdf8 !important;
+  background: radial-gradient(ellipse at center, #0c1e3b 0%, #0f172a 70%) !important;
+  animation: waterShimmer 3s ease-in-out infinite alternate !important;
+}
+@keyframes waterShimmer {
+  0%   { box-shadow: inset 0 0 60px rgba(56,189,248,0.25); }
+  100% { box-shadow: inset 0 0 120px rgba(56,189,248,0.55), 0 0 30px rgba(56,189,248,0.2); }
+}
+.theme-water::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(56,189,248,0.02) 0px, rgba(56,189,248,0.02) 2px,
+    transparent 2px, transparent 30px
+  );
+  animation: waterFlow 1.5s linear infinite;
+  pointer-events: none;
+}
+@keyframes waterFlow {
+  0%   { background-position: 0 0; }
+  100% { background-position: 60px 0; }
+}
+
+/* ⚡ ÉLECTRIK */
+.theme-electric {
+  border-color: #facc15 !important;
+  background: #0f172a !important;
+  animation: electricFlicker 0.25s steps(1) infinite !important;
+}
+@keyframes electricFlicker {
+  0%   { box-shadow: inset 0 0 20px rgba(250,204,21,0.15); }
+  25%  { box-shadow: inset 0 0 120px rgba(250,204,21,0.8), 0 0 60px rgba(255,255,255,0.3); }
+  50%  { box-shadow: inset 0 0 30px rgba(250,204,21,0.2); }
+  75%  { box-shadow: inset 0 0 80px rgba(250,204,21,0.6); }
+  100% { box-shadow: inset 0 0 200px #fff; }
+}
+@keyframes electricWarn {
+  0%   { opacity: 0.1; }
+  100% { opacity: 0.7; }
+}
+
+/* 🌿 PLANTE */
+.theme-grass {
+  border-color: #4ade80 !important;
+  background: radial-gradient(ellipse at center, #0a1f0f 0%, #0f172a 70%) !important;
+  animation: grassBreath 2s ease-in-out infinite alternate !important;
+}
+@keyframes grassBreath {
+  0%   { box-shadow: inset 0 0 50px rgba(74,222,128,0.2); }
+  100% { box-shadow: inset 0 0 100px rgba(74,222,128,0.5), 0 0 20px rgba(74,222,128,0.15); }
+}
+.theme-grass::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 40px;
+  background: linear-gradient(0deg, rgba(74,222,128,0.1), transparent);
+  pointer-events: none;
+}
+
+/* ❄️ GLACE */
+.theme-ice {
+  border-color: #a5f3fc !important;
+  background: radial-gradient(ellipse at center, #0c2030 0%, #0f172a 70%) !important;
+  animation: icePulse 2s ease-in-out infinite alternate !important;
+}
+@keyframes icePulse {
+  0%   { box-shadow: inset 0 0 50px rgba(165,243,252,0.15); }
+  100% { box-shadow: inset 0 0 100px rgba(165,243,252,0.45), 0 0 30px rgba(165,243,252,0.2); }
+}
+.theme-ice::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(165,243,252,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(165,243,252,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* 🌍 SOL */
+.theme-ground {
+  border-color: #a16207 !important;
+  background: radial-gradient(ellipse at center bottom, #1a0e00 0%, #0f172a 60%) !important;
+  animation: groundRumble 0.15s linear infinite !important;
+}
+@keyframes groundRumble {
+  0%   { box-shadow: inset 0 0 80px rgba(161,98,7,0.4); }
+  33%  { box-shadow: inset 0 0 120px rgba(180,120,0,0.6); transform: translate(1px, 0); }
+  66%  { box-shadow: inset 0 0 80px rgba(161,98,7,0.4); transform: translate(-1px, 1px); }
+  100% { box-shadow: inset 0 0 100px rgba(161,98,7,0.5); transform: translate(0, 0); }
+}
+
+/* 🪨 ROCHE */
+.theme-rock {
+  border-color: #78716c !important;
+  background: radial-gradient(circle, #292524 40%, #1c1917 100%) !important;
+  box-shadow: inset 0 0 100px rgba(120,113,108,0.5) !important;
+}
+.theme-rock::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 15% 25%, rgba(120,113,108,0.08) 0%, transparent 20%),
+    radial-gradient(circle at 85% 70%, rgba(120,113,108,0.08) 0%, transparent 20%),
+    radial-gradient(circle at 50% 50%, rgba(120,113,108,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* 💨 VOL */
+.theme-flying {
+  border-color: #38bdf8 !important;
+  background: linear-gradient(180deg, #050d1a 0%, #0f172a 100%) !important;
+  animation: windSpeed 0.4s linear infinite !important;
+}
+@keyframes windSpeed {
+  0%   { background-position: 0 100%; }
+  100% { background-position: 0 0; }
+}
+.theme-flying {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px,
+    transparent 1px, transparent 16px
+  ) !important;
+}
+
+/* 🧠 PSY */
+.theme-psychic {
+  border-color: #f472b6 !important;
+  background: radial-gradient(ellipse at center, #1a0520 0%, #0f172a 70%) !important;
+  animation: psyWarp 3s ease-in-out infinite alternate !important;
+}
+@keyframes psyWarp {
+  0%   { box-shadow: inset 0 0 60px rgba(244,114,182,0.3); filter: hue-rotate(0deg); }
+  50%  { box-shadow: inset 0 0 100px rgba(244,114,182,0.6), inset 0 0 200px rgba(139,92,246,0.3); }
+  100% { box-shadow: inset 0 0 80px rgba(244,114,182,0.4); filter: hue-rotate(30deg); }
+}
+.theme-psychic::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-conic-gradient(
+    rgba(244,114,182,0.015) 0deg,
+    transparent 10deg
+  );
+  animation: psySpin 8s linear infinite;
+  pointer-events: none;
+}
+@keyframes psySpin { to { transform: rotate(360deg); } }
+@keyframes ghostPulse {
+  0%   { opacity: 0.6; transform: translate(-50%,-50%) scale(0.9); }
+  100% { opacity: 1;   transform: translate(-50%,-50%) scale(1.05); }
+}
+
+/* 🐛 INSECTE */
+.theme-bug {
+  border-color: #a3e635 !important;
+  background: radial-gradient(ellipse at center, #0c1a06 0%, #0f172a 70%) !important;
+  animation: bugHum 0.1s linear infinite alternate !important;
+}
+@keyframes bugHum {
+  0%   { box-shadow: inset 0 0 60px rgba(163,230,53,0.2); }
+  100% { box-shadow: inset 0 0 80px rgba(163,230,53,0.35); }
+}
+
+/* 👻 SPECTRE */
+.theme-ghost {
+  border-color: #7c3aed !important;
+  background: #050310 !important;
+  animation: ghostFlicker 2s ease-in-out infinite !important;
+}
+@keyframes ghostFlicker {
+  0%, 100% { box-shadow: inset 0 0 60px rgba(124,58,237,0.3); }
+  30%       { box-shadow: inset 0 0 120px rgba(124,58,237,0.7), 0 0 40px rgba(124,58,237,0.3); }
+  60%       { box-shadow: inset 0 0 40px rgba(124,58,237,0.2); }
+}
+
+/* 🐉 DRAGON */
+.theme-dragon {
+  border-color: #6366f1 !important;
+  background: radial-gradient(ellipse at center, #09060d 0%, #0f172a 70%) !important;
+  animation: dragonPulse 1.5s ease-in-out infinite alternate !important;
+}
+@keyframes dragonPulse {
+  0%   { box-shadow: inset 0 0 80px rgba(99,102,241,0.3); }
+  100% { box-shadow: inset 0 0 150px rgba(99,102,241,0.7), 0 0 60px rgba(99,102,241,0.3); }
+}
+.theme-dragon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(99,102,241,0.03), rgba(139,92,246,0.05), rgba(99,102,241,0.03),
+    transparent 30%, transparent 70%
+  );
+  animation: dragonSpin 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes dragonSpin { to { transform: rotate(360deg); } }
+
+/* 🌑 TÉNÈBRES */
+.theme-dark {
+  border-color: #818cf8 !important;
+  background: #04040c !important;
+  animation: darkPulse 2s ease-in-out infinite alternate !important;
+}
+@keyframes darkPulse {
+  0%   { box-shadow: inset 0 0 40px rgba(129,140,248,0.15); }
+  100% { box-shadow: inset 0 0 80px rgba(129,140,248,0.35); }
+}
+@keyframes minePulse {
+  0%   { transform: translate(-50%,-50%) scale(0.95); }
+  100% { transform: translate(-50%,-50%) scale(1.05); }
+}
+
+/* ⚙️ ACIER */
+.theme-steel {
+  border: 4px solid #94a3b8 !important;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%) !important;
+  animation: steelSheen 2s linear infinite !important;
+}
+@keyframes steelSheen {
+  0%   { box-shadow: inset 0 0 60px rgba(148,163,184,0.1); }
+  50%  { box-shadow: inset 0 0 120px rgba(226,232,240,0.3), inset 0 0 40px rgba(148,163,184,0.2); }
+  100% { box-shadow: inset 0 0 60px rgba(148,163,184,0.1); }
+}
+.theme-steel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(148,163,184,0.02) 0px, rgba(148,163,184,0.02) 2px,
+    transparent 2px, transparent 20px
+  );
+  pointer-events: none;
+}
+
+/* 🧪 POISON */
+.theme-poison {
+  border-color: #a855f7 !important;
+  background: radial-gradient(ellipse at center, #120520 0%, #0f172a 70%) !important;
+  animation: poisonBubble 1.5s ease-in-out infinite alternate !important;
+}
+@keyframes poisonBubble {
+  0%   { box-shadow: inset 0 0 60px rgba(168,85,247,0.3); }
+  100% { box-shadow: inset 0 0 120px rgba(168,85,247,0.6), 0 0 30px rgba(168,85,247,0.2); }
+}
+.theme-poison::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    rgba(168,85,247,0.01) 0px, rgba(168,85,247,0.01) 2px,
+    transparent 2px, transparent 30px
+  );
+  animation: poisonExpand 3s linear infinite;
+  pointer-events: none;
+}
+@keyframes poisonExpand {
+  0%   { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+
+/* 🥊 COMBAT */
+.theme-fighting {
+  border-color: #f97316 !important;
+  background: radial-gradient(ellipse at center, #1a0800 0%, #0f172a 70%) !important;
+  animation: fightingPulse 0.8s ease-in-out infinite alternate !important;
+}
+@keyframes fightingPulse {
+  0%   { box-shadow: inset 0 0 60px rgba(249,115,22,0.3); }
+  100% { box-shadow: inset 0 0 120px rgba(249,115,22,0.6), 0 0 30px rgba(249,115,22,0.2); }
+}
+@keyframes warnPulse {
+  0%   { opacity: 0.2; border-color: transparent; }
+  100% { opacity: 0.8; }
+}
+
+/* 🌟 FÉE */
+.theme-fairy {
+  border-color: #ec4899 !important;
+  background: radial-gradient(ellipse at center, #1a0518 0%, #0f172a 70%) !important;
+  animation: fairyGlow 2s ease-in-out infinite alternate !important;
+}
+@keyframes fairyGlow {
+  0%   { box-shadow: inset 0 0 60px rgba(236,72,153,0.2); }
+  100% { box-shadow: inset 0 0 120px rgba(236,72,153,0.5), 0 0 40px rgba(236,72,153,0.2); }
+}
+@keyframes fairySpin {
+  to { transform: translate(-50%,-50%) rotate(360deg); }
+}
+.theme-fairy::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 40%, rgba(236,72,153,0.04) 0%, transparent 40%),
+              radial-gradient(circle at 70% 60%, rgba(251,207,232,0.04) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* 🔘 NORMAL */
+.theme-normal {
+  border-color: #a8a29e !important;
+  background: #0f172a !important;
+  box-shadow: inset 0 0 60px rgba(168,162,158,0.15) !important;
+}
+
+/* ─── PARTICULES GÉNÉRIQUES ───────────────────────────────── */
+.dp-particle {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+  will-change: transform, opacity;
+}
+
+/* ─── SCROLLING OVERLAY VICTORY / DEFEAT ─────────────────── */
+.outcome-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  font-family: 'Exo 2', sans-serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: 4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  animation: outcomeAppear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.4) forwards;
+}
+.outcome-victory { color: #22c55e; text-shadow: 0 0 40px #22c55e, 0 0 80px #22c55e; }
+.outcome-defeat  { color: #ef4444; text-shadow: 0 0 40px #ef4444, 0 0 80px #ef4444; }
+@keyframes outcomeAppear {
+  0%   { opacity: 0; transform: scale(0.3) rotate(-5deg); }
+  60%  { opacity: 1; transform: scale(1.2) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+/* ─── UTILITAIRE hidden ───────────────────────────────────── */
+.hidden { display: none !important; }
