@@ -91,18 +91,24 @@ export async function startDodgeMinigame(pokemonType, difficultyMultiplier) {
         let projectiles = [];
         let trails = [];
 
+        const isWindy = config.effects.includes("wind");
+        // Si c'est le vent, l'élastique est très détendu (0.05), le contrôle est lourd et glissant.
+        // Sinon, contrôle ultra réactif (0.3).
+        const friction = isWindy ? 0.05 : 0.3; 
+        const windForce = isWindy ? 15 * difficultyMultiplier * 0.1 : 0;
+
         // 3. Boucle principale
         function gameLoop() {
             if (isGameOver) return;
 
             // Mouvement de l'avatar
-            avatarX += (mouseX - avatarX) * 0.3;
-            avatarY += (mouseY - avatarY) * 0.3;
+            avatarX += (mouseX - avatarX) * friction;
+            avatarY += (mouseY - avatarY) * friction;
 
-            if (config.effects.includes("wind")) {
-                avatarX += 3 * difficultyMultiplier; 
-            }
+            // 2. La force pure de la tornade (Pousse vers la droite)
+            avatarX += windForce;
 
+            // Clamp (On garde l'avatar strictement dans l'arène)
             avatarX = Math.max(12, Math.min(588, avatarX));
             avatarY = Math.max(12, Math.min(388, avatarY));
 

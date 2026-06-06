@@ -139,8 +139,8 @@ chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
     const pokemon = result.currentBattlePokemon;
     if (!pokemon) return;
     await chrome.storage.local.remove("currentBattlePokemon");
-    pokemon.rarity = "legendary"    // DEBUG
-    pokemon.isShiny = true       // DEBUG
+    // pokemon.rarity = "legendary"    // DEBUG
+    // pokemon.isShiny = true       // DEBUG
 
     POKEMON_FIGHTING = pokemon;
     if (pokemon.rarity === "legendary" || pokemon.rarity === "epic") {
