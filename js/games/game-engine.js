@@ -9,6 +9,7 @@ import { _rnd, _rndInt } from "./utils.js";
 
 import { _mechanic_water_sweep } from "./mechanics/_mechanic_water_sweep.js";
 import { _mechanic_fire_rings } from "./mechanics/_mechanic_fire_rings.js";
+import { _mechanic_electric_bolts } from "./mechanics/_mechanic_electric_bolts.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -347,7 +348,7 @@ function _renderPlayer() {
 }
 
 // ─── SCREEN-SHAKE ─────────────────────────────────────────────
-function _screenShake(intensity = 8, duration = 300) {
+export function _screenShake(intensity = 8, duration = 300) {
   const container = document.getElementById("defense-stage");
   if (!container) return;
   const start = performance.now();
@@ -425,10 +426,10 @@ function _cleanup() {
 }
 
 // ─── DÉTECTION DE COLLISION (cercle / rect) ───────────────────
-function _hitCircle(ax, ay, ar, bx, by, br) {
+export function _hitCircle(ax, ay, ar, bx, by, br) {
   return Math.hypot(ax - bx, ay - by) < ar + br;
 }
-function _hitRect(px, py, pr, rx, ry, rw, rh) {
+export function _hitRect(px, py, pr, rx, ry, rw, rh) {
   const cx = Math.max(rx, Math.min(px, rx + rw));
   const cy = Math.max(ry, Math.min(py, ry + rh));
   return Math.hypot(px - cx, py - cy) < pr;
@@ -438,81 +439,6 @@ function _hitRect(px, py, pr, rx, ry, rw, rh) {
 //   MÉCANIQUES DE JEU (une par type)
 // ============================================================
 
-// ─── ⚡ ÉLECTRIK : zones qui se téléchargent puis frappent
-function _mechanic_electric_bolts(cfg, difficulty) {
-  const warningDuration = Math.max(600, 1200 - difficulty * 80);
-  const strikeDuration  = 200;
-
-  function spawnBolt() {
-    if (state._isOver) return;
-    const x = _rnd(40, state.ARENA_W - 40);
-    const w = _rnd(30, 60);
-
-    // Phase WARNING (zone jaune clignotante)
-    const warn = document.createElement("div");
-    warn.className = "dp-zone";
-    warn.style.cssText = `
-      position:absolute;
-      width:${w}px; height:100%;
-      left:${x - w / 2}px; top:0;
-      background: ${cfg.color}22;
-      border-left: 2px solid ${cfg.color}88;
-      border-right: 2px solid ${cfg.color}88;
-      pointer-events:none;
-      animation: electricWarn 0.15s linear infinite alternate;
-    `;
-    state._arena.appendChild(warn);
-
-    _addTimeout(() => {
-      if (state._isOver) { warn.remove(); return; }
-      warn.remove();
-      // Phase STRIKE
-      const bolt = document.createElement("div");
-      bolt.className = "dp-zone";
-      bolt.style.cssText = `
-        position:absolute;
-        width:${w}px; height:100%;
-        left:${x - w / 2}px; top:0;
-        background: linear-gradient(180deg, transparent, ${cfg.color}ff, transparent);
-        box-shadow: 0 0 30px ${cfg.color}, 0 0 60px ${cfg.accent};
-        pointer-events:none;
-        border-radius: 4px;
-      `;
-      state._arena.appendChild(bolt);
-      _arenaFlash(cfg.color, 100);
-      _screenShake(5, 200);
-
-      // Éclairs de particules
-      for (let i = 0; i < 20; i++) {
-        _spawnParticle(x + _rnd(-w, w), _rnd(0, state.ARENA_H), {
-          color: i % 2 === 0 ? cfg.color : "#fff",
-          size: _rnd(2, 5), vx: _rnd(-3, 3), vy: _rnd(-3, 3), life: 300
-        });
-      }
-
-      // Zone de collision active
-      const obj = { el: bolt, x: x - w / 2, y: 0, w, h: state.ARENA_H, type: "strike_zone" };
-      state._objects.push(obj);
-
-      _addTimeout(() => {
-        bolt.remove();
-        const idx = state._objects.indexOf(obj);
-        if (idx > -1) state._objects.splice(idx, 1);
-      }, strikeDuration);
-    }, warningDuration);
-  }
-
-  _addInterval(spawnBolt, Math.max(400, 900 - difficulty * 60));
-  _addTimeout(spawnBolt, 100);
-
-  return function update() {
-    for (const o of state._objects) {
-      if (o.type !== "strike_zone") continue;
-      if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.w, o.h)) return true;
-    }
-    return false;
-  };
-}
 
 // ─── 🌿 PLANTE : lianes traversantes (horizontales & verticales)
 function _mechanic_grass_vines(cfg, difficulty) {
