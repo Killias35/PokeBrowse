@@ -5,8 +5,10 @@
 // ============================================================
 
 import { showSplashText } from "../battle-annimation.js";
-import { _mechanic_water_sweep } from "./mechanics/_mechanic_water_sweep.js";
 import { _rnd, _rndInt } from "./utils.js";
+
+import { _mechanic_water_sweep } from "./mechanics/_mechanic_water_sweep.js";
+import { _mechanic_fire_rings } from "./mechanics/_mechanic_fire_rings.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -436,98 +438,6 @@ function _hitRect(px, py, pr, rx, ry, rw, rh) {
 //   MÉCANIQUES DE JEU (une par type)
 // ============================================================
 
-// ─── 🔥 FEU : anneaux concentriques qui explosent vers l'extérieur
-function _mechanic_fire_rings(cfg, difficulty) {
-  const colors = [cfg.color, cfg.accent, "#ff6a00"];
-  let spawnDelay = Math.max(800, 2000 - difficulty * 200);
-
-  function spawnRing() {
-    if (state._isOver) return;
-    // Taille de départ et vitesse d'expansion
-    const spawnDelay = Math.max(15, 60 - difficulty * 10);   // temps avant expension en image
-    const startSize = _rnd(20, 60);                         // taille de départ
-    const maxSize = startSize * 2 * (1 + difficulty * 0.5); // taille maximale
-    const expandSpeed = _rnd(2, 4) * (1 + difficulty * 0.1);// vitesse d'expansion
-    const color = colors[_rndInt(0, colors.length - 1)];    // couleur
-
-    const el = document.createElement("div");
-    el.className = "dp-ring dp-projectile";
-    const cx = _rnd(80, ARENA_W - 80);
-    const cy = _rnd(60, ARENA_H - 60);
-    el.style.cssText = `
-      position:absolute;
-      width:${startSize}px; height:${startSize}px;
-      border-radius:50%;
-      border: 4px solid ${color};
-      box-shadow: 0 0 12px ${color}, inset 0 0 8px ${color};
-      left:${cx}px; top:${cy}px;
-      transform:translate(-50%,-50%);
-      pointer-events:none;
-    `;
-    state._arena.appendChild(el);
-
-    // Petite explosion de particules au spawn
-    _burstParticles(cx, cy, 8, cfg.color, cfg.accent);
-    _arenaFlash(cfg.color, 80);
-
-    const obj = { el, cx, cy, r: startSize / 2, expandSpeed, type: "ring", alive: true, maxSize, spawnDelay };
-    state._objects.push(obj);
-
-    // Particules de feu qui brûlent le long de l'anneau
-    const trailInterval = setInterval(() => {
-      if (!obj.alive || state._isOver) { clearInterval(trailInterval); return; }
-      const angle = Math.random() * Math.PI * 2;
-      _spawnParticle(cx + Math.cos(angle) * obj.r, cy + Math.sin(angle) * obj.r, {
-        color: Math.random() < 0.5 ? cfg.color : cfg.accent,
-        size: _rnd(3, 8), vx: Math.cos(angle) * _rnd(0.5, 2), vy: _rnd(-3, -1), life: 400
-      });
-    }, 40);
-
-    state._intervals.push(trailInterval);
-  }
-
-  const spawnInterval = _addInterval(spawnRing, spawnDelay);
-  spawnRing(); // Premier anneau immédiat
-
-  return function update(now) {
-    for (let i = state._objects.length - 1; i >= 0; i--) {
-      const o = state._objects[i];
-      if (o.type !== "ring" || !o.alive) continue;
-      if(o.spawnDelay > 0) { 
-        o.spawnDelay -= 1; 
-        console.log("spawnDelay:", o.spawnDelay, now);
-        _spawnParticle(o.cx, o.cy, { color: cfg.color, size: _rnd(3, 8), vx: 0, vy: 0, life: 100 });
-        continue; 
-      } 
-      o.r += o.expandSpeed;
-      const d = o.r * 2;
-      if (o.r > o.maxSize) {
-        o.el.remove();
-        o.alive = false;
-        state._objects.splice(i, 1);
-        continue;
-      }
-      o.el.style.width  = `${d}px`;
-      o.el.style.height = `${d}px`;
-
-      // Collision joueur
-      const dist = Math.hypot(state._playerX - o.cx, state._playerY - o.cy);
-      const ringThickness = 12;
-      if (Math.abs(dist - o.r) < PLAYER_RADIUS + ringThickness) {
-        return true; // TOUCHÉ
-      }
-
-      // Sortie d'arène
-      if (d > ARENA_H) {
-        o.el.remove();
-        o.alive = false;
-        state._objects.splice(i, 1);
-      }
-    }
-    return false;
-  };
-}
-
 // ─── ⚡ ÉLECTRIK : zones qui se téléchargent puis frappent
 function _mechanic_electric_bolts(cfg, difficulty) {
   const warningDuration = Math.max(600, 1200 - difficulty * 80);
@@ -535,7 +445,7 @@ function _mechanic_electric_bolts(cfg, difficulty) {
 
   function spawnBolt() {
     if (state._isOver) return;
-    const x = _rnd(40, ARENA_W - 40);
+    const x = _rnd(40, state.ARENA_W - 40);
     const w = _rnd(30, 60);
 
     // Phase WARNING (zone jaune clignotante)
@@ -574,14 +484,14 @@ function _mechanic_electric_bolts(cfg, difficulty) {
 
       // Éclairs de particules
       for (let i = 0; i < 20; i++) {
-        _spawnParticle(x + _rnd(-w, w), _rnd(0, ARENA_H), {
+        _spawnParticle(x + _rnd(-w, w), _rnd(0, state.ARENA_H), {
           color: i % 2 === 0 ? cfg.color : "#fff",
           size: _rnd(2, 5), vx: _rnd(-3, 3), vy: _rnd(-3, 3), life: 300
         });
       }
 
       // Zone de collision active
-      const obj = { el: bolt, x: x - w / 2, y: 0, w, h: ARENA_H, type: "strike_zone" };
+      const obj = { el: bolt, x: x - w / 2, y: 0, w, h: state.ARENA_H, type: "strike_zone" };
       state._objects.push(obj);
 
       _addTimeout(() => {
@@ -598,7 +508,7 @@ function _mechanic_electric_bolts(cfg, difficulty) {
   return function update() {
     for (const o of state._objects) {
       if (o.type !== "strike_zone") continue;
-      if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.w, o.h)) return true;
+      if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.w, o.h)) return true;
     }
     return false;
   };
@@ -616,7 +526,7 @@ function _mechanic_grass_vines(cfg, difficulty) {
     let x, y, vx, vy;
 
     if (horizontal) {
-      y = _rnd(20, ARENA_H - 20);
+      y = _rnd(20, state.ARENA_H - 20);
       x = -20;
       vx = vineSpeed; vy = 0;
       el.style.cssText = `
@@ -628,7 +538,7 @@ function _mechanic_grass_vines(cfg, difficulty) {
         border-radius:3px; pointer-events:none;
       `;
     } else {
-      x = _rnd(20, ARENA_W - 20);
+      x = _rnd(20, state.ARENA_W - 20);
       y = -20;
       vx = 0; vy = vineSpeed;
       el.style.cssText = `
@@ -658,11 +568,11 @@ function _mechanic_grass_vines(cfg, difficulty) {
 
       // Étirer la liane visuellement
       if (o.horizontal) {
-        o.w = Math.min(o.w + o.vx * 0.8, ARENA_W + 40);
+        o.w = Math.min(o.w + o.vx * 0.8, state.ARENA_W + 40);
         o.el.style.width  = `${o.w}px`;
         o.el.style.left   = `${o.x}px`;
       } else {
-        o.h = Math.min(o.h + o.vy * 0.8, ARENA_H + 40);
+        o.h = Math.min(o.h + o.vy * 0.8, state.ARENA_H + 40);
         o.el.style.height = `${o.h}px`;
         o.el.style.top    = `${o.y}px`;
       }
@@ -680,9 +590,9 @@ function _mechanic_grass_vines(cfg, difficulty) {
       // Collision
       const ox = o.horizontal ? o.x : o.x - o.w / 2;
       const oy = o.horizontal ? o.y - o.h / 2 : o.y;
-      if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, ox, oy, o.w, o.h)) return true;
+      if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, ox, oy, o.w, o.h)) return true;
 
-      if (o.x > ARENA_W + 50 || o.y > ARENA_H + 50) {
+      if (o.x > state.ARENA_W + 50 || o.y > state.ARENA_H + 50) {
         o.el.remove(); state._objects.splice(i, 1);
       }
     }
@@ -696,7 +606,7 @@ function _mechanic_ice_freeze(cfg, difficulty) {
 
   function spawnIceShard() {
     if (state._isOver) return;
-    const x = _rnd(0, ARENA_W);
+    const x = _rnd(0, state.ARENA_W);
     const y = -20;
     const size = _rnd(12, 26);
     const speed = _rnd(2.5, 5) * (1 + difficulty * 0.1);
@@ -738,7 +648,7 @@ function _mechanic_ice_freeze(cfg, difficulty) {
       o.el.style.top  = `${o.y}px`;
       o.el.style.left = `${o.x}px`;
 
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.size / 2)) {
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.size / 2)) {
         if (o.isFreezer) {
           // Gel partiel — ralentit mais ne tue pas (sauf si déjà gelé max)
           if (state._freezeTimer >= state._freezeMax * 0.8) return true;
@@ -752,7 +662,7 @@ function _mechanic_ice_freeze(cfg, difficulty) {
         }
         continue;
       }
-      if (o.y > ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
+      if (o.y > state.ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
     }
     return false;
   };
@@ -765,8 +675,8 @@ function _mechanic_ground_shockwaves(cfg, difficulty) {
     _screenShake(10, 400);
     _arenaFlash(cfg.color, 150);
 
-    const cx = _rnd(50, ARENA_W - 50);
-    const cy = ARENA_H; // depuis le bas
+    const cx = _rnd(50, state.ARENA_W - 50);
+    const cy = state.ARENA_H; // depuis le bas
 
     for (let ring = 0; ring < 3; ring++) {
       _addTimeout(() => {
@@ -809,9 +719,9 @@ function _mechanic_ground_shockwaves(cfg, difficulty) {
 
       const dist = Math.hypot(state._playerX - o.cx, state._playerY - o.cy);
       const thickness = 10;
-      if (Math.abs(dist - o.r) < PLAYER_RADIUS + thickness) return true;
+      if (Math.abs(dist - o.r) < state.PLAYER_RADIUS + thickness) return true;
 
-      if (o.r > Math.hypot(ARENA_W, ARENA_H) * 0.8) {
+      if (o.r > Math.hypot(state.ARENA_W, state.ARENA_H) * 0.8) {
         o.el.remove(); state._objects.splice(i, 1);
       }
     }
@@ -826,7 +736,7 @@ function _mechanic_rock_boulders(cfg, difficulty) {
   function spawnBoulder() {
     if (state._isOver) return;
     const size = _rnd(40, 80) * (1 + difficulty * 0.08);
-    const x = _rnd(size, ARENA_W - size);
+    const x = _rnd(size, state.ARENA_W - size);
     const speed = _rnd(2, 4) * (1 + difficulty * 0.15);
 
     const el = document.createElement("div");
@@ -848,7 +758,7 @@ function _mechanic_rock_boulders(cfg, difficulty) {
     shadow.style.cssText = `
       position:absolute;
       width:${size * 0.7}px; height:${size * 0.3}px;
-      left:${x}px; top:${ARENA_H - 20}px;
+      left:${x}px; top:${state.ARENA_H - 20}px;
       transform:translate(-50%,-50%);
       background: radial-gradient(ellipse, rgba(0,0,0,0.5), transparent);
       border-radius:50%; pointer-events:none;
@@ -870,7 +780,7 @@ function _mechanic_rock_boulders(cfg, difficulty) {
       o.el.style.top = `${o.y}px`;
 
       // La taille de l'ombre diminue à l'approche
-      const shadowScale = Math.min(1, o.y / (ARENA_H - o.size));
+      const shadowScale = Math.min(1, o.y / (state.ARENA_H - o.size));
       o.shadow.style.opacity = shadowScale;
 
       // Particules de débris dans la chute
@@ -881,16 +791,16 @@ function _mechanic_rock_boulders(cfg, difficulty) {
         });
       }
 
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.size * 0.45)) {
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.size * 0.45)) {
         _screenShake(15, 400);
         _burstParticles(o.x, o.y, 20, cfg.color, cfg.accent);
         return true;
       }
 
-      if (o.y > ARENA_H + o.size) {
+      if (o.y > state.ARENA_H + o.size) {
         // Impact au sol
         _screenShake(8, 300);
-        _burstParticles(o.x, ARENA_H, 15, cfg.color, cfg.accent);
+        _burstParticles(o.x, state.ARENA_H, 15, cfg.color, cfg.accent);
         _arenaFlash(cfg.color, 100);
         o.el.remove();
         o.shadow.remove();
@@ -919,8 +829,8 @@ function _mechanic_flying_gusts(cfg, difficulty) {
     for (let i = 0; i < 12; i++) {
       const el = document.createElement("div");
       el.className = "dp-gust";
-      const px = _rnd(0, ARENA_W);
-      const py = _rnd(0, ARENA_H);
+      const px = _rnd(0, state.ARENA_W);
+      const py = _rnd(0, state.ARENA_H);
       const len = _rnd(30, 80);
       el.style.cssText = `
         position:absolute;
@@ -951,8 +861,8 @@ function _mechanic_flying_gusts(cfg, difficulty) {
       _addTimeout(() => {
         if (state._isOver) return;
         const spawnAngle = angle + _rnd(-0.4, 0.4);
-        const sx = angle > 0 && angle < Math.PI ? _rnd(0, ARENA_W) : (gustX > 0 ? -20 : ARENA_W + 20);
-        const sy = gustY > 0 ? -20 : ARENA_H + 20;
+        const sx = angle > 0 && angle < Math.PI ? _rnd(0, state.ARENA_W) : (gustX > 0 ? -20 : state.ARENA_W + 20);
+        const sy = gustY > 0 ? -20 : state.ARENA_H + 20;
         const el2 = document.createElement("div");
         el2.className = "dp-projectile";
         el2.style.cssText = `
@@ -995,8 +905,8 @@ function _mechanic_flying_gusts(cfg, difficulty) {
       o.el.style.left = `${o.x}px`;
       o.el.style.top  = `${o.y}px`;
 
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, 10)) return true;
-      if (o.x < -50 || o.x > ARENA_W + 50 || o.y < -50 || o.y > ARENA_H + 50) {
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, 10)) return true;
+      if (o.x < -50 || o.x > state.ARENA_W + 50 || o.y < -50 || o.y > state.ARENA_H + 50) {
         o.el.remove(); state._objects.splice(i, 1);
       }
     }
@@ -1020,8 +930,8 @@ function _mechanic_psychic_distort(cfg, difficulty) {
     for (let i = 0; i < 24; i++) {
       const angle = (i / 24) * Math.PI * 2;
       _spawnParticle(
-        ARENA_W / 2 + Math.cos(angle) * 100,
-        ARENA_H / 2 + Math.sin(angle) * 80,
+        state.ARENA_W / 2 + Math.cos(angle) * 100,
+        state.ARENA_H / 2 + Math.sin(angle) * 80,
         { color: cfg.color, size: _rnd(4, 10), vx: Math.cos(angle + 1.5) * 3, vy: Math.sin(angle + 1.5) * 3, life: 600 }
       );
     }
@@ -1030,7 +940,7 @@ function _mechanic_psychic_distort(cfg, difficulty) {
   // Faux projectiles (mirages) qui ne font pas de dégâts
   function spawnMirage() {
     if (state._isOver) return;
-    const x = _rnd(0, ARENA_W);
+    const x = _rnd(0, state.ARENA_W);
     const el = document.createElement("div");
     el.className = "dp-projectile";
     el.style.cssText = `
@@ -1066,8 +976,8 @@ function _mechanic_psychic_distort(cfg, difficulty) {
       o.el.style.top  = `${o.y}px`;
       o.el.style.left = `${o.x}px`;
 
-      if (!o.isMirage && _hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, 10)) return true;
-      if (o.y > ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
+      if (!o.isMirage && _hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, 10)) return true;
+      if (o.y > state.ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
     }
     return false;
   };
@@ -1085,7 +995,7 @@ function _mechanic_bug_swarm(cfg, difficulty) {
     const row = Math.floor(i / 5);
     const col = i % 5;
     const sx = -100 - row * 20;
-    const sy = ARENA_H / 2 - 60 + col * 30;
+    const sy = state.ARENA_H / 2 - 60 + col * 30;
     el.style.cssText = `
       position:absolute;
       width:10px; height:8px;
@@ -1099,7 +1009,7 @@ function _mechanic_bug_swarm(cfg, difficulty) {
     bees.push({ el, x: sx, y: sy, offsetX: (col - 2) * 25, offsetY: row * 20, vx: 0, vy: 0 });
   }
 
-  let leaderX = -80, leaderY = ARENA_H / 2;
+  let leaderX = -80, leaderY = state.ARENA_H / 2;
   const speed = 2.5 + difficulty * 0.3;
 
   return function update() {
@@ -1117,7 +1027,7 @@ function _mechanic_bug_swarm(cfg, difficulty) {
       b.el.style.left = `${b.x}px`;
       b.el.style.top  = `${b.y}px`;
 
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, b.x, b.y, 8)) return true;
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, b.x, b.y, 8)) return true;
     }
 
     // Particules de vol
@@ -1144,8 +1054,8 @@ function _mechanic_ghost_dark(cfg, difficulty) {
 
   function spawnGhost() {
     if (state._isOver) return;
-    const x = _rnd(30, ARENA_W - 30);
-    const y = _rnd(30, ARENA_H - 30);
+    const x = _rnd(30, state.ARENA_W - 30);
+    const y = _rnd(30, state.ARENA_H - 30);
     const size = _rnd(40, 80);
     const linger = _rnd(1500, 3000);
 
@@ -1186,14 +1096,14 @@ function _mechanic_ghost_dark(cfg, difficulty) {
 
   return function update() {
     // Déplace le halo de visibilité autour du joueur
-    const px = (state._playerX / ARENA_W * 100).toFixed(1);
-    const py = (state._playerY / ARENA_H * 100).toFixed(1);
+    const px = (state._playerX / state.ARENA_W * 100).toFixed(1);
+    const py = (state._playerY / state.ARENA_H * 100).toFixed(1);
     darkOverlay.style.setProperty("--ox", `${px}%`);
     darkOverlay.style.setProperty("--oy", `${py}%`);
 
     for (const o of state._objects) {
       if (o.type !== "ghost_zone" || !o.alive) continue;
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.r)) return true;
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.r)) return true;
     }
     return false;
   };
@@ -1213,8 +1123,8 @@ function _mechanic_dragon_spiral(cfg, difficulty) {
     if (state._isOver) return;
     for (let arm = 0; arm < ARMS; arm++) {
       const a = angle + (arm / ARMS) * Math.PI * 2;
-      const sx = ARENA_W / 2 + Math.cos(a) * orbitRadius;
-      const sy = ARENA_H / 2 + Math.sin(a) * orbitRadius;
+      const sx = state.ARENA_W / 2 + Math.cos(a) * orbitRadius;
+      const sy = state.ARENA_H / 2 + Math.sin(a) * orbitRadius;
 
       const el = document.createElement("div");
       el.className = "dp-projectile";
@@ -1263,8 +1173,8 @@ function _mechanic_dragon_spiral(cfg, difficulty) {
         });
       }
 
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.size / 2)) return true;
-      if (o.x < -40 || o.x > ARENA_W + 40 || o.y < -40 || o.y > ARENA_H + 40) {
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.size / 2)) return true;
+      if (o.x < -40 || o.x > state.ARENA_W + 40 || o.y < -40 || o.y > state.ARENA_H + 40) {
         o.el.remove(); state._objects.splice(i, 1);
       }
     }
@@ -1279,8 +1189,8 @@ function _mechanic_dark_mines(cfg, difficulty) {
 
   function spawnMine() {
     if (state._isOver) return;
-    const x = _rnd(40, ARENA_W - 40);
-    const y = _rnd(40, ARENA_H - 40);
+    const x = _rnd(40, state.ARENA_W - 40);
+    const y = _rnd(40, state.ARENA_H - 40);
     const size = _rnd(50, 90);
 
     const el = document.createElement("div");
@@ -1345,7 +1255,7 @@ function _mechanic_dark_mines(cfg, difficulty) {
   return function update() {
     for (const o of state._objects) {
       if (o.type !== "mine") continue;
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.r)) return true;
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.r)) return true;
     }
     return false;
   };
@@ -1364,7 +1274,7 @@ function _mechanic_steel_walls(cfg, difficulty) {
       const leftEl = document.createElement("div");
       const rightEl = document.createElement("div");
       const wallH = _rnd(80, 160);
-      const wallY = _rnd(0, ARENA_H - wallH);
+      const wallY = _rnd(0, state.ARENA_H - wallH);
       const gap   = _rnd(100, 180);
 
       const baseStyle = `
@@ -1377,14 +1287,14 @@ function _mechanic_steel_walls(cfg, difficulty) {
       leftEl.className  = "dp-wall dp-projectile";
       rightEl.className = "dp-wall dp-projectile";
       leftEl.style.cssText  = baseStyle + `left: 0px; border-radius: 0 6px 6px 0;`;
-      rightEl.style.cssText = baseStyle + `left: ${ARENA_W - 30}px; border-radius: 6px 0 0 6px;`;
+      rightEl.style.cssText = baseStyle + `left: ${state.ARENA_W - 30}px; border-radius: 6px 0 0 6px;`;
 
       state._arena.appendChild(leftEl);
       state._arena.appendChild(rightEl);
 
-      let lx = 0, rx = ARENA_W - 30;
+      let lx = 0, rx = state.ARENA_W - 30;
       const lw = 30, rw = 30;
-      const target = (ARENA_W - gap) / 2;
+      const target = (state.ARENA_W - gap) / 2;
 
       const wObj = {
         el: leftEl, el2: rightEl,
@@ -1409,7 +1319,7 @@ function _mechanic_steel_walls(cfg, difficulty) {
     } else {
       // Murs haut/bas
       const wallW = _rnd(80, 180);
-      const wallX = _rnd(0, ARENA_W - wallW);
+      const wallX = _rnd(0, state.ARENA_W - wallW);
       const gap   = _rnd(80, 150);
       const topEl = document.createElement("div");
       const botEl = document.createElement("div");
@@ -1421,14 +1331,14 @@ function _mechanic_steel_walls(cfg, difficulty) {
       topEl.className = "dp-wall dp-projectile";
       botEl.className = "dp-wall dp-projectile";
       topEl.style.cssText = baseStyle + "top:0px; border-radius: 0 0 6px 6px;";
-      botEl.style.cssText = baseStyle + `top:${ARENA_H - 25}px; border-radius: 6px 6px 0 0;`;
+      botEl.style.cssText = baseStyle + `top:${state.ARENA_H - 25}px; border-radius: 6px 6px 0 0;`;
 
       state._arena.appendChild(topEl);
       state._arena.appendChild(botEl);
 
       state._objects.push({
         el: topEl, el2: botEl,
-        ty: 0, by: ARENA_H - 25,
+        ty: 0, by: state.ARENA_H - 25,
         wallX, wallW, wallH: 25,
         gap, speed: CLOSE_SPEED, isHorizontal: true,
         type: "wall_pair_h"
@@ -1446,13 +1356,13 @@ function _mechanic_steel_walls(cfg, difficulty) {
       if (o.type === "wall_pair") {
         if (o.isClosing) {
           o.lx = Math.min(o.lx + o.speed, o.target);
-          o.rx = Math.max(o.rx - o.speed, ARENA_W - o.target - o.rw);
+          o.rx = Math.max(o.rx - o.speed, state.ARENA_W - o.target - o.rw);
           o.el.style.left  = `${o.lx}px`;
           o.el2.style.left = `${o.rx}px`;
 
           // Collision
-          if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, o.lx, o.wallY, o.lw, o.wallH)) return true;
-          if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, o.rx, o.wallY, o.rw, o.wallH)) return true;
+          if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, o.lx, o.wallY, o.lw, o.wallH)) return true;
+          if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, o.rx, o.wallY, o.rw, o.wallH)) return true;
 
           if (o.lx >= o.target) {
             o.isClosing = false;
@@ -1467,15 +1377,15 @@ function _mechanic_steel_walls(cfg, difficulty) {
       }
 
       if (o.type === "wall_pair_h") {
-        o.ty = Math.min(o.ty + o.speed, (ARENA_H - o.gap) / 2 - o.wallH);
-        o.by = Math.max(o.by - o.speed, (ARENA_H + o.gap) / 2);
+        o.ty = Math.min(o.ty + o.speed, (state.ARENA_H - o.gap) / 2 - o.wallH);
+        o.by = Math.max(o.by - o.speed, (state.ARENA_H + o.gap) / 2);
         o.el.style.top  = `${o.ty}px`;
         o.el2.style.top = `${o.by}px`;
 
-        if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, o.wallX, o.ty, o.wallW, o.wallH)) return true;
-        if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, o.wallX, o.by, o.wallW, o.wallH)) return true;
+        if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, o.wallX, o.ty, o.wallW, o.wallH)) return true;
+        if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, o.wallX, o.by, o.wallW, o.wallH)) return true;
 
-        if (o.ty >= (ARENA_H - o.gap) / 2 - o.wallH) {
+        if (o.ty >= (state.ARENA_H - o.gap) / 2 - o.wallH) {
           _screenShake(10, 300);
           _addTimeout(() => {
             o.el.remove(); o.el2.remove();
@@ -1496,8 +1406,8 @@ function _mechanic_poison_cloud(cfg, difficulty) {
 
   function spawnCloud() {
     if (state._isOver) return;
-    const x = _rnd(0, ARENA_W);
-    const y = _rnd(0, ARENA_H);
+    const x = _rnd(0, state.ARENA_W);
+    const y = _rnd(0, state.ARENA_H);
     const finalSize = _rnd(80, 160);
 
     const el = document.createElement("div");
@@ -1539,7 +1449,7 @@ function _mechanic_poison_cloud(cfg, difficulty) {
       o.el.style.width  = `${d}px`;
       o.el.style.height = `${d}px`;
 
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.r * 0.7)) return true;
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.r * 0.7)) return true;
     }
     return false;
   };
@@ -1619,7 +1529,7 @@ function _mechanic_fighting_punches(cfg, difficulty) {
   return function update() {
     for (const o of state._objects) {
       if (o.type !== "punch_zone") continue;
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.r * 0.7)) return true;
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.r * 0.7)) return true;
     }
     return false;
   };
@@ -1631,8 +1541,8 @@ function _mechanic_fairy_circles(cfg, difficulty) {
 
   function spawnCircle() {
     if (state._isOver) return;
-    const x = _rnd(50, ARENA_W - 50);
-    const y = _rnd(50, ARENA_H - 50);
+    const x = _rnd(50, state.ARENA_W - 50);
+    const y = _rnd(50, state.ARENA_H - 50);
     const size = _rnd(50, 110);
 
     const el = document.createElement("div");
@@ -1699,7 +1609,7 @@ function _mechanic_fairy_circles(cfg, difficulty) {
   return function update() {
     for (const o of state._objects) {
       if (o.type !== "fairy_circle" || !o.alive) continue;
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.r * 0.8)) return true;
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.r * 0.8)) return true;
     }
     return false;
   };
@@ -1709,7 +1619,7 @@ function _mechanic_fairy_circles(cfg, difficulty) {
 function _mechanic_normal_drops(cfg, difficulty) {
   function spawnDrop() {
     if (state._isOver) return;
-    const x = _rnd(10, ARENA_W - 10);
+    const x = _rnd(10, state.ARENA_W - 10);
     const size = _rnd(10, 22);
     const speed = _rnd(3, 6) * (1 + difficulty * 0.15);
     const el = document.createElement("div");
@@ -1736,8 +1646,8 @@ function _mechanic_normal_drops(cfg, difficulty) {
       if (o.type !== "drop") continue;
       o.y += o.vy;
       o.el.style.top = `${o.y}px`;
-      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.size / 2)) return true;
-      if (o.y > ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
+      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.size / 2)) return true;
+      if (o.y > state.ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
     }
     return false;
   };
@@ -1805,10 +1715,10 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
   state._player.style.opacity         = "1";
 
   // Position initiale
-  state._playerX = ARENA_W / 2;
-  state._playerY = ARENA_H / 2;
-  state._mouseX  = ARENA_W / 2;
-  state._mouseY  = ARENA_H / 2;
+  state._playerX = state.ARENA_W / 2;
+  state._playerY = state.ARENA_H / 2;
+  state._mouseX  = state.ARENA_W / 2;
+  state._mouseY  = state.ARENA_H / 2;
   state._player.style.left = `${state._playerX}px`;
   state._player.style.top  = `${state._playerY}px`;
 
@@ -1819,8 +1729,8 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
     const rawY = e.clientY - rect.top;
     // Inversion PSY
     if (state._invertControls) {
-      state._mouseX = ARENA_W - rawX;
-      state._mouseY = ARENA_H - rawY;
+      state._mouseX = state.ARENA_W - rawX;
+      state._mouseY = state.ARENA_H - rawY;
     } else {
       state._mouseX = rawX;
       state._mouseY = rawY;
@@ -1869,8 +1779,8 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
       state._playerY += state._windY;
 
       // Clamp dans l'arène
-      state._playerX = Math.max(PLAYER_RADIUS, Math.min(ARENA_W - PLAYER_RADIUS, state._playerX));
-      state._playerY = Math.max(PLAYER_RADIUS, Math.min(ARENA_H - PLAYER_RADIUS, state._playerY));
+      state._playerX = Math.max(state.PLAYER_RADIUS, Math.min(state.ARENA_W - state.PLAYER_RADIUS, state._playerX));
+      state._playerY = Math.max(state.PLAYER_RADIUS, Math.min(state.ARENA_H - state.PLAYER_RADIUS, state._playerY));
 
       _renderPlayer();
       _updateParticles(now);
@@ -1924,8 +1834,8 @@ function _triggerVictory(arena, stage, onMouseMove, resolve) {
   for (let i = 0; i < 5; i++) {
     setTimeout(() => {
       _burstParticles(
-        _rnd(80, ARENA_W - 80),
-        _rnd(60, ARENA_H - 60),
+        _rnd(80, state.ARENA_W - 80),
+        _rnd(60, state.ARENA_H - 60),
         20,
         `hsl(${_rndInt(0, 360)},100%,60%)`,
         "#fff"
