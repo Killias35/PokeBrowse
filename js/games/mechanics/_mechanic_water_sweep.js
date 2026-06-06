@@ -1,8 +1,8 @@
 import { _rnd, _rndInt } from "../utils.js";
-import { _addInterval, ARENA_H, ARENA_W, PLAYER_RADIUS } from "../game-engine.js";
+import { _addInterval, _spawnParticle, _arenaFlash, _burstParticles } from "../game-engine.js";
 
 // ─── 💧 EAU : Hydrocanon façon Gaster Blaster
-export function _mechanic_water_sweep(cfg, difficulty, _isOver) {
+export function _mechanic_water_sweep(cfg, difficulty, state) {
 
   const spawnDelay = Math.max(500, 2000 - difficulty * 300);
   const chargeDuration = Math.max(40, 80 - difficulty * 5);
@@ -11,7 +11,7 @@ export function _mechanic_water_sweep(cfg, difficulty, _isOver) {
 
   function spawnHydroCanon(beamHeight) {
 
-    if (_isOver) return;
+    if (state._isOver) return;
 
     const side = _rndInt(0, 3);
 
@@ -19,29 +19,29 @@ export function _mechanic_water_sweep(cfg, difficulty, _isOver) {
 
     switch (side) {
       case 0: // haut
-        sx = _rnd(60, ARENA_W - 60);
+        sx = _rnd(60, state.ARENA_W - 60);
         sy = -40;
         break;
 
       case 1: // bas
-        sx = _rnd(60, ARENA_W - 60);
-        sy = ARENA_H + 40;
+        sx = _rnd(60, state.ARENA_W - 60);
+        sy = state.ARENA_H + 40;
         break;
 
       case 2: // gauche
         sx = -40;
-        sy = _rnd(60, ARENA_H - 60);
+        sy = _rnd(60, state.ARENA_H - 60);
         break;
 
       default: // droite
-        sx = ARENA_W + 40;
-        sy = _rnd(60, ARENA_H - 60);
+        sx = state.ARENA_W + 40;
+        sy = _rnd(60, state.ARENA_H - 60);
         break;
     }
 
     // Cible proche du joueur mais pas exacte
-    const tx = _playerX + _rnd(-80, 80);
-    const ty = _playerY + _rnd(-80, 80);
+    const tx = state._playerX + _rnd(-80, 80);
+    const ty = state._playerY + _rnd(-80, 80);
 
     const dx = tx - sx;
     const dy = ty - sy;
@@ -66,7 +66,7 @@ export function _mechanic_water_sweep(cfg, difficulty, _isOver) {
       pointer-events:none;
     `;
 
-    _arena.appendChild(telegraph);
+    state._arena.appendChild(telegraph);
 
     const obj = {
       type: "hydro",
@@ -82,7 +82,7 @@ export function _mechanic_water_sweep(cfg, difficulty, _isOver) {
       height: beamHeight
     };
 
-    _objects.push(obj);
+    state._objects.push(obj);
   }
 
   _addInterval(() => spawnHydroCanon(beamHeight) ,spawnDelay);
@@ -90,9 +90,9 @@ export function _mechanic_water_sweep(cfg, difficulty, _isOver) {
 
   return function update() {
 
-    for (let i = _objects.length - 1; i >= 0; i--) {
+    for (let i = state._objects.length - 1; i >= 0; i--) {
 
-      const o = _objects[i];
+      const o = state._objects[i];
 
       if (o.type !== "hydro") continue;
 
@@ -170,7 +170,7 @@ export function _mechanic_water_sweep(cfg, difficulty, _isOver) {
             pointer-events:none;
           `;
 
-          _arena.appendChild(beam);
+          state._arena.appendChild(beam);
 
           o.beam = beam;
 
@@ -205,19 +205,19 @@ export function _mechanic_water_sweep(cfg, difficulty, _isOver) {
 
       // Collision rayon
       const proj =
-        (_playerX - o.sx) * Math.cos(o.angle) +
-        (_playerY - o.sy) * Math.sin(o.angle);
+        (state._playerX - o.sx) * Math.cos(o.angle) +
+        (state._playerY - o.sy) * Math.sin(o.angle);
 
       const perp =
         Math.abs(
-          -(_playerX - o.sx) * Math.sin(o.angle) +
-          (_playerY - o.sy) * Math.cos(o.angle)
+          -(state._playerX - o.sx) * Math.sin(o.angle) +
+          (state._playerY - o.sy) * Math.cos(o.angle)
         );
 
       if (
         proj >= 0 &&
         proj <= o.length &&
-        perp < PLAYER_RADIUS + o.height / 2
+        perp < state.PLAYER_RADIUS + o.height / 2
       ) {
         return true;
       }
@@ -226,7 +226,7 @@ export function _mechanic_water_sweep(cfg, difficulty, _isOver) {
 
         if (o.beam) o.beam.remove();
 
-        _objects.splice(i, 1);
+        state._objects.splice(i, 1);
       }
     }
 

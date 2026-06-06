@@ -6,22 +6,61 @@
 
 import { showSplashText } from "../battle-annimation.js";
 import { _mechanic_water_sweep } from "./mechanics/_mechanic_water_sweep.js";
-import { _rnd, _rndInt, _spawnParticle, _burstParticles } from "./utils.js";
+import { _rnd, _rndInt } from "./utils.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
-export const ARENA_W = 600;
-export const ARENA_H = 400;
-export const PLAYER_RADIUS = 16; // rayon de collision de la Pokéball
+const ARENA_W = 600;
+const ARENA_H = 400;
+const PLAYER_RADIUS = 16; // rayon de collision de la Pokéball
 
 export function _addInterval(fn, ms) {
   const id = setInterval(fn, ms);
-  _intervals.push(id);
+  state._intervals.push(id);
   return id;
 }
 export function _addTimeout(fn, ms) {
   const id = setTimeout(fn, ms);
-  _timeouts.push(id);
+  state._timeouts.push(id);
   return id;
+}
+
+// ─── PARTICULES : POOL & SPAWN ────────────────────────────────
+export function _spawnParticle(x, y, { color = "#fff", size = 6, vx = 0, vy = 0, life = 600, shape = "circle", glow = true } = {}) {
+  const arena    = document.getElementById("defense-arena");
+  const el = document.createElement("div");
+
+  el.className = "dp-particle";
+  el.style.cssText = `
+    position:absolute;
+    width:${size}px; height:${size}px;
+    background:${color};
+    border-radius:${shape === "circle" ? "50%" : shape === "star" ? "2px" : "3px"};
+    left:${x}px; top:${y}px;
+    pointer-events:none;
+    transform:translate(-50%,-50%) rotate(${shape === "star" ? "45deg" : "0"});
+    ${glow ? `box-shadow:0 0 ${size * 1.5}px ${color};` : ""}
+    z-index:10;
+  `;
+  state._arena.appendChild(el);
+
+  const start = performance.now();
+  const particle = { el, x, y, vx, vy, life, start };
+  state._particlePool.push(particle);
+}
+
+export function _burstParticles(x, y, count, color, accent) {
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2;
+    const speed = _rnd(2, 8);
+    _spawnParticle(x, y, {
+      color: Math.random() < 0.6 ? color : accent,
+      size: _rnd(4, 10),
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: _rnd(400, 800),
+      glow: true
+    });
+  }
 }
 
 // ─── BASE DE DONNÉES DES ATTAQUES PAR TYPE ───────────────────
@@ -237,34 +276,39 @@ export const ATTACK_CONFIGS = {
 };
 
 // ─── ÉTAT GLOBAL DU MOTEUR ───────────────────────────────────
-let _raf = null;
-let _intervals = [];
-let _timeouts = [];
-let _objects = [];    // projectiles / zones actifs
-let _isOver = false;
-let _arena = null;
-let _player = null;
-let _playerX = ARENA_W / 2;
-let _playerY = ARENA_H / 2;
-let _mouseX  = ARENA_W / 2;
-let _mouseY  = ARENA_H / 2;
-let _friction = 0.25;
-let _windX = 0;
-let _windY = 0;
-let _invertControls = false;
-let _freezeTimer = 0;      // secondes restantes de gel
-let _freezeMax   = 0;
-let _resolve = null;
-let _particlePool = [];    // pool de particules réutilisables
+let state = {
+  ARENA_W : ARENA_W,
+  ARENA_H : ARENA_H,
+  PLAYER_RADIUS : PLAYER_RADIUS,
+  _raf : null,
+  _intervals : [],
+  _timeouts : [],
+  _objects : [],
+  _isOver : false,
+  _arena : null,
+  _player : null,
+  _playerX : ARENA_W / 2,
+  _playerY : ARENA_H / 2,
+  _mouseX  : ARENA_W / 2,
+  _mouseY  : ARENA_H / 2,
+  _friction : 0.25,
+  _windX : 0,
+  _windY : 0,
+  _invertControls : false,
+  _freezeTimer : 0,      // secondes restantes de gel
+  _freezeMax   : 0,
+  _resolve : null,
+  _particlePool : [],    // pool de particules réutilisables
+}
 
 function _updateParticles(now) {
-  for (let i = _particlePool.length - 1; i >= 0; i--) {
-    const p = _particlePool[i];
+  for (let i = state._particlePool.length - 1; i >= 0; i--) {
+    const p = state._particlePool[i];
     const elapsed = now - p.start;
     const progress = elapsed / p.life;
     if (progress >= 1) {
       p.el.remove();
-      _particlePool.splice(i, 1);
+      state._particlePool.splice(i, 1);
       continue;
     }
     p.x += p.vx;
@@ -281,22 +325,22 @@ function _updateParticles(now) {
 
 // ─── RENDU JOUEUR (Pokéball) ──────────────────────────────────
 function _renderPlayer() {
-  _player.style.left  = `${_playerX}px`;
-  _player.style.top   = `${_playerY}px`;
+  state._player.style.left  = `${state._playerX}px`;
+  state._player.style.top   = `${state._playerY}px`;
 
   // Rotation au mouvement
-  const dx = _mouseX - _playerX;
+  const dx = state._mouseX - state._playerX;
   const rot = dx * 0.5;
-  _player.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
+  state._player.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
 
   // Gel visuel
-  if (_freezeTimer > 0) {
-    const pct = _freezeTimer / _freezeMax;
-    _player.style.filter = `saturate(${1 - pct * 0.8}) brightness(${1 - pct * 0.4}) hue-rotate(${pct * 180}deg)`;
-    _player.style.boxShadow = `0 0 ${pct * 30}px #a5f3fc, 0 0 ${pct * 50}px #e0f2fe`;
+  if (state._freezeTimer > 0) {
+    const pct = state._freezeTimer / state._freezeMax;
+    state._player.style.filter = `saturate(${1 - pct * 0.8}) brightness(${1 - pct * 0.4}) hue-rotate(${pct * 180}deg)`;
+    state._player.style.boxShadow = `0 0 ${pct * 30}px #a5f3fc, 0 0 ${pct * 50}px #e0f2fe`;
   } else {
-    _player.style.filter = "";
-    _player.style.boxShadow = "0 0 12px rgba(255,255,255,0.4)";
+    state._player.style.filter = "";
+    state._player.style.boxShadow = "0 0 12px rgba(255,255,255,0.4)";
   }
 }
 
@@ -318,7 +362,7 @@ function _screenShake(intensity = 8, duration = 300) {
 }
 
 // ─── FLASH D'ARÈNE ────────────────────────────────────────────
-function _arenaFlash(color, duration = 150) {
+export function _arenaFlash(color, duration = 150) {
   const overlay = document.getElementById("arena-flash-overlay");
   if (!overlay) return;
   overlay.style.background = color;
@@ -351,31 +395,31 @@ function _updateSurvivalBar(elapsed, total) {
 
 // ─── NETTOYAGE ────────────────────────────────────────────────
 function _cleanup() {
-  cancelAnimationFrame(_raf);
-  _intervals.forEach(clearInterval);
-  _timeouts.forEach(clearTimeout);
-  _intervals = [];
-  _timeouts  = [];
-  _objects.forEach(o => o.el && o.el.remove && o.el.remove());
-  _objects = [];
-  _particlePool.forEach(p => p.el && p.el.remove());
-  _particlePool = [];
+  cancelAnimationFrame(state._raf);
+  state._intervals.forEach(clearInterval);
+  state._timeouts.forEach(clearTimeout);
+  state._intervals = [];
+  state._timeouts  = [];
+  state._objects.forEach(o => o.el && o.el.remove && o.el.remove());
+  state._objects = [];
+  state._particlePool.forEach(p => p.el && p.el.remove());
+  state._particlePool = [];
   // supprimer tous les éléments de jeu injectés dans l'arène
-  if (_arena) {
-    _arena.querySelectorAll(".dp-particle,.dp-projectile,.dp-zone,.dp-vine,.dp-ring,.dp-gust,.dp-mine,.dp-swarm,.dp-wall,.dp-cloud").forEach(e => e.remove());
+  if (state._arena) {
+    state._arena.querySelectorAll(".dp-particle,.dp-projectile,.dp-zone,.dp-vine,.dp-ring,.dp-gust,.dp-mine,.dp-swarm,.dp-wall,.dp-cloud").forEach(e => e.remove());
   }
-  if (_player) {
-    _player.style.filter = "";
-    _player.style.boxShadow = "";
-    _player.style.transform = "translate(-50%,-50%)";
+  if (state._player) {
+    state._player.style.filter = "";
+    state._player.style.boxShadow = "";
+    state._player.style.transform = "translate(-50%,-50%)";
   }
-  _windX = 0;
-  _windY = 0;
-  _invertControls = false;
-  _freezeTimer = 0;
-  _isOver = false;
-  _arena = null;
-  _player = null;
+  state._windX = 0;
+  state._windY = 0;
+  state._invertControls = false;
+  state._freezeTimer = 0;
+  state._isOver = false;
+  state._arena = null;
+  state._player = null;
 }
 
 // ─── DÉTECTION DE COLLISION (cercle / rect) ───────────────────
@@ -398,7 +442,7 @@ function _mechanic_fire_rings(cfg, difficulty) {
   let spawnDelay = Math.max(800, 2000 - difficulty * 200);
 
   function spawnRing() {
-    if (_isOver) return;
+    if (state._isOver) return;
     // Taille de départ et vitesse d'expansion
     const spawnDelay = Math.max(15, 60 - difficulty * 10);   // temps avant expension en image
     const startSize = _rnd(20, 60);                         // taille de départ
@@ -420,18 +464,18 @@ function _mechanic_fire_rings(cfg, difficulty) {
       transform:translate(-50%,-50%);
       pointer-events:none;
     `;
-    _arena.appendChild(el);
+    state._arena.appendChild(el);
 
     // Petite explosion de particules au spawn
     _burstParticles(cx, cy, 8, cfg.color, cfg.accent);
     _arenaFlash(cfg.color, 80);
 
     const obj = { el, cx, cy, r: startSize / 2, expandSpeed, type: "ring", alive: true, maxSize, spawnDelay };
-    _objects.push(obj);
+    state._objects.push(obj);
 
     // Particules de feu qui brûlent le long de l'anneau
     const trailInterval = setInterval(() => {
-      if (!obj.alive || _isOver) { clearInterval(trailInterval); return; }
+      if (!obj.alive || state._isOver) { clearInterval(trailInterval); return; }
       const angle = Math.random() * Math.PI * 2;
       _spawnParticle(cx + Math.cos(angle) * obj.r, cy + Math.sin(angle) * obj.r, {
         color: Math.random() < 0.5 ? cfg.color : cfg.accent,
@@ -439,15 +483,15 @@ function _mechanic_fire_rings(cfg, difficulty) {
       });
     }, 40);
 
-    _intervals.push(trailInterval);
+    state._intervals.push(trailInterval);
   }
 
   const spawnInterval = _addInterval(spawnRing, spawnDelay);
   spawnRing(); // Premier anneau immédiat
 
   return function update(now) {
-    for (let i = _objects.length - 1; i >= 0; i--) {
-      const o = _objects[i];
+    for (let i = state._objects.length - 1; i >= 0; i--) {
+      const o = state._objects[i];
       if (o.type !== "ring" || !o.alive) continue;
       if(o.spawnDelay > 0) { 
         o.spawnDelay -= 1; 
@@ -460,14 +504,14 @@ function _mechanic_fire_rings(cfg, difficulty) {
       if (o.r > o.maxSize) {
         o.el.remove();
         o.alive = false;
-        _objects.splice(i, 1);
+        state._objects.splice(i, 1);
         continue;
       }
       o.el.style.width  = `${d}px`;
       o.el.style.height = `${d}px`;
 
       // Collision joueur
-      const dist = Math.hypot(_playerX - o.cx, _playerY - o.cy);
+      const dist = Math.hypot(state._playerX - o.cx, state._playerY - o.cy);
       const ringThickness = 12;
       if (Math.abs(dist - o.r) < PLAYER_RADIUS + ringThickness) {
         return true; // TOUCHÉ
@@ -477,7 +521,7 @@ function _mechanic_fire_rings(cfg, difficulty) {
       if (d > ARENA_H) {
         o.el.remove();
         o.alive = false;
-        _objects.splice(i, 1);
+        state._objects.splice(i, 1);
       }
     }
     return false;
@@ -490,7 +534,7 @@ function _mechanic_electric_bolts(cfg, difficulty) {
   const strikeDuration  = 200;
 
   function spawnBolt() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const x = _rnd(40, ARENA_W - 40);
     const w = _rnd(30, 60);
 
@@ -507,10 +551,10 @@ function _mechanic_electric_bolts(cfg, difficulty) {
       pointer-events:none;
       animation: electricWarn 0.15s linear infinite alternate;
     `;
-    _arena.appendChild(warn);
+    state._arena.appendChild(warn);
 
     _addTimeout(() => {
-      if (_isOver) { warn.remove(); return; }
+      if (state._isOver) { warn.remove(); return; }
       warn.remove();
       // Phase STRIKE
       const bolt = document.createElement("div");
@@ -524,7 +568,7 @@ function _mechanic_electric_bolts(cfg, difficulty) {
         pointer-events:none;
         border-radius: 4px;
       `;
-      _arena.appendChild(bolt);
+      state._arena.appendChild(bolt);
       _arenaFlash(cfg.color, 100);
       _screenShake(5, 200);
 
@@ -538,12 +582,12 @@ function _mechanic_electric_bolts(cfg, difficulty) {
 
       // Zone de collision active
       const obj = { el: bolt, x: x - w / 2, y: 0, w, h: ARENA_H, type: "strike_zone" };
-      _objects.push(obj);
+      state._objects.push(obj);
 
       _addTimeout(() => {
         bolt.remove();
-        const idx = _objects.indexOf(obj);
-        if (idx > -1) _objects.splice(idx, 1);
+        const idx = state._objects.indexOf(obj);
+        if (idx > -1) state._objects.splice(idx, 1);
       }, strikeDuration);
     }, warningDuration);
   }
@@ -552,9 +596,9 @@ function _mechanic_electric_bolts(cfg, difficulty) {
   _addTimeout(spawnBolt, 100);
 
   return function update() {
-    for (const o of _objects) {
+    for (const o of state._objects) {
       if (o.type !== "strike_zone") continue;
-      if (_hitRect(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, o.w, o.h)) return true;
+      if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.w, o.h)) return true;
     }
     return false;
   };
@@ -566,7 +610,7 @@ function _mechanic_grass_vines(cfg, difficulty) {
   const vineW     = 14 + difficulty;
 
   function spawnVine(horizontal) {
-    if (_isOver) return;
+    if (state._isOver) return;
     const el = document.createElement("div");
     el.className = "dp-vine dp-projectile";
     let x, y, vx, vy;
@@ -596,10 +640,10 @@ function _mechanic_grass_vines(cfg, difficulty) {
         border-radius:3px; pointer-events:none;
       `;
     }
-    _arena.appendChild(el);
+    state._arena.appendChild(el);
 
     const obj = { el, x, y, vx, vy, w: horizontal ? 40 : vineW, h: horizontal ? vineW : 40, horizontal, type: "vine" };
-    _objects.push(obj);
+    state._objects.push(obj);
   }
 
   _addInterval(() => spawnVine(true),  Math.max(600, 1400 - difficulty * 100));
@@ -607,8 +651,8 @@ function _mechanic_grass_vines(cfg, difficulty) {
   spawnVine(true);
 
   return function update() {
-    for (let i = _objects.length - 1; i >= 0; i--) {
-      const o = _objects[i];
+    for (let i = state._objects.length - 1; i >= 0; i--) {
+      const o = state._objects[i];
       if (o.type !== "vine") continue;
       o.x += o.vx; o.y += o.vy;
 
@@ -636,10 +680,10 @@ function _mechanic_grass_vines(cfg, difficulty) {
       // Collision
       const ox = o.horizontal ? o.x : o.x - o.w / 2;
       const oy = o.horizontal ? o.y - o.h / 2 : o.y;
-      if (_hitRect(_playerX, _playerY, PLAYER_RADIUS, ox, oy, o.w, o.h)) return true;
+      if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, ox, oy, o.w, o.h)) return true;
 
       if (o.x > ARENA_W + 50 || o.y > ARENA_H + 50) {
-        o.el.remove(); _objects.splice(i, 1);
+        o.el.remove(); state._objects.splice(i, 1);
       }
     }
     return false;
@@ -651,7 +695,7 @@ function _mechanic_ice_freeze(cfg, difficulty) {
   const spawnRate = Math.max(500, 1200 - difficulty * 100);
 
   function spawnIceShard() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const x = _rnd(0, ARENA_W);
     const y = -20;
     const size = _rnd(12, 26);
@@ -669,8 +713,8 @@ function _mechanic_ice_freeze(cfg, difficulty) {
       clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
       pointer-events:none;
     `;
-    _arena.appendChild(el);
-    _objects.push({ el, x, y, vy: speed, size, type: "iceshard", isFreezer: size > 18 });
+    state._arena.appendChild(el);
+    state._objects.push({ el, x, y, vy: speed, size, type: "iceshard", isFreezer: size > 18 });
   }
 
   _addInterval(spawnIceShard, spawnRate);
@@ -678,37 +722,37 @@ function _mechanic_ice_freeze(cfg, difficulty) {
 
   return function update() {
     // Gel progressif
-    if (_freezeTimer > 0) {
-      _freezeTimer -= 0.016;
-      if (_freezeTimer < 0) _freezeTimer = 0;
+    if (state._freezeTimer > 0) {
+      state._freezeTimer -= 0.016;
+      if (state._freezeTimer < 0) state._freezeTimer = 0;
       // Friction réduite par le gel
-      _friction = 0.08 + (0.17 * (1 - _freezeTimer / _freezeMax));
+      state._friction = 0.08 + (0.17 * (1 - state._freezeTimer / state._freezeMax));
     } else {
-      _friction = 0.25;
+      state._friction = 0.25;
     }
 
-    for (let i = _objects.length - 1; i >= 0; i--) {
-      const o = _objects[i];
+    for (let i = state._objects.length - 1; i >= 0; i--) {
+      const o = state._objects[i];
       if (o.type !== "iceshard") continue;
       o.y += o.vy;
       o.el.style.top  = `${o.y}px`;
       o.el.style.left = `${o.x}px`;
 
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, o.size / 2)) {
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.size / 2)) {
         if (o.isFreezer) {
           // Gel partiel — ralentit mais ne tue pas (sauf si déjà gelé max)
-          if (_freezeTimer >= _freezeMax * 0.8) return true;
-          _freezeTimer = Math.min(_freezeMax, _freezeTimer + 1.5);
-          _freezeMax = Math.max(_freezeMax, _freezeTimer);
+          if (state._freezeTimer >= state._freezeMax * 0.8) return true;
+          state._freezeTimer = Math.min(state._freezeMax, state._freezeTimer + 1.5);
+          state._freezeMax = Math.max(state._freezeMax, state._freezeTimer);
           _arenaFlash(cfg.color, 200);
           _burstParticles(o.x, o.y, 10, cfg.color, cfg.accent);
-          o.el.remove(); _objects.splice(i, 1);
+          o.el.remove(); state._objects.splice(i, 1);
         } else {
           return true;
         }
         continue;
       }
-      if (o.y > ARENA_H + 20) { o.el.remove(); _objects.splice(i, 1); }
+      if (o.y > ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
     }
     return false;
   };
@@ -717,7 +761,7 @@ function _mechanic_ice_freeze(cfg, difficulty) {
 // ─── 🌍 SOL : ondes de choc circulaires depuis le bas
 function _mechanic_ground_shockwaves(cfg, difficulty) {
   function spawnShockwave() {
-    if (_isOver) return;
+    if (state._isOver) return;
     _screenShake(10, 400);
     _arenaFlash(cfg.color, 150);
 
@@ -726,7 +770,7 @@ function _mechanic_ground_shockwaves(cfg, difficulty) {
 
     for (let ring = 0; ring < 3; ring++) {
       _addTimeout(() => {
-        if (_isOver) return;
+        if (state._isOver) return;
         const el = document.createElement("div");
         el.className = "dp-ring dp-projectile";
         el.style.cssText = `
@@ -739,14 +783,14 @@ function _mechanic_ground_shockwaves(cfg, difficulty) {
           transform:translate(-50%,-50%);
           pointer-events:none;
         `;
-        _arena.appendChild(el);
+        state._arena.appendChild(el);
 
         // Poussière au sol
         _burstParticles(cx, cy, 12, cfg.color, cfg.accent);
 
         const speed = (3 + difficulty * 0.4) * (1 + ring * 0.3);
         const obj = { el, cx, cy, r: 5, speed, type: "shockwave" };
-        _objects.push(obj);
+        state._objects.push(obj);
       }, ring * 150);
     }
   }
@@ -755,20 +799,20 @@ function _mechanic_ground_shockwaves(cfg, difficulty) {
   _addTimeout(spawnShockwave, 200);
 
   return function update() {
-    for (let i = _objects.length - 1; i >= 0; i--) {
-      const o = _objects[i];
+    for (let i = state._objects.length - 1; i >= 0; i--) {
+      const o = state._objects[i];
       if (o.type !== "shockwave") continue;
       o.r += o.speed;
       const d = o.r * 2;
       o.el.style.width  = `${d}px`;
       o.el.style.height = `${d}px`;
 
-      const dist = Math.hypot(_playerX - o.cx, _playerY - o.cy);
+      const dist = Math.hypot(state._playerX - o.cx, state._playerY - o.cy);
       const thickness = 10;
       if (Math.abs(dist - o.r) < PLAYER_RADIUS + thickness) return true;
 
       if (o.r > Math.hypot(ARENA_W, ARENA_H) * 0.8) {
-        o.el.remove(); _objects.splice(i, 1);
+        o.el.remove(); state._objects.splice(i, 1);
       }
     }
     return false;
@@ -780,7 +824,7 @@ function _mechanic_rock_boulders(cfg, difficulty) {
   const spawnRate = Math.max(700, 1800 - difficulty * 150);
 
   function spawnBoulder() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const size = _rnd(40, 80) * (1 + difficulty * 0.08);
     const x = _rnd(size, ARENA_W - size);
     const speed = _rnd(2, 4) * (1 + difficulty * 0.15);
@@ -797,7 +841,7 @@ function _mechanic_rock_boulders(cfg, difficulty) {
       box-shadow: 4px 4px 12px rgba(0,0,0,0.6), 0 0 8px ${cfg.color}88;
       pointer-events:none;
     `;
-    _arena.appendChild(el);
+    state._arena.appendChild(el);
 
     // Ombre au sol (cible de tombée)
     const shadow = document.createElement("div");
@@ -809,17 +853,17 @@ function _mechanic_rock_boulders(cfg, difficulty) {
       background: radial-gradient(ellipse, rgba(0,0,0,0.5), transparent);
       border-radius:50%; pointer-events:none;
     `;
-    _arena.appendChild(shadow);
+    state._arena.appendChild(shadow);
 
-    _objects.push({ el, shadow, x, y: -size, vy: speed, size, type: "boulder" });
+    state._objects.push({ el, shadow, x, y: -size, vy: speed, size, type: "boulder" });
   }
 
   _addInterval(spawnBoulder, spawnRate);
   spawnBoulder();
 
   return function update() {
-    for (let i = _objects.length - 1; i >= 0; i--) {
-      const o = _objects[i];
+    for (let i = state._objects.length - 1; i >= 0; i--) {
+      const o = state._objects[i];
       if (o.type !== "boulder") continue;
       o.vy += 0.1; // gravité
       o.y  += o.vy;
@@ -837,7 +881,7 @@ function _mechanic_rock_boulders(cfg, difficulty) {
         });
       }
 
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, o.size * 0.45)) {
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.size * 0.45)) {
         _screenShake(15, 400);
         _burstParticles(o.x, o.y, 20, cfg.color, cfg.accent);
         return true;
@@ -850,7 +894,7 @@ function _mechanic_rock_boulders(cfg, difficulty) {
         _arenaFlash(cfg.color, 100);
         o.el.remove();
         o.shadow.remove();
-        _objects.splice(i, 1);
+        state._objects.splice(i, 1);
       }
     }
     return false;
@@ -860,16 +904,16 @@ function _mechanic_rock_boulders(cfg, difficulty) {
 // ─── 💨 VOL : rafales de vent qui dévient la pokéball
 function _mechanic_flying_gusts(cfg, difficulty) {
   let gustX = 0, gustY = 0;
-  _friction = 0.12; // contrôle glissant
+  state._friction = 0.12; // contrôle glissant
 
   function triggerGust() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const angle  = Math.random() * Math.PI * 2;
     const force  = (3 + difficulty * 0.5);
     gustX = Math.cos(angle) * force;
     gustY = Math.sin(angle) * force;
-    _windX = gustX;
-    _windY = gustY;
+    state._windX = gustX;
+    state._windY = gustY;
 
     // Affiche des lignes de vent dans la direction
     for (let i = 0; i < 12; i++) {
@@ -888,7 +932,7 @@ function _mechanic_flying_gusts(cfg, difficulty) {
         opacity:0.7; pointer-events:none;
         border-radius:2px;
       `;
-      _arena.appendChild(el);
+      state._arena.appendChild(el);
       _addTimeout(() => el.remove(), _rnd(300, 600));
     }
 
@@ -896,16 +940,16 @@ function _mechanic_flying_gusts(cfg, difficulty) {
     let fade = 0;
     const fadeInterval = setInterval(() => {
       fade++;
-      _windX *= 0.9;
-      _windY *= 0.9;
+      state._windX *= 0.9;
+      state._windY *= 0.9;
       if (fade > 30) clearInterval(fadeInterval);
     }, 50);
-    _intervals.push(fadeInterval);
+    state._intervals.push(fadeInterval);
 
     // Projectiles en rafale
     for (let i = 0; i < 5; i++) {
       _addTimeout(() => {
-        if (_isOver) return;
+        if (state._isOver) return;
         const spawnAngle = angle + _rnd(-0.4, 0.4);
         const sx = angle > 0 && angle < Math.PI ? _rnd(0, ARENA_W) : (gustX > 0 ? -20 : ARENA_W + 20);
         const sy = gustY > 0 ? -20 : ARENA_H + 20;
@@ -922,9 +966,9 @@ function _mechanic_flying_gusts(cfg, difficulty) {
           pointer-events:none;
           opacity:0.8;
         `;
-        _arena.appendChild(el2);
+        state._arena.appendChild(el2);
         const speed = (5 + difficulty * 0.5);
-        _objects.push({
+        state._objects.push({
           el: el2,
           x: sx, y: sy,
           vx: Math.cos(spawnAngle) * speed,
@@ -941,19 +985,19 @@ function _mechanic_flying_gusts(cfg, difficulty) {
 
   return function update() {
     // Appliquer le vent sur le joueur
-    _playerX += _windX * 0.4;
-    _playerY += _windY * 0.4;
+    state._playerX += state._windX * 0.4;
+    state._playerY += state._windY * 0.4;
 
-    for (let i = _objects.length - 1; i >= 0; i--) {
-      const o = _objects[i];
+    for (let i = state._objects.length - 1; i >= 0; i--) {
+      const o = state._objects[i];
       if (o.type !== "gust_projectile") continue;
       o.x += o.vx; o.y += o.vy;
       o.el.style.left = `${o.x}px`;
       o.el.style.top  = `${o.y}px`;
 
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, 10)) return true;
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, 10)) return true;
       if (o.x < -50 || o.x > ARENA_W + 50 || o.y < -50 || o.y > ARENA_H + 50) {
-        o.el.remove(); _objects.splice(i, 1);
+        o.el.remove(); state._objects.splice(i, 1);
       }
     }
     return false;
@@ -963,11 +1007,11 @@ function _mechanic_flying_gusts(cfg, difficulty) {
 // ─── 🧠 PSY : contrôles inversés + zones d'illusion fantômes
 function _mechanic_psychic_distort(cfg, difficulty) {
   let invertTimer = 0;
-  _invertControls = false;
+  state._invertControls = false;
 
   function triggerInvert() {
-    if (_isOver) return;
-    _invertControls = true;
+    if (state._isOver) return;
+    state._invertControls = true;
     invertTimer = 3 + difficulty * 0.3;
     _arenaFlash(cfg.color, 300);
     _screenShake(6, 400);
@@ -985,7 +1029,7 @@ function _mechanic_psychic_distort(cfg, difficulty) {
 
   // Faux projectiles (mirages) qui ne font pas de dégâts
   function spawnMirage() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const x = _rnd(0, ARENA_W);
     const el = document.createElement("div");
     el.className = "dp-projectile";
@@ -998,8 +1042,8 @@ function _mechanic_psychic_distort(cfg, difficulty) {
       box-shadow: 0 0 10px ${cfg.color};
       pointer-events:none;
     `;
-    _arena.appendChild(el);
-    _objects.push({ el, x, y: -20, vy: 3 + difficulty * 0.3, isMirage: Math.random() < 0.4, type: "psy_proj" });
+    state._arena.appendChild(el);
+    state._objects.push({ el, x, y: -20, vy: 3 + difficulty * 0.3, isMirage: Math.random() < 0.4, type: "psy_proj" });
   }
 
   _addInterval(triggerInvert, Math.max(2000, 4000 - difficulty * 200));
@@ -1009,12 +1053,12 @@ function _mechanic_psychic_distort(cfg, difficulty) {
   return function update(now) {
     if (invertTimer > 0) {
       invertTimer -= 0.016;
-      _invertControls = invertTimer > 0;
-      if (!_invertControls) _arenaFlash(cfg.accent, 200);
+      state._invertControls = invertTimer > 0;
+      if (!state._invertControls) _arenaFlash(cfg.accent, 200);
     }
 
-    for (let i = _objects.length - 1; i >= 0; i--) {
-      const o = _objects[i];
+    for (let i = state._objects.length - 1; i >= 0; i--) {
+      const o = state._objects[i];
       if (o.type !== "psy_proj") continue;
       // Les mirages oscillent latéralement
       o.y += o.vy;
@@ -1022,8 +1066,8 @@ function _mechanic_psychic_distort(cfg, difficulty) {
       o.el.style.top  = `${o.y}px`;
       o.el.style.left = `${o.x}px`;
 
-      if (!o.isMirage && _hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, 10)) return true;
-      if (o.y > ARENA_H + 20) { o.el.remove(); _objects.splice(i, 1); }
+      if (!o.isMirage && _hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, 10)) return true;
+      if (o.y > ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
     }
     return false;
   };
@@ -1051,7 +1095,7 @@ function _mechanic_bug_swarm(cfg, difficulty) {
       box-shadow:0 0 6px ${cfg.color};
       pointer-events:none;
     `;
-    _arena.appendChild(el);
+    state._arena.appendChild(el);
     bees.push({ el, x: sx, y: sy, offsetX: (col - 2) * 25, offsetY: row * 20, vx: 0, vy: 0 });
   }
 
@@ -1060,8 +1104,8 @@ function _mechanic_bug_swarm(cfg, difficulty) {
 
   return function update() {
     // Leader traque le joueur avec délai
-    leaderX += (_playerX - leaderX) * (0.02 + difficulty * 0.003);
-    leaderY += (_playerY - leaderY) * (0.02 + difficulty * 0.003);
+    leaderX += (state._playerX - leaderX) * (0.02 + difficulty * 0.003);
+    leaderY += (state._playerY - leaderY) * (0.02 + difficulty * 0.003);
 
     for (let i = 0; i < bees.length; i++) {
       const b = bees[i];
@@ -1073,7 +1117,7 @@ function _mechanic_bug_swarm(cfg, difficulty) {
       b.el.style.left = `${b.x}px`;
       b.el.style.top  = `${b.y}px`;
 
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, b.x, b.y, 8)) return true;
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, b.x, b.y, 8)) return true;
     }
 
     // Particules de vol
@@ -1095,11 +1139,11 @@ function _mechanic_ghost_dark(cfg, difficulty) {
     pointer-events:none; z-index:5;
     transition: --ox 0.1s, --oy 0.1s;
   `;
-  _arena.appendChild(darkOverlay);
-  _objects.push({ el: darkOverlay, type: "overlay" });
+  state._arena.appendChild(darkOverlay);
+  state._objects.push({ el: darkOverlay, type: "overlay" });
 
   function spawnGhost() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const x = _rnd(30, ARENA_W - 30);
     const y = _rnd(30, ARENA_H - 30);
     const size = _rnd(40, 80);
@@ -1119,10 +1163,10 @@ function _mechanic_ghost_dark(cfg, difficulty) {
       pointer-events:none; z-index:6;
       animation: ghostPulse 0.8s ease-in-out infinite alternate;
     `;
-    _arena.appendChild(el);
+    state._arena.appendChild(el);
 
     const obj = { el, x, y, r: size / 2, type: "ghost_zone", alive: true };
-    _objects.push(obj);
+    state._objects.push(obj);
 
     _addTimeout(() => {
       if (!obj.alive) return;
@@ -1131,8 +1175,8 @@ function _mechanic_ghost_dark(cfg, difficulty) {
       el.style.transition = "opacity 0.4s";
       _addTimeout(() => {
         el.remove();
-        const idx = _objects.indexOf(obj);
-        if (idx > -1) _objects.splice(idx, 1);
+        const idx = state._objects.indexOf(obj);
+        if (idx > -1) state._objects.splice(idx, 1);
       }, 400);
     }, linger);
   }
@@ -1142,14 +1186,14 @@ function _mechanic_ghost_dark(cfg, difficulty) {
 
   return function update() {
     // Déplace le halo de visibilité autour du joueur
-    const px = (_playerX / ARENA_W * 100).toFixed(1);
-    const py = (_playerY / ARENA_H * 100).toFixed(1);
+    const px = (state._playerX / ARENA_W * 100).toFixed(1);
+    const py = (state._playerY / ARENA_H * 100).toFixed(1);
     darkOverlay.style.setProperty("--ox", `${px}%`);
     darkOverlay.style.setProperty("--oy", `${py}%`);
 
-    for (const o of _objects) {
+    for (const o of state._objects) {
       if (o.type !== "ghost_zone" || !o.alive) continue;
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, o.r)) return true;
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.r)) return true;
     }
     return false;
   };
@@ -1166,7 +1210,7 @@ function _mechanic_dragon_spiral(cfg, difficulty) {
   const ARMS = 3;
 
   function shootSpiral() {
-    if (_isOver) return;
+    if (state._isOver) return;
     for (let arm = 0; arm < ARMS; arm++) {
       const a = angle + (arm / ARMS) * Math.PI * 2;
       const sx = ARENA_W / 2 + Math.cos(a) * orbitRadius;
@@ -1185,12 +1229,12 @@ function _mechanic_dragon_spiral(cfg, difficulty) {
         box-shadow: 0 0 15px ${cfg.color}, 0 0 25px ${cfg.accent};
         pointer-events:none;
       `;
-      _arena.appendChild(el);
+      state._arena.appendChild(el);
 
       // Direction : vers l'extérieur depuis le centre
       const vx = Math.cos(a) * projectileSpeed;
       const vy = Math.sin(a) * projectileSpeed;
-      _objects.push({ el, x: sx, y: sy, vx, vy, size, type: "meteor" });
+      state._objects.push({ el, x: sx, y: sy, vx, vy, size, type: "meteor" });
 
       // Traînée lumineuse
       _spawnParticle(sx, sy, {
@@ -1204,8 +1248,8 @@ function _mechanic_dragon_spiral(cfg, difficulty) {
   _addInterval(shootSpiral, Math.max(120, 300 - difficulty * 20));
 
   return function update() {
-    for (let i = _objects.length - 1; i >= 0; i--) {
-      const o = _objects[i];
+    for (let i = state._objects.length - 1; i >= 0; i--) {
+      const o = state._objects[i];
       if (o.type !== "meteor") continue;
       o.x += o.vx; o.y += o.vy;
       o.el.style.left = `${o.x}px`;
@@ -1219,9 +1263,9 @@ function _mechanic_dragon_spiral(cfg, difficulty) {
         });
       }
 
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, o.size / 2)) return true;
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.size / 2)) return true;
       if (o.x < -40 || o.x > ARENA_W + 40 || o.y < -40 || o.y > ARENA_H + 40) {
-        o.el.remove(); _objects.splice(i, 1);
+        o.el.remove(); state._objects.splice(i, 1);
       }
     }
     return false;
@@ -1234,7 +1278,7 @@ function _mechanic_dark_mines(cfg, difficulty) {
   const BLAST_DURATION = 400;
 
   function spawnMine() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const x = _rnd(40, ARENA_W - 40);
     const y = _rnd(40, ARENA_H - 40);
     const size = _rnd(50, 90);
@@ -1252,25 +1296,25 @@ function _mechanic_dark_mines(cfg, difficulty) {
       pointer-events:none;
       animation: minePulse 0.4s linear infinite;
     `;
-    _arena.appendChild(el);
+    state._arena.appendChild(el);
 
     let charging = true;
     const obj = { el, x, y, r: size / 2, type: "mine", charging: true };
-    _objects.push(obj);
+    state._objects.push(obj);
 
     // Phase de charge : la mine grossit et devient plus visible
     let chargeProgress = 0;
     const chargeInterval = setInterval(() => {
-      if (_isOver || !charging) { clearInterval(chargeInterval); return; }
+      if (state._isOver || !charging) { clearInterval(chargeInterval); return; }
       chargeProgress = Math.min(1, chargeProgress + (16 / DELAY));
       el.style.border = `3px solid ${cfg.accent}${Math.floor(chargeProgress * 255).toString(16).padStart(2, "0")}`;
       el.style.boxShadow = `0 0 ${chargeProgress * 30}px ${cfg.accent}`;
     }, 16);
-    _intervals.push(chargeInterval);
+    state._intervals.push(chargeInterval);
 
     // Explosion
     _addTimeout(() => {
-      if (_isOver) return;
+      if (state._isOver) return;
       charging = false;
       clearInterval(chargeInterval);
       obj.charging = false;
@@ -1289,8 +1333,8 @@ function _mechanic_dark_mines(cfg, difficulty) {
 
       _addTimeout(() => {
         el.remove();
-        const idx = _objects.indexOf(obj);
-        if (idx > -1) _objects.splice(idx, 1);
+        const idx = state._objects.indexOf(obj);
+        if (idx > -1) state._objects.splice(idx, 1);
       }, BLAST_DURATION);
     }, DELAY);
   }
@@ -1299,9 +1343,9 @@ function _mechanic_dark_mines(cfg, difficulty) {
   spawnMine();
 
   return function update() {
-    for (const o of _objects) {
+    for (const o of state._objects) {
       if (o.type !== "mine") continue;
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, o.r)) return true;
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.r)) return true;
     }
     return false;
   };
@@ -1312,7 +1356,7 @@ function _mechanic_steel_walls(cfg, difficulty) {
   const CLOSE_SPEED = 0.6 + difficulty * 0.1;
 
   function spawnWallPair() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const isHorizontal = Math.random() < 0.4;
 
     if (!isHorizontal) {
@@ -1335,8 +1379,8 @@ function _mechanic_steel_walls(cfg, difficulty) {
       leftEl.style.cssText  = baseStyle + `left: 0px; border-radius: 0 6px 6px 0;`;
       rightEl.style.cssText = baseStyle + `left: ${ARENA_W - 30}px; border-radius: 6px 0 0 6px;`;
 
-      _arena.appendChild(leftEl);
-      _arena.appendChild(rightEl);
+      state._arena.appendChild(leftEl);
+      state._arena.appendChild(rightEl);
 
       let lx = 0, rx = ARENA_W - 30;
       const lw = 30, rw = 30;
@@ -1348,12 +1392,12 @@ function _mechanic_steel_walls(cfg, difficulty) {
         target, speed: CLOSE_SPEED, isClosing: true,
         type: "wall_pair"
       };
-      _objects.push(wObj);
+      state._objects.push(wObj);
 
       // Scintillement métallique
       for (let i = 0; i < 8; i++) {
         _addTimeout(() => {
-          if (_isOver) return;
+          if (state._isOver) return;
           _spawnParticle(lx + _rnd(0, 30), wallY + _rnd(0, wallH), {
             color: cfg.accent, size: _rnd(2, 5), vx: _rnd(0.5, 2), vy: 0, life: 300, shape: "star"
           });
@@ -1379,10 +1423,10 @@ function _mechanic_steel_walls(cfg, difficulty) {
       topEl.style.cssText = baseStyle + "top:0px; border-radius: 0 0 6px 6px;";
       botEl.style.cssText = baseStyle + `top:${ARENA_H - 25}px; border-radius: 6px 6px 0 0;`;
 
-      _arena.appendChild(topEl);
-      _arena.appendChild(botEl);
+      state._arena.appendChild(topEl);
+      state._arena.appendChild(botEl);
 
-      _objects.push({
+      state._objects.push({
         el: topEl, el2: botEl,
         ty: 0, by: ARENA_H - 25,
         wallX, wallW, wallH: 25,
@@ -1396,8 +1440,8 @@ function _mechanic_steel_walls(cfg, difficulty) {
   _addTimeout(spawnWallPair, 300);
 
   return function update() {
-    for (let i = _objects.length - 1; i >= 0; i--) {
-      const o = _objects[i];
+    for (let i = state._objects.length - 1; i >= 0; i--) {
+      const o = state._objects[i];
 
       if (o.type === "wall_pair") {
         if (o.isClosing) {
@@ -1407,8 +1451,8 @@ function _mechanic_steel_walls(cfg, difficulty) {
           o.el2.style.left = `${o.rx}px`;
 
           // Collision
-          if (_hitRect(_playerX, _playerY, PLAYER_RADIUS, o.lx, o.wallY, o.lw, o.wallH)) return true;
-          if (_hitRect(_playerX, _playerY, PLAYER_RADIUS, o.rx, o.wallY, o.rw, o.wallH)) return true;
+          if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, o.lx, o.wallY, o.lw, o.wallH)) return true;
+          if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, o.rx, o.wallY, o.rw, o.wallH)) return true;
 
           if (o.lx >= o.target) {
             o.isClosing = false;
@@ -1416,7 +1460,7 @@ function _mechanic_steel_walls(cfg, difficulty) {
             _arenaFlash(cfg.color, 200);
             _addTimeout(() => {
               o.el.remove(); o.el2.remove();
-              _objects.splice(_objects.indexOf(o), 1);
+              state._objects.splice(state._objects.indexOf(o), 1);
             }, 800);
           }
         }
@@ -1428,15 +1472,15 @@ function _mechanic_steel_walls(cfg, difficulty) {
         o.el.style.top  = `${o.ty}px`;
         o.el2.style.top = `${o.by}px`;
 
-        if (_hitRect(_playerX, _playerY, PLAYER_RADIUS, o.wallX, o.ty, o.wallW, o.wallH)) return true;
-        if (_hitRect(_playerX, _playerY, PLAYER_RADIUS, o.wallX, o.by, o.wallW, o.wallH)) return true;
+        if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, o.wallX, o.ty, o.wallW, o.wallH)) return true;
+        if (_hitRect(state._playerX, state._playerY, PLAYER_RADIUS, o.wallX, o.by, o.wallW, o.wallH)) return true;
 
         if (o.ty >= (ARENA_H - o.gap) / 2 - o.wallH) {
           _screenShake(10, 300);
           _addTimeout(() => {
             o.el.remove(); o.el2.remove();
-            const idx = _objects.indexOf(o);
-            if (idx > -1) _objects.splice(idx, 1);
+            const idx = state._objects.indexOf(o);
+            if (idx > -1) state._objects.splice(idx, 1);
           }, 800);
         }
       }
@@ -1451,7 +1495,7 @@ function _mechanic_poison_cloud(cfg, difficulty) {
   let totalPoisoned = 0; // % de l'arène empoisonnée
 
   function spawnCloud() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const x = _rnd(0, ARENA_W);
     const y = _rnd(0, ARENA_H);
     const finalSize = _rnd(80, 160);
@@ -1467,35 +1511,35 @@ function _mechanic_poison_cloud(cfg, difficulty) {
       background: radial-gradient(circle, ${cfg.color}66, ${cfg.accent}22, transparent 70%);
       pointer-events:none;
     `;
-    _arena.appendChild(el);
+    state._arena.appendChild(el);
 
     const obj = { el, x, y, r: 5, finalR: finalSize / 2, growSpeed: 0.4, type: "cloud" };
-    _objects.push(obj);
+    state._objects.push(obj);
     clouds.push(obj);
 
     // Particules de gaz
     const gasInterval = setInterval(() => {
-      if (_isOver || obj.r >= obj.finalR) { clearInterval(gasInterval); return; }
+      if (state._isOver || obj.r >= obj.finalR) { clearInterval(gasInterval); return; }
       _spawnParticle(x + _rnd(-obj.r, obj.r), y + _rnd(-obj.r, obj.r), {
         color: cfg.color, size: _rnd(3, 8),
         vx: _rnd(-1, 1), vy: _rnd(-2, -0.5), life: 600, glow: true
       });
     }, 80);
-    _intervals.push(gasInterval);
+    state._intervals.push(gasInterval);
   }
 
   _addInterval(spawnCloud, Math.max(800, 2000 - difficulty * 150));
   spawnCloud();
 
   return function update() {
-    for (const o of _objects) {
+    for (const o of state._objects) {
       if (o.type !== "cloud") continue;
       if (o.r < o.finalR) o.r += o.growSpeed;
       const d = o.r * 2;
       o.el.style.width  = `${d}px`;
       o.el.style.height = `${d}px`;
 
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, o.r * 0.7)) return true;
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.r * 0.7)) return true;
     }
     return false;
   };
@@ -1506,10 +1550,10 @@ function _mechanic_fighting_punches(cfg, difficulty) {
   const WARNING_DURATION = Math.max(500, 1000 - difficulty * 60);
 
   function spawnPunch() {
-    if (_isOver) return;
+    if (state._isOver) return;
     // Vise légèrement le joueur
-    const targetX = _playerX + _rnd(-80, 80);
-    const targetY = _playerY + _rnd(-60, 60);
+    const targetX = state._playerX + _rnd(-80, 80);
+    const targetY = state._playerY + _rnd(-60, 60);
     const size = _rnd(60, 100);
 
     // Zone d'alerte
@@ -1526,10 +1570,10 @@ function _mechanic_fighting_punches(cfg, difficulty) {
       pointer-events:none;
       animation: warnPulse 0.15s linear infinite alternate;
     `;
-    _arena.appendChild(warn);
+    state._arena.appendChild(warn);
 
     _addTimeout(() => {
-      if (_isOver) { warn.remove(); return; }
+      if (state._isOver) { warn.remove(); return; }
       warn.remove();
 
       // Impact du poing
@@ -1546,7 +1590,7 @@ function _mechanic_fighting_punches(cfg, difficulty) {
         pointer-events:none;
         transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1);
       `;
-      _arena.appendChild(impact);
+      state._arena.appendChild(impact);
 
       _addTimeout(() => { impact.style.transform = "translate(-50%,-50%) scale(1)"; }, 10);
 
@@ -1555,15 +1599,15 @@ function _mechanic_fighting_punches(cfg, difficulty) {
       _burstParticles(targetX, targetY, 18, cfg.color, cfg.accent);
 
       const obj = { el: impact, x: targetX, y: targetY, r: size / 2, type: "punch_zone" };
-      _objects.push(obj);
+      state._objects.push(obj);
 
       _addTimeout(() => {
         impact.style.transition = "opacity 0.3s";
         impact.style.opacity = "0";
         _addTimeout(() => {
           impact.remove();
-          const idx = _objects.indexOf(obj);
-          if (idx > -1) _objects.splice(idx, 1);
+          const idx = state._objects.indexOf(obj);
+          if (idx > -1) state._objects.splice(idx, 1);
         }, 300);
       }, 300);
     }, WARNING_DURATION);
@@ -1573,9 +1617,9 @@ function _mechanic_fighting_punches(cfg, difficulty) {
   _addTimeout(spawnPunch, 200);
 
   return function update() {
-    for (const o of _objects) {
+    for (const o of state._objects) {
       if (o.type !== "punch_zone") continue;
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, o.r * 0.7)) return true;
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.r * 0.7)) return true;
     }
     return false;
   };
@@ -1586,7 +1630,7 @@ function _mechanic_fairy_circles(cfg, difficulty) {
   const LINGER_MS = Math.max(1000, 2500 - difficulty * 150);
 
   function spawnCircle() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const x = _rnd(50, ARENA_W - 50);
     const y = _rnd(50, ARENA_H - 50);
     const size = _rnd(50, 110);
@@ -1605,12 +1649,12 @@ function _mechanic_fairy_circles(cfg, difficulty) {
       pointer-events:none;
       animation: fairySpin 2s linear infinite;
     `;
-    _arena.appendChild(el);
+    state._arena.appendChild(el);
 
     // Pétales de fée
     for (let i = 0; i < 6; i++) {
       _addTimeout(() => {
-        if (_isOver) return;
+        if (state._isOver) return;
         const angle = Math.random() * Math.PI * 2;
         _spawnParticle(x + Math.cos(angle) * size / 2, y + Math.sin(angle) * size / 2, {
           color: Math.random() < 0.5 ? cfg.color : cfg.accent,
@@ -1620,10 +1664,10 @@ function _mechanic_fairy_circles(cfg, difficulty) {
     }
 
     const obj = { el, x, y, r: size / 2, type: "fairy_circle", alive: true };
-    _objects.push(obj);
+    state._objects.push(obj);
 
     _addTimeout(() => {
-      if (!obj.alive || _isOver) return;
+      if (!obj.alive || state._isOver) return;
       // Explosion féerique
       _burstParticles(x, y, 25, cfg.color, cfg.accent);
       _arenaFlash(cfg.color, 250);
@@ -1642,8 +1686,8 @@ function _mechanic_fairy_circles(cfg, difficulty) {
         el.style.opacity = "0";
         _addTimeout(() => {
           el.remove();
-          const idx = _objects.indexOf(obj);
-          if (idx > -1) _objects.splice(idx, 1);
+          const idx = state._objects.indexOf(obj);
+          if (idx > -1) state._objects.splice(idx, 1);
         }, 300);
       }, 300);
     }, LINGER_MS);
@@ -1653,9 +1697,9 @@ function _mechanic_fairy_circles(cfg, difficulty) {
   spawnCircle();
 
   return function update() {
-    for (const o of _objects) {
+    for (const o of state._objects) {
       if (o.type !== "fairy_circle" || !o.alive) continue;
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, o.r * 0.8)) return true;
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.r * 0.8)) return true;
     }
     return false;
   };
@@ -1664,7 +1708,7 @@ function _mechanic_fairy_circles(cfg, difficulty) {
 // ─── 🔘 NORMAL : projectiles classiques tombants (fallback)
 function _mechanic_normal_drops(cfg, difficulty) {
   function spawnDrop() {
-    if (_isOver) return;
+    if (state._isOver) return;
     const x = _rnd(10, ARENA_W - 10);
     const size = _rnd(10, 22);
     const speed = _rnd(3, 6) * (1 + difficulty * 0.15);
@@ -1679,21 +1723,21 @@ function _mechanic_normal_drops(cfg, difficulty) {
       box-shadow: 0 0 8px ${cfg.color};
       pointer-events:none;
     `;
-    _arena.appendChild(el);
-    _objects.push({ el, x, y: -size, vy: speed, size, type: "drop" });
+    state._arena.appendChild(el);
+    state._objects.push({ el, x, y: -size, vy: speed, size, type: "drop" });
   }
 
   _addInterval(spawnDrop, Math.max(300, 700 - difficulty * 60));
   spawnDrop();
 
   return function update() {
-    for (let i = _objects.length - 1; i >= 0; i--) {
-      const o = _objects[i];
+    for (let i = state._objects.length - 1; i >= 0; i--) {
+      const o = state._objects[i];
       if (o.type !== "drop") continue;
       o.y += o.vy;
       o.el.style.top = `${o.y}px`;
-      if (_hitCircle(_playerX, _playerY, PLAYER_RADIUS, o.x, o.y, o.size / 2)) return true;
-      if (o.y > ARENA_H + 20) { o.el.remove(); _objects.splice(i, 1); }
+      if (_hitCircle(state._playerX, state._playerY, PLAYER_RADIUS, o.x, o.y, o.size / 2)) return true;
+      if (o.y > ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
     }
     return false;
   };
@@ -1741,8 +1785,8 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
   const timerEl  = document.getElementById("defense-timer");
   const warnEl   = document.getElementById("defense-warning");
 
-  _arena  = arena;
-  _player = document.getElementById("player-avatar");
+  state._arena  = arena;
+  state._player = document.getElementById("player-avatar");
 
   // ── Affichage de l'UI ──
   stage.classList.remove("hidden");
@@ -1758,15 +1802,15 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
   warnEl.style.color = cfg.color;
 
   // Mettre à jour le style CSS de l'avatar (Pokéball)
-  _player.style.opacity         = "1";
+  state._player.style.opacity         = "1";
 
   // Position initiale
-  _playerX = ARENA_W / 2;
-  _playerY = ARENA_H / 2;
-  _mouseX  = ARENA_W / 2;
-  _mouseY  = ARENA_H / 2;
-  _player.style.left = `${_playerX}px`;
-  _player.style.top  = `${_playerY}px`;
+  state._playerX = ARENA_W / 2;
+  state._playerY = ARENA_H / 2;
+  state._mouseX  = ARENA_W / 2;
+  state._mouseY  = ARENA_H / 2;
+  state._player.style.left = `${state._playerX}px`;
+  state._player.style.top  = `${state._playerY}px`;
 
   // Suivi souris dans l'arène
   const onMouseMove = (e) => {
@@ -1774,12 +1818,12 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
     const rawX = e.clientX - rect.left;
     const rawY = e.clientY - rect.top;
     // Inversion PSY
-    if (_invertControls) {
-      _mouseX = ARENA_W - rawX;
-      _mouseY = ARENA_H - rawY;
+    if (state._invertControls) {
+      state._mouseX = ARENA_W - rawX;
+      state._mouseY = ARENA_H - rawY;
     } else {
-      _mouseX = rawX;
-      _mouseY = rawY;
+      state._mouseX = rawX;
+      state._mouseY = rawY;
     }
   };
   arena.addEventListener("mousemove", onMouseMove);
@@ -1788,16 +1832,16 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
   await showSplashText("Attaque " + cfg.attackName + " !", 1000);
 
   return new Promise(async (resolve) => {
-    _resolve = resolve;
-    _isOver  = false;
-    _friction = 0.25;
-    _windX = 0; _windY = 0;
-    _freezeTimer = 0; _freezeMax = 3;
-    _invertControls = false;
+    state._resolve = resolve;
+    state._isOver  = false;
+    state._friction = 0.25;
+    state._windX = 0; state._windY = 0;
+    state._freezeTimer = 0; state._freezeMax = 3;
+    state._invertControls = false;
 
     // Choisir la mécanique
     const mechanicFactory = MECHANICS[cfg.mechanic] || MECHANICS["normal_drops"];
-    const updateFn = mechanicFactory(cfg, difficulty, _isOver, _intervals);
+    const updateFn = mechanicFactory(cfg, difficulty, state);
 
     // Durée totale
     const totalMs = cfg.duration * (1 + difficulty * 0.18);
@@ -1805,7 +1849,7 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
 
     // Intervalle du timer
     const timerInterval = _addInterval(() => {
-      if (_isOver) return;
+      if (state._isOver) return;
       const elapsed  = performance.now() - startTime;
       const remaining = Math.max(0, totalMs - elapsed);
       timerEl.textContent = (remaining / 1000).toFixed(1) + "s";
@@ -1814,19 +1858,19 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
 
     // ── Boucle principale ──
     function gameLoop(now) {
-      if (_isOver) return;
+      if (state._isOver) return;
 
       // Avancer la position joueur (élastique)
-      _playerX += (_mouseX - _playerX) * _friction;
-      _playerY += (_mouseY - _playerY) * _friction;
+      state._playerX += (state._mouseX - state._playerX) * state._friction;
+      state._playerY += (state._mouseY - state._playerY) * state._friction;
 
       // Vents
-      _playerX += _windX;
-      _playerY += _windY;
+      state._playerX += state._windX;
+      state._playerY += state._windY;
 
       // Clamp dans l'arène
-      _playerX = Math.max(PLAYER_RADIUS, Math.min(ARENA_W - PLAYER_RADIUS, _playerX));
-      _playerY = Math.max(PLAYER_RADIUS, Math.min(ARENA_H - PLAYER_RADIUS, _playerY));
+      state._playerX = Math.max(PLAYER_RADIUS, Math.min(ARENA_W - PLAYER_RADIUS, state._playerX));
+      state._playerY = Math.max(PLAYER_RADIUS, Math.min(ARENA_H - PLAYER_RADIUS, state._playerY));
 
       _renderPlayer();
       _updateParticles(now);
@@ -1841,29 +1885,29 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
         return;
       }
 
-      _raf = requestAnimationFrame(gameLoop);
+      state._raf = requestAnimationFrame(gameLoop);
     }
 
-    _raf = requestAnimationFrame(gameLoop);
+    state._raf = requestAnimationFrame(gameLoop);
   });
 }
 
 // ─── VICTOIRE / DÉFAITE ───────────────────────────────────────
 function _triggerDefeat(arena, stage, onMouseMove, resolve) {
-  if (_isOver) return;
-  _isOver = true;
+  if (state._isOver) return;
+  state._isOver = true;
 
   // Explosion de la pokéball
-  _burstParticles(_playerX, _playerY, 30, "#ef4444", "#fff");
+  _burstParticles(state._playerX, state._playerY, 30, "#ef4444", "#fff");
   _screenShake(20, 500);
   _arenaFlash("#ef4444", 400);
 
   arena.style.boxShadow = "inset 0 0 120px #ef4444";
-  if (_player) _player.style.opacity = "0";
+  if (state._player) state._player.style.opacity = "0";
 
-  cancelAnimationFrame(_raf);
-  _intervals.forEach(clearInterval);
-  _timeouts.forEach(clearTimeout);
+  cancelAnimationFrame(state._raf);
+  state._intervals.forEach(clearInterval);
+  state._timeouts.forEach(clearTimeout);
   arena.removeEventListener("mousemove", onMouseMove);
 
   setTimeout(() => {
@@ -1873,8 +1917,8 @@ function _triggerDefeat(arena, stage, onMouseMove, resolve) {
 }
 
 function _triggerVictory(arena, stage, onMouseMove, resolve) {
-  if (_isOver) return;
-  _isOver = true;
+  if (state._isOver) return;
+  state._isOver = true;
 
   // Feu d'artifice de la victoire
   for (let i = 0; i < 5; i++) {
@@ -1891,9 +1935,9 @@ function _triggerVictory(arena, stage, onMouseMove, resolve) {
 
   arena.style.boxShadow = "inset 0 0 120px #22c55e";
 
-  cancelAnimationFrame(_raf);
-  _intervals.forEach(clearInterval);
-  _timeouts.forEach(clearTimeout);
+  cancelAnimationFrame(state._raf);
+  state._intervals.forEach(clearInterval);
+  state._timeouts.forEach(clearTimeout);
   arena.removeEventListener("mousemove", onMouseMove);
 
   setTimeout(() => {
