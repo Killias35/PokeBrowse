@@ -1,5 +1,6 @@
 const DefenseConfig = {
     "fire": {
+        name: "Feu",
         color: "#ef4444",
         baseSize: 20,       // Taille moyenne
         baseSpeed: 4,       // Vitesse moyenne
@@ -8,6 +9,7 @@ const DefenseConfig = {
         duration: 5000      // Dure 5 secondes
     },
     "rock": {
+        name: "Roche",
         color: "#78716c",
         baseSize: 80,       // ÉNORME (Massive)
         baseSpeed: 2.5,     // Plus lent, mais prend de la place
@@ -16,6 +18,7 @@ const DefenseConfig = {
         duration: 5000
     },
     "flying": {
+        name: "Vol",
         color: "#e0f2fe",
         baseSize: 15,
         baseSpeed: 5,
@@ -24,6 +27,7 @@ const DefenseConfig = {
         duration: 6000
     },
     "electric": {
+        name: "Electrique",
         color: "#facc15",
         baseSize: 12,       // Petit
         baseSpeed: 5,      // ULTRA RAPIDE
@@ -39,18 +43,33 @@ let defenseIntervals = [];
 
 export async function startDodgeMinigame(pokemonType, difficultyMultiplier) {
     // 🛡️ MAGIE ICI : On retourne une Promesse qui met le reste du code en pause !
-    await new Promise((resolve) => setTimeout(resolve, 500));  // 1 seconde de pause avant début du jeu
     return new Promise((resolve) => {
         const arena = document.getElementById("defense-arena");
         const avatar = document.getElementById("player-avatar");
         const timerDisplay = document.getElementById("defense-timer");
+        const headerWarning = document.getElementById("defense-warning"); // Le sous-titre
         
         // Nettoyage visuel au cas où l'arène resservirait
         arena.style.boxShadow = "inset 0 0 50px rgba(0,0,0,0.8)";
         avatar.style.background = "#3b82f6";
+
+        // 🎨 1. APPLICATION DU THÈME
+        // On nettoie les anciennes classes et on ajoute la nouvelle
+        arena.className = ""; 
+        const themeClass = `theme-${pokemonType.toLowerCase()}`;
+        arena.classList.add(themeClass);
+
+        // 🚨 2. LE TEXTE D'ALERTE DOPAMINERGIQUE
+        const config = DefenseConfig[pokemonType] || DefenseConfig["fire"];
+        headerWarning.innerText = `⚠️ ATTAQUE ${config.name.toUpperCase()} ⚠️`;
+        headerWarning.style.color = config.color;
+        
+        // Effet visuel sur le timer pour marquer le début
+        timerDisplay.classList.add("type-warning-text");
+        timerDisplay.style.color = config.color;
+        timerDisplay.innerText = "PRÊT ?";
         
         // 1. Récupération de la configuration
-        const config = DefenseConfig[pokemonType] || DefenseConfig["fire"];
         
         const speed = config.baseSpeed * (1 + (difficultyMultiplier * 0.2));
         const spawnRate = config.spawnRate / (1 + (difficultyMultiplier * 0.3));
@@ -151,21 +170,31 @@ export async function startDodgeMinigame(pokemonType, difficultyMultiplier) {
             projectiles.push({ x, y, vy: speed, size, element: el });
         }
 
-        // 5. Gestionnaire du temps
-        const timerInterval = setInterval(() => {
-            timeLeft -= 100;
-            timerDisplay.innerText = (Math.max(0, timeLeft) / 1000).toFixed(1);
+        
+        setTimeout(() => {
+            if(isGameOver) return;
+            
+            // On enlève le texte "PRÊT ?" et on remet le timer normal
+            timerDisplay.classList.remove("type-warning-text");
+            timerDisplay.style.color = "white";
 
-            if (timeLeft <= 0 && !isGameOver) {
-                triggerVictory();
-            }
-        }, 100);
+            // Démarrage des spawns et du timer de jeu
+            const timerInterval = setInterval(() => {
+                timeLeft -= 100;
+                timerDisplay.innerText = (Math.max(0, timeLeft) / 1000).toFixed(1);
 
-        const spawnInterval = setInterval(spawnProjectile, spawnRate);
-        defenseIntervals.push(timerInterval, spawnInterval);
+                if (timeLeft <= 0 && !isGameOver) {
+                    triggerVictory();
+                }
+            }, 100);
 
-        // Démarre la boucle !
-        gameLoop();
+            const spawnInterval = setInterval(spawnProjectile, spawnRate);
+            defenseIntervals.push(timerInterval, spawnInterval);
+
+            // Démarre la boucle physique !
+            gameLoop();
+            
+        }, 1200);
 
         // --- FONCTIONS DE FIN (C'est ici qu'on débloque ton script principal !) ---
 
@@ -197,7 +226,8 @@ export async function startDodgeMinigame(pokemonType, difficultyMultiplier) {
             defenseIntervals.forEach(clearInterval);
             defenseIntervals = [];
             arena.removeEventListener("mousemove", trackMouse); // On nettoie les écouteurs !
-            
+            arena.className = "";
+
             // Suppression de tous les projectiles restants sur le terrain
             projectiles.forEach(p => p.element.remove());
             projectiles = [];
