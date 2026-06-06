@@ -5,11 +5,24 @@
 // ============================================================
 
 import { showSplashText } from "../battle-annimation.js";
+import { _mechanic_water_sweep } from "./mechanics/_mechanic_water_sweep.js";
+import { _rnd, _rndInt, _spawnParticle, _burstParticles } from "./utils.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
-const ARENA_W = 600;
-const ARENA_H = 400;
-const PLAYER_RADIUS = 16; // rayon de collision de la Pokéball
+export const ARENA_W = 600;
+export const ARENA_H = 400;
+export const PLAYER_RADIUS = 16; // rayon de collision de la Pokéball
+
+export function _addInterval(fn, ms) {
+  const id = setInterval(fn, ms);
+  _intervals.push(id);
+  return id;
+}
+export function _addTimeout(fn, ms) {
+  const id = setTimeout(fn, ms);
+  _timeouts.push(id);
+  return id;
+}
 
 // ─── BASE DE DONNÉES DES ATTAQUES PAR TYPE ───────────────────
 //
@@ -244,58 +257,6 @@ let _freezeMax   = 0;
 let _resolve = null;
 let _particlePool = [];    // pool de particules réutilisables
 
-// ─── HELPERS ─────────────────────────────────────────────────
-
-function _addInterval(fn, ms) {
-  const id = setInterval(fn, ms);
-  _intervals.push(id);
-  return id;
-}
-function _addTimeout(fn, ms) {
-  const id = setTimeout(fn, ms);
-  _timeouts.push(id);
-  return id;
-}
-function _rnd(min, max) { return Math.random() * (max - min) + min; }
-function _rndInt(min, max) { return Math.floor(_rnd(min, max + 1)); }
-
-// ─── PARTICULES : POOL & SPAWN ────────────────────────────────
-function _spawnParticle(x, y, { color = "#fff", size = 6, vx = 0, vy = 0, life = 600, shape = "circle", glow = true } = {}) {
-  const el = document.createElement("div");
-  el.className = "dp-particle";
-  el.style.cssText = `
-    position:absolute;
-    width:${size}px; height:${size}px;
-    background:${color};
-    border-radius:${shape === "circle" ? "50%" : shape === "star" ? "2px" : "3px"};
-    left:${x}px; top:${y}px;
-    pointer-events:none;
-    transform:translate(-50%,-50%) rotate(${shape === "star" ? "45deg" : "0"});
-    ${glow ? `box-shadow:0 0 ${size * 1.5}px ${color};` : ""}
-    z-index:10;
-  `;
-  _arena.appendChild(el);
-
-  const start = performance.now();
-  const particle = { el, x, y, vx, vy, life, start };
-  _particlePool.push(particle);
-}
-
-function _burstParticles(x, y, count, color, accent) {
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI * 2;
-    const speed = _rnd(2, 8);
-    _spawnParticle(x, y, {
-      color: Math.random() < 0.6 ? color : accent,
-      size: _rnd(4, 10),
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      life: _rnd(400, 800),
-      glow: true
-    });
-  }
-}
-
 function _updateParticles(now) {
   for (let i = _particlePool.length - 1; i >= 0; i--) {
     const p = _particlePool[i];
@@ -519,239 +480,6 @@ function _mechanic_fire_rings(cfg, difficulty) {
         _objects.splice(i, 1);
       }
     }
-    return false;
-  };
-}
-
-// ─── 💧 EAU : Hydrocanon façon Gaster Blaster
-function _mechanic_water_sweep(cfg, difficulty) {
-
-  const spawnDelay = Math.max(500, 2000 - difficulty * 300);
-  const chargeDuration = Math.max(40, 80 - difficulty * 5);
-  const beamDuration = Math.max(20, difficulty * 10);
-  const beamHeight = Math.min(70, 10 + difficulty * 10);
-
-  function spawnHydroCanon(beamHeight) {
-
-    if (_isOver) return;
-
-    const side = _rndInt(0, 3);
-
-    let sx, sy;
-
-    switch (side) {
-      case 0: // haut
-        sx = _rnd(60, ARENA_W - 60);
-        sy = -40;
-        break;
-
-      case 1: // bas
-        sx = _rnd(60, ARENA_W - 60);
-        sy = ARENA_H + 40;
-        break;
-
-      case 2: // gauche
-        sx = -40;
-        sy = _rnd(60, ARENA_H - 60);
-        break;
-
-      default: // droite
-        sx = ARENA_W + 40;
-        sy = _rnd(60, ARENA_H - 60);
-        break;
-    }
-
-    // Cible proche du joueur mais pas exacte
-    const tx = _playerX + _rnd(-80, 80);
-    const ty = _playerY + _rnd(-80, 80);
-
-    const dx = tx - sx;
-    const dy = ty - sy;
-    const angle = Math.atan2(dy, dx);
-    const length = Math.hypot(dx, dy) + 500;
-
-    // Télégraphe
-    const telegraph = document.createElement("div");
-    telegraph.className = "dp-projectile";
-
-    telegraph.style.cssText = `
-      position:absolute;
-      left:${sx}px;
-      top:${sy}px;
-      width:${length}px;
-      height:4px;
-      transform-origin:left center;
-      transform:rotate(${angle}rad);
-      background:${cfg.accent};
-      opacity:.25;
-      box-shadow:0 0 8px ${cfg.accent};
-      pointer-events:none;
-    `;
-
-    _arena.appendChild(telegraph);
-
-    const obj = {
-      type: "hydro",
-      telegraph,
-      sx,
-      sy,
-      angle,
-      length,
-      charge: chargeDuration,
-      active: false,
-      beam: null,
-      life: beamDuration,
-      height: beamHeight
-    };
-
-    _objects.push(obj);
-  }
-
-  _addInterval(() => spawnHydroCanon(beamHeight) ,spawnDelay);
-  spawnHydroCanon(beamHeight);
-
-  return function update() {
-
-    for (let i = _objects.length - 1; i >= 0; i--) {
-
-      const o = _objects[i];
-
-      if (o.type !== "hydro") continue;
-
-      // PHASE DE CHARGE
-      if (!o.active) {
-
-        o.charge--;
-
-        const progress = 1 - o.charge / chargeDuration;
-
-        o.telegraph.style.opacity =
-          0.15 + progress * 0.5;
-
-        // Particules qui convergent vers la bouche
-        for (let p = 0; p < 3; p++) {
-
-          const a = Math.random() * Math.PI * 2;
-          const r = _rnd(20, 60);
-
-          const px = o.sx + Math.cos(a) * r;
-          const py = o.sy + Math.sin(a) * r;
-
-          const vx = (o.sx - px) * 0.08;
-          const vy = (o.sy - py) * 0.08;
-
-          _spawnParticle(px, py, {
-            color: Math.random() < 0.5
-              ? cfg.color
-              : cfg.accent,
-            size: _rnd(2, 5),
-            vx,
-            vy,
-            life: 250
-          });
-        }
-
-        // Tir
-        if (o.charge <= 0) {
-
-          o.active = true;
-
-          _arenaFlash(cfg.accent, 120);
-
-          _burstParticles(
-            o.sx,
-            o.sy,
-            30,
-            cfg.color,
-            cfg.accent
-          );
-
-          const beam = document.createElement("div");
-
-          beam.className = "dp-projectile";
-
-          beam.style.cssText = `
-            position:absolute;
-            left:${o.sx}px;
-            top:${o.sy}px;
-            width:${o.length}px;
-            height:${o.height}px;
-            transform-origin:left center;
-            transform:rotate(${o.angle}rad);
-            border-radius:20px;
-            background:linear-gradient(
-              90deg,
-              ${cfg.color},
-              white,
-              ${cfg.accent}
-            );
-            box-shadow:
-              0 0 10px white,
-              0 0 25px ${cfg.accent},
-              0 0 50px ${cfg.color};
-            pointer-events:none;
-          `;
-
-          _arena.appendChild(beam);
-
-          o.beam = beam;
-
-          o.telegraph.remove();
-        }
-
-        continue;
-      }
-
-      // Rayon actif
-      o.life--;
-
-      // Spray aquatique
-      for (let p = 0; p < 5; p++) {
-
-        const dist = _rnd(0, o.length);
-
-        const px =
-          o.sx + Math.cos(o.angle) * dist;
-
-        const py =
-          o.sy + Math.sin(o.angle) * dist;
-
-        _spawnParticle(px, py, {
-          color: cfg.accent,
-          size: _rnd(2, 5),
-          vx: _rnd(-1, 1),
-          vy: _rnd(-1, 1),
-          life: 200
-        });
-      }
-
-      // Collision rayon
-      const proj =
-        (_playerX - o.sx) * Math.cos(o.angle) +
-        (_playerY - o.sy) * Math.sin(o.angle);
-
-      const perp =
-        Math.abs(
-          -(_playerX - o.sx) * Math.sin(o.angle) +
-          (_playerY - o.sy) * Math.cos(o.angle)
-        );
-
-      if (
-        proj >= 0 &&
-        proj <= o.length &&
-        perp < PLAYER_RADIUS + o.height / 2
-      ) {
-        return true;
-      }
-
-      if (o.life <= 0) {
-
-        if (o.beam) o.beam.remove();
-
-        _objects.splice(i, 1);
-      }
-    }
-
     return false;
   };
 }
@@ -2069,7 +1797,7 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
 
     // Choisir la mécanique
     const mechanicFactory = MECHANICS[cfg.mechanic] || MECHANICS["normal_drops"];
-    const updateFn = mechanicFactory(cfg, difficulty);
+    const updateFn = mechanicFactory(cfg, difficulty, _isOver, _intervals);
 
     // Durée totale
     const totalMs = cfg.duration * (1 + difficulty * 0.18);
