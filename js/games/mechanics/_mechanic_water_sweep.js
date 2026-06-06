@@ -5,7 +5,7 @@ import { _addInterval, _spawnParticle, _arenaFlash, _burstParticles } from "../g
 export function _mechanic_water_sweep(cfg, difficulty, state) {
 
   const spawnDelay = Math.max(500, 2000 - difficulty * 300);
-  const chargeDuration = Math.max(40, 80 - difficulty * 5);
+  const chargeDuration = Math.max(50, 90 - difficulty * 5);
   const beamDuration = Math.max(20, difficulty * 10);
   const beamHeight = Math.min(70, 10 + difficulty * 10);
 
@@ -151,7 +151,7 @@ export function _mechanic_water_sweep(cfg, difficulty, state) {
           beam.style.cssText = `
             position:absolute;
             left:${o.sx}px;
-            top:${o.sy}px;
+            top:${o.sy - o.height / 2}px;
             width:${o.length}px;
             height:${o.height}px;
             transform-origin:left center;

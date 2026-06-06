@@ -75,7 +75,7 @@ async function startDefenseMinigame(pokemon, baseDifficulty) {
 }
 
 async function launchMinigameEngine(type, difficulty) {
-    type = "fire";   // DEBUG
+    type = "water";   // DEBUG
     console.log("type:", type, "difficulty:", difficulty);
 
     if (type === "fire" || type === "rock" || type === "electric" || type === "flying") {

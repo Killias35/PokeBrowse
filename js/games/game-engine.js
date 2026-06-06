@@ -1819,6 +1819,7 @@ function _triggerDefeat(arena, stage, onMouseMove, resolve) {
   state._intervals.forEach(clearInterval);
   state._timeouts.forEach(clearTimeout);
   arena.removeEventListener("mousemove", onMouseMove);
+  showSplashText("Perdu !", 1000);
 
   setTimeout(() => {
     _finalize(stage);
@@ -1849,6 +1850,7 @@ function _triggerVictory(arena, stage, onMouseMove, resolve) {
   state._intervals.forEach(clearInterval);
   state._timeouts.forEach(clearTimeout);
   arena.removeEventListener("mousemove", onMouseMove);
+  showSplashText("Victoire !", 1000);
 
   setTimeout(() => {
     _finalize(stage);
