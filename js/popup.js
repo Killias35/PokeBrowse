@@ -1,4 +1,5 @@
 import { getRemainingTime, getPokeballs } from "./pokeballs.js";
+import { getBalls } from "./utils.js";
 
 async function getDelaiFromLastSpawn() {
   const lastSpawn = await chrome.storage.local.get("lastSpawn");
@@ -114,5 +115,6 @@ toggleBtn.addEventListener("click", () => {
   sendState();
 });
 
+await getBalls();
 await setBalls();
 await setStatusBtnSpawn();
