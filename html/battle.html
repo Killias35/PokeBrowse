@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../css/battle-annimation-start.css">
     <link rel="stylesheet" href="../css/battle.css">
     <link rel="stylesheet" href="../css/battle-capture.css">
+    <link rel="stylesheet" href="../css/game-engine.css">
 </head>
 <body>
     <main class="battle-container" id="container">
@@ -95,7 +96,22 @@
 
                     <!-- Message final -->
                     <div id="cap-message" class="hidden"></div>
+                </div>
 
+                
+                <!-- Fuite -->
+                <div>
+                   <!-- PHASE 4 : JEU DE DÉFENSE (Esquive) -->
+                   <div id="defense-stage" class="hidden">
+                       <div id="defense-header">
+                           <span id="defense-timer">5.0</span>s <br>
+                           <span id="defense-warning">SURVIS !</span>
+                       </div>
+                       <!-- L'arène où se passe l'action -->
+                       <div id="defense-arena">
+                           <div id="player-avatar"></div>
+                       </div>
+                   </div>
                 </div>
 
             </div>

@@ -3,18 +3,21 @@ import { getPokeballs, usePokeball } from "./pokeballs.js";
 import { capturePokemon } from "./utils.js";
 import { startMusic, stopMusic, playCry } from "./sound.js";
 import { setHpStatus, triggerPokemonFlee, phaseChoixBall, phaseAffaiblissement, startCaptureMinigame} from "./battle-minigame.js";
+import { startDodgeMinigame } from "./games/game-engine.js";
 
 let POKEMON_FIGHTING = null; // Variable globale pour stocker le Pokémon en combat
+let escapeAttempts = 0;
+const DEFENSE_STAGE = document.getElementById("defense-stage");
 
 // commun : 70% max de capture
 // rare : 50% max de capture
 // epic : 35% max de capture
 // legendary : 20% max de capture
 const RARITY_SETTINGS = {
-    commun:     { resistence: 30, targetCPS: 8, duration: 1.6, targetSize: 80, pitchMax: 280, severity: 1 },
-    rare:       { resistence: 50, targetCPS: 10, duration: 1.0, targetSize: 100,  pitchMax: 380, severity: 1.5 },
-    epic:       { resistence: 65, targetCPS: 12, duration: 0.5, targetSize: 125,  pitchMax: 450, severity: 3.5 },
-    legendary:  { resistence: 80, targetCPS: 15, duration: 0.4, targetSize: 150,  pitchMax: 550, severity: 5 },
+    commun:     { resistence: 30, defenseDifficulty: 1, targetCPS: 8, duration: 1.6, targetSize: 80, pitchMax: 280, severity: 1},
+    rare:       { resistence: 50, defenseDifficulty: 1.5, targetCPS: 10, duration: 1.0, targetSize: 100,  pitchMax: 380, severity: 1.5 },
+    epic:       { resistence: 65, defenseDifficulty: 3, targetCPS: 12, duration: 0.5, targetSize: 125,  pitchMax: 450, severity: 3.5 },
+    legendary:  { resistence: 10, defenseDifficulty: 4, targetCPS: 15, duration: 0.4, targetSize: 150,  pitchMax: 550, severity: 5 },
 };
 
 function calculateFleeSiccess(puissance, resistance) {
@@ -55,15 +58,46 @@ function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
     };
 }
 
+async function startDefenseMinigame(pokemon, baseDifficulty) {
+    DEFENSE_STAGE.classList.remove("hidden");
+    escapeAttempts++; 
+
+    const types = pokemon.types;
+    const activeType = types[Math.floor(Math.random() * types.length)];
+    
+    const rageMultiplier = 1 + (escapeAttempts * 0.5); 
+    const finalDifficulty = baseDifficulty * rageMultiplier;
+
+    const minigameResult = await launchMinigameEngine(activeType, finalDifficulty);
+
+    DEFENSE_STAGE.classList.add("hidden");
+    return minigameResult;
+}
+
+async function launchMinigameEngine(type, difficulty) {
+    type = "electric";
+    console.log("type:", type, "difficulty:", difficulty);
+
+    if (type === "fire" || type === "rock" || type === "electric" || type === "flying") {
+        return await startDodgeMinigame(type, difficulty);
+    }
+    else {
+        return await startDodgeMinigame(type, difficulty);
+    }
+
+    return false
+}
+
 async function lancerSequenceCapture() {
     const config = RARITY_SETTINGS[POKEMON_FIGHTING.rarity];
+    const baseDifficulty = config.defenseDifficulty;
     while (true) {
         setHpStatus(100, true);
         const ballChoisie = await phaseChoixBall();
 
         if (ballChoisie === null) {
             await triggerPokemonFlee();
-            await showSplashText("Trop lent ! Le Pokémon s'enfuit !", 2000);
+            await showSplashText("Trop lent ! Le Pokémon s'enfuit !", 5000);
             stopMusic();
             return;
         }
@@ -72,7 +106,7 @@ async function lancerSequenceCapture() {
         const hasFled = calculateFleeSiccess(puissance, config.resistence);
         if (hasFled) {
             await triggerPokemonFlee();
-            await showSplashText("Le Pokémon n'était pas assez affaibli !", 2000);
+            await showSplashText("Le Pokémon n'était pas assez affaibli !", 5000);
             stopMusic();
             return;
         }
@@ -90,6 +124,12 @@ async function lancerSequenceCapture() {
         }
         if(roll > 99) await showSplashText("Echec critique !", 3000);
         playCry(POKEMON_FIGHTING);
+        if(await startDefenseMinigame(POKEMON_FIGHTING, baseDifficulty) === false) {
+            await triggerPokemonFlee();
+            await showSplashText("Le Pokémon s'enfuit !", 5000);
+            stopMusic();
+            break; 
+        };
     }
 
 }
@@ -98,8 +138,8 @@ chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
     const pokemon = result.currentBattlePokemon;
     if (!pokemon) return;
     await chrome.storage.local.remove("currentBattlePokemon");
-    // pokemon.rarity = "commun"    // DEBUG
-    // pokemon.isShiny = true       // DEBUG
+    pokemon.rarity = "legendary"    // DEBUG
+    pokemon.isShiny = true       // DEBUG
 
     POKEMON_FIGHTING = pokemon;
     if (pokemon.rarity === "legendary" || pokemon.rarity === "epic") {
