@@ -3,7 +3,7 @@ import { _addInterval, _spawnParticle, _arenaFlash, _burstParticles, _addTimeout
 
 // ─── ⚡ ÉLECTRIK : zones qui se téléchargent puis frappent
 export function _mechanic_electric_bolts(cfg, difficulty, state) {
-    const spawnDelay      = Math.max(1200, 1700 - difficulty * 50);
+    const spawnDelay      = Math.max(300, 800 - difficulty * 50);
     const warningDuration = Math.max(600, 1200 - difficulty * 100);
     const strikeDuration  = Math.min(200, difficulty * 30);
     const width           = Math.max(150, 50 + difficulty * 10);
@@ -67,7 +67,7 @@ export function _mechanic_electric_bolts(cfg, difficulty, state) {
         }, warningDuration);
     }
 
-    _addInterval(() => spawnBolt(width), Math.max(400, 900 - difficulty * 60));
+    _addInterval(() => spawnBolt(width), spawnDelay);
     _addTimeout(() => spawnBolt(width), 100);
 
     return function update() {
