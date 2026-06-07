@@ -11,6 +11,7 @@ import { _mechanic_ground_shockwaves } from "./mechanics/_mechanic_ground_shockw
 import { _mechanic_rock_boulders } from "./mechanics/_mechanic_rock_boulders.js";
 import { _mechanic_flying_gusts } from "./mechanics/_mechanic_flying_gusts.js";
 import { _mechanic_psychic_distort } from "./mechanics/_mechanic_psychic_distort.js";
+import { _mechanic_bug_swarm } from "./mechanics/_mechanic_bug_swarm.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -231,61 +232,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 // ============================================================
 
 
-// ─── 🐛 INSECTE : essaim en V qui traque le joueur
-function _mechanic_bug_swarm(cfg, difficulty) {
-  const SWARM_COUNT = 18 + difficulty * 2;
-  const bees = [];
-
-  // Créer l'essaim en formation V
-  for (let i = 0; i < SWARM_COUNT; i++) {
-    const el = document.createElement("div");
-    el.className = "dp-swarm dp-projectile";
-    const row = Math.floor(i / 5);
-    const col = i % 5;
-    const sx = -100 - row * 20;
-    const sy = state.ARENA_H / 2 - 60 + col * 30;
-    el.style.cssText = `
-      position:absolute;
-      width:10px; height:8px;
-      left:${sx}px; top:${sy}px;
-      border-radius:50%;
-      background:${cfg.color};
-      box-shadow:0 0 6px ${cfg.color};
-      pointer-events:none;
-    `;
-    state._arena.appendChild(el);
-    bees.push({ el, x: sx, y: sy, offsetX: (col - 2) * 25, offsetY: row * 20, vx: 0, vy: 0 });
-  }
-
-  let leaderX = -80, leaderY = state.ARENA_H / 2;
-  const speed = 2.5 + difficulty * 0.3;
-
-  return function update() {
-    // Leader traque le joueur avec délai
-    leaderX += (state._playerX - leaderX) * (0.02 + difficulty * 0.003);
-    leaderY += (state._playerY - leaderY) * (0.02 + difficulty * 0.003);
-
-    for (let i = 0; i < bees.length; i++) {
-      const b = bees[i];
-      // Formation : chaque abeille suit le leader avec son offset + oscillation
-      const targetX = leaderX + b.offsetX + Math.sin(Date.now() * 0.003 + i) * 6;
-      const targetY = leaderY + b.offsetY + Math.cos(Date.now() * 0.002 + i) * 6;
-      b.x += (targetX - b.x) * 0.1;
-      b.y += (targetY - b.y) * 0.1;
-      b.el.style.left = `${b.x}px`;
-      b.el.style.top  = `${b.y}px`;
-
-      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, b.x, b.y, 8)) return true;
-    }
-
-    // Particules de vol
-    if (Math.random() < 0.3) {
-      const rb = bees[_rndInt(0, bees.length - 1)];
-      _spawnParticle(rb.x, rb.y, { color: cfg.accent, size: _rnd(2, 4), vx: _rnd(-1, 1), vy: _rnd(-1, 1), life: 200, glow: false });
-    }
-    return false;
-  };
-}
 
 // ─── 👻 SPECTRE : obscurité + zones fantômes qui apparaissent
 function _mechanic_ghost_dark(cfg, difficulty) {
