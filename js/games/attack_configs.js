@@ -75,13 +75,13 @@ export const ATTACK_CONFIGS = {
     duration: 6000,
     mechanic: "ground_shockwaves",
     theme: "theme-ground",
-    description: "Saute par-dessus les ondes sismiques !"
+    description: "Esquive les ondes de choc !"
   },
 
   // 🪨 ROCHE — météorites massives
   rock: {
     attackName: "Éboulement",
-    color: "#78716c",
+    color: "#3d3a37",
     accent: "#e7e5e4",
     duration: 6000,
     mechanic: "rock_boulders",

@@ -8,6 +8,7 @@ import { _mechanic_electric_bolts } from "./mechanics/_mechanic_electric_bolts.j
 import { _mechanic_grass_vines } from "./mechanics/_mechanic_grass_vines.js";
 import { _mechanic_ice_freeze } from "./mechanics/_mechanic_ice_freeze.js";
 import { _mechanic_ground_shockwaves } from "./mechanics/_mechanic_ground_shockwaves.js";
+import { _mechanic_rock_boulders } from "./mechanics/_mechanic_rock_boulders.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -227,87 +228,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 // ============================================================
 
 
-// ─── 🪨 ROCHE : météorites massives avec ombre au sol
-function _mechanic_rock_boulders(cfg, difficulty) {
-  const spawnRate = Math.max(700, 1800 - difficulty * 150);
-
-  function spawnBoulder() {
-    if (state._isOver) return;
-    const size = _rnd(40, 80) * (1 + difficulty * 0.08);
-    const x = _rnd(size, state.ARENA_W - size);
-    const speed = _rnd(2, 4) * (1 + difficulty * 0.15);
-
-    const el = document.createElement("div");
-    el.className = "dp-projectile";
-    el.style.cssText = `
-      position:absolute;
-      width:${size}px; height:${size}px;
-      left:${x}px; top:-${size}px;
-      transform:translate(-50%,-50%);
-      background: radial-gradient(circle at 35% 35%, ${cfg.accent}, ${cfg.color} 60%, #292524);
-      border-radius: ${40 + Math.random() * 20}% ${30 + Math.random() * 30}% ${40 + Math.random() * 20}% ${35 + Math.random() * 25}%;
-      box-shadow: 4px 4px 12px rgba(0,0,0,0.6), 0 0 8px ${cfg.color}88;
-      pointer-events:none;
-    `;
-    state._arena.appendChild(el);
-
-    // Ombre au sol (cible de tombée)
-    const shadow = document.createElement("div");
-    shadow.style.cssText = `
-      position:absolute;
-      width:${size * 0.7}px; height:${size * 0.3}px;
-      left:${x}px; top:${state.ARENA_H - 20}px;
-      transform:translate(-50%,-50%);
-      background: radial-gradient(ellipse, rgba(0,0,0,0.5), transparent);
-      border-radius:50%; pointer-events:none;
-    `;
-    state._arena.appendChild(shadow);
-
-    state._objects.push({ el, shadow, x, y: -size, vy: speed, size, type: "boulder" });
-  }
-
-  _addInterval(spawnBoulder, spawnRate);
-  spawnBoulder();
-
-  return function update() {
-    for (let i = state._objects.length - 1; i >= 0; i--) {
-      const o = state._objects[i];
-      if (o.type !== "boulder") continue;
-      o.vy += 0.1; // gravité
-      o.y  += o.vy;
-      o.el.style.top = `${o.y}px`;
-
-      // La taille de l'ombre diminue à l'approche
-      const shadowScale = Math.min(1, o.y / (state.ARENA_H - o.size));
-      o.shadow.style.opacity = shadowScale;
-
-      // Particules de débris dans la chute
-      if (Math.random() < 0.15) {
-        _spawnParticle(o.x + _rnd(-o.size / 3, o.size / 3), o.y - o.size / 3, {
-          color: cfg.color, size: _rnd(3, 8),
-          vx: _rnd(-2, 2), vy: _rnd(-2, 1), life: 350
-        });
-      }
-
-      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.size * 0.45)) {
-        _screenShake(15, 400);
-        _burstParticles(o.x, o.y, 20, cfg.color, cfg.accent);
-        return true;
-      }
-
-      if (o.y > state.ARENA_H + o.size) {
-        // Impact au sol
-        _screenShake(8, 300);
-        _burstParticles(o.x, state.ARENA_H, 15, cfg.color, cfg.accent);
-        _arenaFlash(cfg.color, 100);
-        o.el.remove();
-        o.shadow.remove();
-        state._objects.splice(i, 1);
-      }
-    }
-    return false;
-  };
-}
 
 // ─── 💨 VOL : rafales de vent qui dévient la pokéball
 function _mechanic_flying_gusts(cfg, difficulty) {
