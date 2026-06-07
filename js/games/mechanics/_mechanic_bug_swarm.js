@@ -8,7 +8,7 @@ export function _mechanic_bug_swarm(cfg, difficulty, state) {
     // ── Paramètres scalés difficulty 1–10 ─────────────────────────────────
 
     // Nombre d'insectes par vague
-    const waveSize          = Math.floor(Math.round(3 + difficulty * 0.5));
+    const waveSize          = Math.floor(Math.round(3 + difficulty * 0.33));
 
     // Délai entre chaque vague (ms)
     const waveInterval      = Math.max(1800, 5000 - difficulty * 320);
@@ -125,11 +125,20 @@ export function _mechanic_bug_swarm(cfg, difficulty, state) {
                     o.phase = "hunt";
                     // Petit flash au moment de l'attaque
                     _spawnParticle(o.x, o.y, {
-                        color: cfg.accent, size: _rnd(10, 15),
+                        color: cfg.color, size: _rnd(10, 15),
                         vx: 0, vy: 0, life: 300
                     });
-                    o.el.style.background = cfg.accent;
-                    o.el.style.boxShadow = `0 0 7px ${cfg.accent}`;
+                    o.el.style.cssText = `
+                        position: absolute;
+                        width: 11px; height: 9px;
+                        left: ${o.x}px; top: ${o.y}px;
+                        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+                        background: ${cfg.color};
+                        box-shadow: 0 0 7px ${cfg.color};
+                        pointer-events: none;
+                        opacity: 1;
+                        transition: none;
+                    `;
                 }
 
             } else if (o.phase === "hunt") {
