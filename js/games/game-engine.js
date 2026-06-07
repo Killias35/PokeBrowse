@@ -1,12 +1,6 @@
-// ============================================================
-//  DEFENSE MINI-GAME ENGINE — defense-engine.js
-//  Chaque type de Pokémon déclenche un mini-jeu unique.
-//  Le joueur contrôle une Pokéball via la souris.
-// ============================================================
-
 import { showSplashText } from "../battle-annimation.js";
 import { _rnd, _rndInt } from "./utils.js";
-import { ATTACK_CONFIGS } from "./config.js";
+import { ATTACK_CONFIGS } from "./attack_configs.js";
 
 import { _mechanic_water_sweep } from "./mechanics/_mechanic_water_sweep.js";
 import { _mechanic_fire_rings } from "./mechanics/_mechanic_fire_rings.js";

@@ -179,7 +179,7 @@ export const ATTACK_CONFIGS = {
 
   // 🥊 COMBAT — poing géant qui smash des zones
   fighting: {
-    attackName: "Mégapoing",
+    attackName: "Close Combat",
     color: "#f97316",
     accent: "#fed7aa",
     duration: 5000,
@@ -201,7 +201,7 @@ export const ATTACK_CONFIGS = {
 
   // 🌋 NORMAL — projectiles classiques (fallback)
   normal: {
-    attackName: "Morsure",
+    attackName: "Giga Impact",
     color: "#a8a29e",
     accent: "#e7e5e4",
     duration: 5000,
