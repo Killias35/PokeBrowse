@@ -61,31 +61,19 @@ function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
 async function startDefenseMinigame(pokemon, baseDifficulty) {
     DEFENSE_STAGE.classList.remove("hidden");
     escapeAttempts++; 
+    pokemon.types = ["ice"]; // DEBUG
 
     const types = pokemon.types;
     const activeType = types[Math.floor(Math.random() * types.length)];
     
     const rageMultiplier = 1 + (escapeAttempts * 0.5); 
-    const finalDifficulty = baseDifficulty * rageMultiplier;
+    const difficulty = baseDifficulty * rageMultiplier;
 
-    const minigameResult = await launchMinigameEngine(activeType, finalDifficulty);
+    console.log("type:", activeType, "difficulty:", difficulty);
+    const minigameResult = await startDodgeMinigame(activeType, difficulty);
 
     DEFENSE_STAGE.classList.add("hidden");
     return minigameResult;
-}
-
-async function launchMinigameEngine(type, difficulty) {
-    type = "fire";   // DEBUG
-    console.log("type:", type, "difficulty:", difficulty);
-
-    if (type === "fire" || type === "rock" || type === "electric" || type === "flying") {
-        return await startDodgeMinigame(type, difficulty);
-    }
-    else {
-        return await startDodgeMinigame(type, difficulty);
-    }
-
-    return false
 }
 
 async function lancerSequenceCapture() {
@@ -139,7 +127,7 @@ chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
     const pokemon = result.currentBattlePokemon;
     if (!pokemon) return;
     // await chrome.storage.local.remove("currentBattlePokemon");   // DEBUG
-    pokemon.rarity = "legendary"    // DEBUG
+    pokemon.rarity = "epic"    // DEBUG
     pokemon.isShiny = true       // DEBUG
 
     POKEMON_FIGHTING = pokemon;
