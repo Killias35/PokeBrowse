@@ -61,7 +61,7 @@ function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
 async function startDefenseMinigame(pokemon, baseDifficulty) {
     DEFENSE_STAGE.classList.remove("hidden");
     escapeAttempts++; 
-    pokemon.types = ["ice"]; // DEBUG
+    pokemon.types = ["ground"]; // DEBUG
 
     const types = pokemon.types;
     const activeType = types[Math.floor(Math.random() * types.length)];
@@ -127,7 +127,7 @@ chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
     const pokemon = result.currentBattlePokemon;
     if (!pokemon) return;
     // await chrome.storage.local.remove("currentBattlePokemon");   // DEBUG
-    pokemon.rarity = "epic"    // DEBUG
+    pokemon.rarity = "legendary"    // DEBUG
     pokemon.isShiny = true       // DEBUG
 
     POKEMON_FIGHTING = pokemon;

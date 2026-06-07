@@ -7,6 +7,7 @@ import { _mechanic_fire_rings } from "./mechanics/_mechanic_fire_rings.js";
 import { _mechanic_electric_bolts } from "./mechanics/_mechanic_electric_bolts.js";
 import { _mechanic_grass_vines } from "./mechanics/_mechanic_grass_vines.js";
 import { _mechanic_ice_freeze } from "./mechanics/_mechanic_ice_freeze.js";
+import { _mechanic_ground_shockwaves } from "./mechanics/_mechanic_ground_shockwaves.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -225,67 +226,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 //   MÉCANIQUES DE JEU (une par type)
 // ============================================================
 
-
-// ─── 🌍 SOL : ondes de choc circulaires depuis le bas
-function _mechanic_ground_shockwaves(cfg, difficulty) {
-  function spawnShockwave() {
-    if (state._isOver) return;
-    _screenShake(10, 400);
-    _arenaFlash(cfg.color, 150);
-
-    const cx = _rnd(50, state.ARENA_W - 50);
-    const cy = state.ARENA_H; // depuis le bas
-
-    for (let ring = 0; ring < 3; ring++) {
-      _addTimeout(() => {
-        if (state._isOver) return;
-        const el = document.createElement("div");
-        el.className = "dp-ring dp-projectile";
-        el.style.cssText = `
-          position:absolute;
-          width:10px; height:10px;
-          border-radius:50%;
-          border: 3px solid ${ring === 0 ? "#fde68a" : cfg.color};
-          box-shadow: 0 0 10px ${cfg.color};
-          left:${cx}px; top:${cy}px;
-          transform:translate(-50%,-50%);
-          pointer-events:none;
-        `;
-        state._arena.appendChild(el);
-
-        // Poussière au sol
-        _burstParticles(cx, cy, 12, cfg.color, cfg.accent);
-
-        const speed = (3 + difficulty * 0.4) * (1 + ring * 0.3);
-        const obj = { el, cx, cy, r: 5, speed, type: "shockwave" };
-        state._objects.push(obj);
-      }, ring * 150);
-    }
-  }
-
-  _addInterval(spawnShockwave, Math.max(1000, 2500 - difficulty * 150));
-  _addTimeout(spawnShockwave, 200);
-
-  return function update() {
-    for (let i = state._objects.length - 1; i >= 0; i--) {
-      const o = state._objects[i];
-      if (o.type !== "shockwave") continue;
-      o.r += o.speed;
-      const d = o.r * 2;
-      o.el.style.width  = `${d}px`;
-      o.el.style.height = `${d}px`;
-
-      const dist = Math.hypot(state._playerX - o.cx, state._playerY - o.cy);
-      const thickness = 10;
-      if (Math.abs(dist - o.r) < state.PLAYER_RADIUS + thickness) return true;
-
-      if (o.r > Math.hypot(state.ARENA_W, state.ARENA_H) * 0.8) {
-        o.el.remove(); state._objects.splice(i, 1);
-      }
-    }
-    return false;
-  };
-}
 
 // ─── 🪨 ROCHE : météorites massives avec ombre au sol
 function _mechanic_rock_boulders(cfg, difficulty) {
