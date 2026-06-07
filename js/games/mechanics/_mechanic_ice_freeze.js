@@ -3,7 +3,7 @@ import { _addInterval, _arenaFlash, _burstParticles, _hitCircle } from "../game-
 
 // ─── ❄️ GLACE : projectiles froids + gels qui ralentissent
 export function _mechanic_ice_freeze(cfg, difficulty, state) {
-    const spawnRate = Math.max(40, 100 - difficulty * 8);
+    const spawnDelay = Math.max(40, 100 - difficulty * 8);
     // Direction du blizzard
     const blizzardAngle = Math.random() * Math.PI * 2;
     const force  = Math.min(4, 1 + difficulty * 0.25);
@@ -69,7 +69,7 @@ export function _mechanic_ice_freeze(cfg, difficulty, state) {
         state._objects.push({ el, x, y, vx: speedX, vy: speedY, size, type: "iceshard", isFreezer: true });
     }
 
-    _addInterval(spawnIceShard, spawnRate);
+    _addInterval(spawnIceShard, spawnDelay);
     for(let i = 0; i < 40; i++) {
         spawnSnow();
     }
