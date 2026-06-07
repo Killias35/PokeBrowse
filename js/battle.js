@@ -75,7 +75,7 @@ async function startDefenseMinigame(pokemon, baseDifficulty) {
 }
 
 async function launchMinigameEngine(type, difficulty) {
-    type = "electric";   // DEBUG
+    type = "grass";   // DEBUG
     console.log("type:", type, "difficulty:", difficulty);
 
     if (type === "fire" || type === "rock" || type === "electric" || type === "flying") {
@@ -139,7 +139,7 @@ chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
     const pokemon = result.currentBattlePokemon;
     if (!pokemon) return;
     // await chrome.storage.local.remove("currentBattlePokemon");   // DEBUG
-    pokemon.rarity = "legendary"    // DEBUG
+    pokemon.rarity = "commun"    // DEBUG
     pokemon.isShiny = true       // DEBUG
 
     POKEMON_FIGHTING = pokemon;
