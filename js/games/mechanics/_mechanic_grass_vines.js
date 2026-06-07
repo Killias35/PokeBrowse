@@ -4,9 +4,9 @@ import { _addInterval, _spawnParticle, _hitRect } from "../game-engine.js";
 
 // ─── 🌿 PLANTE : lianes traversantes (horizontales & verticales)
 export function _mechanic_grass_vines(cfg, difficulty, state) {
-    const spawnDelay    = Math.max(300, 800 - difficulty * 50);
-    const vineSpeed     = Math.min(10, 2 + difficulty * 0.1);
-    const vineW         = Math.min(10, 5 + difficulty);
+    const spawnDelay    = Math.max(200, 700 - difficulty * 50);
+    const vineSpeed     = Math.min(2.5, 1 + difficulty * 0.15);
+    const vineW         = Math.min(9, 5 + difficulty * 0.4);
 
     function spawnVine(horizontal) {
         if (state._isOver) return;
@@ -57,11 +57,11 @@ export function _mechanic_grass_vines(cfg, difficulty, state) {
 
         // Étirer la liane visuellement
         if (o.horizontal) {
-            o.w = Math.min(o.w + o.vx * 0.8, state.ARENA_W + 40);
+            o.w = Math.min(o.w + o.vx * 0.5, state.ARENA_W + 40);
             o.el.style.width  = `${o.w}px`;
             o.el.style.left   = `${o.x}px`;
         } else {
-            o.h = Math.min(o.h + o.vy * 0.8, state.ARENA_H + 40);
+            o.h = Math.min(o.h + o.vy * 0.5, state.ARENA_H + 40);
             o.el.style.height = `${o.h}px`;
             o.el.style.top    = `${o.y}px`;
         }
