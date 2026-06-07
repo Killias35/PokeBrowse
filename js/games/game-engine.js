@@ -9,6 +9,7 @@ import { _mechanic_grass_vines } from "./mechanics/_mechanic_grass_vines.js";
 import { _mechanic_ice_freeze } from "./mechanics/_mechanic_ice_freeze.js";
 import { _mechanic_ground_shockwaves } from "./mechanics/_mechanic_ground_shockwaves.js";
 import { _mechanic_rock_boulders } from "./mechanics/_mechanic_rock_boulders.js";
+import { _mechanic_flying_gusts } from "./mechanics/_mechanic_flying_gusts.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -198,6 +199,7 @@ function _cleanup() {
   // supprimer tous les éléments de jeu injectés dans l'arène
   if (state._arena) {
     state._arena.querySelectorAll(".dp-particle,.dp-projectile,.dp-zone,.dp-vine,.dp-ring,.dp-gust,.dp-mine,.dp-swarm,.dp-wall,.dp-cloud").forEach(e => e.remove());
+    state._arena.style = "";
   }
   if (state._player) {
     state._player.style.filter = "";
@@ -227,110 +229,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 //   MÉCANIQUES DE JEU (une par type)
 // ============================================================
 
-
-
-// ─── 💨 VOL : rafales de vent qui dévient la pokéball
-function _mechanic_flying_gusts(cfg, difficulty) {
-  let gustX = 0, gustY = 0;
-  state._friction = 0.12; // contrôle glissant
-
-  function triggerGust() {
-    if (state._isOver) return;
-    const angle  = Math.random() * Math.PI * 2;
-    const force  = (3 + difficulty * 0.5);
-    gustX = Math.cos(angle) * force;
-    gustY = Math.sin(angle) * force;
-    state._windX = gustX;
-    state._windY = gustY;
-
-    // Affiche des lignes de vent dans la direction
-    for (let i = 0; i < 12; i++) {
-      const el = document.createElement("div");
-      el.className = "dp-gust";
-      const px = _rnd(0, state.ARENA_W);
-      const py = _rnd(0, state.ARENA_H);
-      const len = _rnd(30, 80);
-      el.style.cssText = `
-        position:absolute;
-        width:${len}px; height:2px;
-        left:${px}px; top:${py}px;
-        background: linear-gradient(90deg, transparent, ${cfg.color}, transparent);
-        transform:rotate(${Math.atan2(gustY, gustX) * 180 / Math.PI}deg);
-        transform-origin:left center;
-        opacity:0.7; pointer-events:none;
-        border-radius:2px;
-      `;
-      state._arena.appendChild(el);
-      _addTimeout(() => el.remove(), _rnd(300, 600));
-    }
-
-    // Progressivement le vent s'estompe
-    let fade = 0;
-    const fadeInterval = setInterval(() => {
-      fade++;
-      state._windX *= 0.9;
-      state._windY *= 0.9;
-      if (fade > 30) clearInterval(fadeInterval);
-    }, 50);
-    state._intervals.push(fadeInterval);
-
-    // Projectiles en rafale
-    for (let i = 0; i < 5; i++) {
-      _addTimeout(() => {
-        if (state._isOver) return;
-        const spawnAngle = angle + _rnd(-0.4, 0.4);
-        const sx = angle > 0 && angle < Math.PI ? _rnd(0, state.ARENA_W) : (gustX > 0 ? -20 : state.ARENA_W + 20);
-        const sy = gustY > 0 ? -20 : state.ARENA_H + 20;
-        const el2 = document.createElement("div");
-        el2.className = "dp-projectile";
-        el2.style.cssText = `
-          position:absolute;
-          width:${_rnd(8, 16)}px; height:${_rnd(20, 40)}px;
-          left:${sx}px; top:${sy}px;
-          background:linear-gradient(180deg,${cfg.accent},${cfg.color});
-          border-radius:50%;
-          transform:translate(-50%,-50%) rotate(${spawnAngle * 180 / Math.PI + 90}deg);
-          box-shadow:0 0 8px ${cfg.color};
-          pointer-events:none;
-          opacity:0.8;
-        `;
-        state._arena.appendChild(el2);
-        const speed = (5 + difficulty * 0.5);
-        state._objects.push({
-          el: el2,
-          x: sx, y: sy,
-          vx: Math.cos(spawnAngle) * speed,
-          vy: Math.sin(spawnAngle) * speed,
-          w: 14, h: 14,
-          type: "gust_projectile"
-        });
-      }, i * 100);
-    }
-  }
-
-  _addInterval(triggerGust, Math.max(800, 2000 - difficulty * 150));
-  _addTimeout(triggerGust, 300);
-
-  return function update() {
-    // Appliquer le vent sur le joueur
-    state._playerX += state._windX * 0.4;
-    state._playerY += state._windY * 0.4;
-
-    for (let i = state._objects.length - 1; i >= 0; i--) {
-      const o = state._objects[i];
-      if (o.type !== "gust_projectile") continue;
-      o.x += o.vx; o.y += o.vy;
-      o.el.style.left = `${o.x}px`;
-      o.el.style.top  = `${o.y}px`;
-
-      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, 10)) return true;
-      if (o.x < -50 || o.x > state.ARENA_W + 50 || o.y < -50 || o.y > state.ARENA_H + 50) {
-        o.el.remove(); state._objects.splice(i, 1);
-      }
-    }
-    return false;
-  };
-}
 
 // ─── 🧠 PSY : contrôles inversés + zones d'illusion fantômes
 function _mechanic_psychic_distort(cfg, difficulty) {
