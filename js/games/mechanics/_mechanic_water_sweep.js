@@ -4,7 +4,7 @@ import { _addInterval, _spawnParticle, _arenaFlash, _burstParticles } from "../g
 // ─── 💧 EAU : Hydrocanon façon Gaster Blaster
 export function _mechanic_water_sweep(cfg, difficulty, state) {
 
-  const spawnDelay = Math.max(500, 2000 - difficulty * 300);
+  const spawnDelay = Math.max(500, 1200 - difficulty * 200);
   const chargeDuration = Math.max(50, 90 - difficulty * 5);
   const beamDuration = Math.max(20, difficulty * 10);
   const beamHeight = Math.min(70, 10 + difficulty * 10);

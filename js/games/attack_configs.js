@@ -17,7 +17,7 @@ export const ATTACK_CONFIGS = {
     attackName: "Déflagration",
     color: "#ff4500",
     accent: "#ffaa00",
-    duration: 6000,
+    duration: 5000,
     mechanic: "fire_rings",
     theme: "theme-fire",
     description: "Esquive les anneaux de flammes !"

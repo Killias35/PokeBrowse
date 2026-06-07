@@ -4,12 +4,12 @@ import { _addInterval, _spawnParticle, _arenaFlash, _burstParticles } from "../g
 // ─── 🔥 FEU : anneaux concentriques qui explosent vers l'extérieur
 export function _mechanic_fire_rings(cfg, difficulty, state) {
   const colors = [cfg.color, cfg.accent, "#ff6a00"];
-  let spawnDelay = Math.max(600, 2000 - difficulty * 200);
+  let spawnDelay = Math.max(600, 1200 - difficulty * 200);
 
   function spawnRing() {
     if (state._isOver) return;
     // Taille de départ et vitesse d'expansion
-    const spawnDelay = Math.max(15, 80 - difficulty * 10);                // temps avant expension en image
+    const spawnDelay = Math.max(25, 80 - difficulty * 10);                // temps avant expension en image
     const startSize = _rnd(20, 60);                                       // taille de départ
     const maxSize = startSize * 2 * (1 + difficulty * 0.5);               // taille maximale
     const expandSpeed = Math.min(7, _rnd(2, 4) * (1 + difficulty * 0.1)); // vitesse d'expansion
