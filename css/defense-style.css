@@ -324,11 +324,25 @@
   );
   animation: psySpin 8s linear infinite;
   pointer-events: none;
+  scale: 1.5;
 }
 @keyframes psySpin { to { transform: rotate(360deg); } }
 @keyframes ghostPulse {
   0%   { opacity: 0.6; transform: translate(-50%,-50%) scale(0.9); }
   100% { opacity: 1;   transform: translate(-50%,-50%) scale(1.05); }
+}
+
+.dp-arena--psy-active {
+    animation: _psyDistort 0.55s ease-in-out infinite alternate;
+}
+@keyframes _psyDistort {
+    0%   { filter: hue-rotate(0deg)   saturate(1)   brightness(1); }
+    50%  { filter: hue-rotate(calc(var(--psy-intensity, 0.5) * 40deg))
+                   saturate(calc(1 + var(--psy-intensity, 0.5) * 1.2))
+                   brightness(calc(1 + var(--psy-intensity, 0.5) * 0.15)); }
+    100% { filter: hue-rotate(calc(var(--psy-intensity, 0.5) * -20deg))
+                   saturate(calc(1 + var(--psy-intensity, 0.5) * 1.6))
+                   brightness(calc(1 - var(--psy-intensity, 0.5) * 0.08)); }
 }
 
 /* 🐛 INSECTE */

@@ -10,6 +10,7 @@ import { _mechanic_ice_freeze } from "./mechanics/_mechanic_ice_freeze.js";
 import { _mechanic_ground_shockwaves } from "./mechanics/_mechanic_ground_shockwaves.js";
 import { _mechanic_rock_boulders } from "./mechanics/_mechanic_rock_boulders.js";
 import { _mechanic_flying_gusts } from "./mechanics/_mechanic_flying_gusts.js";
+import { _mechanic_psychic_distort } from "./mechanics/_mechanic_psychic_distort.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -229,75 +230,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 //   MÉCANIQUES DE JEU (une par type)
 // ============================================================
 
-
-// ─── 🧠 PSY : contrôles inversés + zones d'illusion fantômes
-function _mechanic_psychic_distort(cfg, difficulty) {
-  let invertTimer = 0;
-  state._invertControls = false;
-
-  function triggerInvert() {
-    if (state._isOver) return;
-    state._invertControls = true;
-    invertTimer = 3 + difficulty * 0.3;
-    _arenaFlash(cfg.color, 300);
-    _screenShake(6, 400);
-
-    // Effet visuel : swirl de particules
-    for (let i = 0; i < 24; i++) {
-      const angle = (i / 24) * Math.PI * 2;
-      _spawnParticle(
-        state.ARENA_W / 2 + Math.cos(angle) * 100,
-        state.ARENA_H / 2 + Math.sin(angle) * 80,
-        { color: cfg.color, size: _rnd(4, 10), vx: Math.cos(angle + 1.5) * 3, vy: Math.sin(angle + 1.5) * 3, life: 600 }
-      );
-    }
-  }
-
-  // Faux projectiles (mirages) qui ne font pas de dégâts
-  function spawnMirage() {
-    if (state._isOver) return;
-    const x = _rnd(0, state.ARENA_W);
-    const el = document.createElement("div");
-    el.className = "dp-projectile";
-    el.style.cssText = `
-      position:absolute;
-      width:20px; height:20px;
-      left:${x}px; top:-20px;
-      border-radius:50%;
-      background: ${cfg.color}66;
-      box-shadow: 0 0 10px ${cfg.color};
-      pointer-events:none;
-    `;
-    state._arena.appendChild(el);
-    state._objects.push({ el, x, y: -20, vy: 3 + difficulty * 0.3, isMirage: Math.random() < 0.4, type: "psy_proj" });
-  }
-
-  _addInterval(triggerInvert, Math.max(2000, 4000 - difficulty * 200));
-  _addInterval(spawnMirage,  Math.max(400, 900 - difficulty * 60));
-  _addTimeout(spawnMirage, 100);
-
-  return function update(now) {
-    if (invertTimer > 0) {
-      invertTimer -= 0.016;
-      state._invertControls = invertTimer > 0;
-      if (!state._invertControls) _arenaFlash(cfg.accent, 200);
-    }
-
-    for (let i = state._objects.length - 1; i >= 0; i--) {
-      const o = state._objects[i];
-      if (o.type !== "psy_proj") continue;
-      // Les mirages oscillent latéralement
-      o.y += o.vy;
-      o.x += Math.sin(o.y * 0.05) * 2;
-      o.el.style.top  = `${o.y}px`;
-      o.el.style.left = `${o.x}px`;
-
-      if (!o.isMirage && _hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, 10)) return true;
-      if (o.y > state.ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
-    }
-    return false;
-  };
-}
 
 // ─── 🐛 INSECTE : essaim en V qui traque le joueur
 function _mechanic_bug_swarm(cfg, difficulty) {
