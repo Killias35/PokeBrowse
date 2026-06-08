@@ -4,11 +4,12 @@ import { _addTimeout, _addInterval, _arenaFlash, _screenShake, _hitCircle } from
 
 // ─── 💨 VOL : rafales de vent qui dévient la pokéball
 export function _mechanic_flying_gusts(cfg, difficulty, state) {
-    const spawnDelay = Math.max(600, 1300 - difficulty * 50);
-    const nbProjectile = Math.floor(Math.min(20, 5 + difficulty));
+    const spawnDelay = Math.max(800, 1300 - difficulty * 50);
+    const nbProjectile = Math.floor(Math.min(15, 5 + difficulty));
     const projectileSpeed = Math.min(7, 2 + difficulty * 0.5);
     const projectileSize = Math.min(12, 6 + difficulty * 0.5);
     const projetcileDelay = Math.max(50, 150 - difficulty * 10);
+    const spreadRange = state.ARENA_W * 0.6;
 
     const gustForce  = Math.min(7, 3 + difficulty * 0.4);
     
@@ -58,36 +59,55 @@ export function _mechanic_flying_gusts(cfg, difficulty, state) {
 
         // Projectiles en rafale
         for (let i = 0; i < nbProjectile; i++) {
-        _addTimeout(() => {
-            if (state._isOver) return;
-            const spawnAngle = angle + _rnd(-0.4, 0.4);
-            const sx = angle > 0 && angle < Math.PI ? _rnd(0, state.ARENA_W) : (gustX > 0 ? -20 : state.ARENA_W + 20);
-            const sy = gustY > 0 ? -20 : state.ARENA_H + 20;
-            const el2 = document.createElement("div");
-            el2.className = "dp-projectile";
-            el2.style.cssText = `
-            position:absolute;
-            width:${_rnd(8, 16)}px; height:${_rnd(20, 40)}px;
-            left:${sx}px; top:${sy}px;
-            background:linear-gradient(180deg,${cfg.accent},${cfg.color});
-            border-radius:50%;
-            transform:translate(-50%,-50%) rotate(${spawnAngle * 180 / Math.PI + 90}deg);
-            box-shadow:0 0 8px ${cfg.color};
-            pointer-events:none;
-            opacity:0.8;
-            `;
-            state._arena.appendChild(el2);
-            state._objects.push({
-            el: el2,
-            x: sx, y: sy,
-            vx: Math.cos(spawnAngle) * projectileSpeed,
-            vy: Math.sin(spawnAngle) * projectileSpeed,
-            w: 14, h: 14,
-            type: "gust_projectile"
-            });
-        }, i * 100);
+            _addTimeout(() => {
+                if (state._isOver) return;
+                const perpX = -Math.sin(angle); // vecteur perpendiculaire
+                const perpY =  Math.cos(angle);
+                const spread = _rnd(-spreadRange / 2, spreadRange / 2);
+
+                // Point de spawn sur le bord opposé à la direction du vent
+                // On part du centre de l'arène et on recule dans la direction opposée
+                // jusqu'à toucher un bord
+                const originX = state.ARENA_W / 2 - Math.cos(angle) * state.ARENA_W;
+                const originY = state.ARENA_H / 2 - Math.sin(angle) * state.ARENA_H;
+
+                // On clamp sur les bords réels
+                const sx = Math.max(-20, Math.min(state.ARENA_W + 20, originX + perpX * spread));
+                const sy = Math.max(-20, Math.min(state.ARENA_H + 20, originY + perpY * spread));
+
+                // Légère variation d'angle par plume pour l'aspect organique
+                const spawnAngle = angle + _rnd(-0.15, 0.15);
+
+                const w = _rnd(6, projectileSize);
+                const h = w * _rnd(2.5, 3.5); // allongé comme une plume
+
+                const el2 = document.createElement("div");
+                el2.className = "dp-projectile";
+                el2.style.cssText = `
+                    position: absolute;
+                    width:  ${w}px;
+                    height: ${h}px;
+                    left:   ${sx}px;
+                    top:    ${sy}px;
+                    background: linear-gradient(180deg, ${cfg.accent} 0%, ${cfg.color} 50%, transparent 100%);
+                    border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+                    transform: translate(-50%, -50%) rotate(${spawnAngle * 180 / Math.PI + 90}deg);
+                    box-shadow: 0 0 5px ${cfg.color}88;
+                    pointer-events: none;
+                    opacity: 0.85;
+                `;
+                state._arena.appendChild(el2);
+                state._objects.push({
+                    el:   el2,
+                    x: sx, y: sy,
+                    vx: Math.cos(spawnAngle) * projectileSpeed,
+                    vy: Math.sin(spawnAngle) * projectileSpeed,
+                    type: "gust_projectile"
+                });
+            }, i * projetcileDelay);
         }
     }
+
 
     _addInterval(triggerGust, spawnDelay);
 
