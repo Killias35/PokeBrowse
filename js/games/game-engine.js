@@ -13,8 +13,9 @@ import { _mechanic_flying_gusts } from "./mechanics/_mechanic_flying_gusts.js";
 import { _mechanic_psychic_distort } from "./mechanics/_mechanic_psychic_distort.js";
 import { _mechanic_bug_swarm } from "./mechanics/_mechanic_bug_swarm.js";
 import { _mechanic_ghost_dark } from "./mechanics/_mechanic_ghost_dark.js";
-import { _mechanic_dragon_spiral } from "./mechanics/_mechanic_dragon_spiral.js";3
+import { _mechanic_dragon_spiral } from "./mechanics/_mechanic_dragon_spiral.js";
 import { _mechanic_dark_mines } from "./mechanics/_mechanic_dark_mines.js";
+import { _mechanic_steel_walls } from "./mechanics/_mechanic_steel_walls.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -234,143 +235,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 //   MÉCANIQUES DE JEU (une par type)
 // ============================================================
 
-// ─── ⚙️ ACIER : murs latéraux qui se referment
-function _mechanic_steel_walls(cfg, difficulty) {
-  const CLOSE_SPEED = 0.6 + difficulty * 0.1;
-
-  function spawnWallPair() {
-    if (state._isOver) return;
-    const isHorizontal = Math.random() < 0.4;
-
-    if (!isHorizontal) {
-      // Murs gauche/droite
-      const leftEl = document.createElement("div");
-      const rightEl = document.createElement("div");
-      const wallH = _rnd(80, 160);
-      const wallY = _rnd(0, state.ARENA_H - wallH);
-      const gap   = _rnd(100, 180);
-
-      const baseStyle = `
-        position:absolute; pointer-events:none;
-        width:30px; height:${wallH}px;
-        top:${wallY}px;
-        background: linear-gradient(90deg, ${cfg.color}, ${cfg.accent});
-        box-shadow: 0 0 15px ${cfg.color};
-      `;
-      leftEl.className  = "dp-wall dp-projectile";
-      rightEl.className = "dp-wall dp-projectile";
-      leftEl.style.cssText  = baseStyle + `left: 0px; border-radius: 0 6px 6px 0;`;
-      rightEl.style.cssText = baseStyle + `left: ${state.ARENA_W - 30}px; border-radius: 6px 0 0 6px;`;
-
-      state._arena.appendChild(leftEl);
-      state._arena.appendChild(rightEl);
-
-      let lx = 0, rx = state.ARENA_W - 30;
-      const lw = 30, rw = 30;
-      const target = (state.ARENA_W - gap) / 2;
-
-      const wObj = {
-        el: leftEl, el2: rightEl,
-        lx, rx, wallY, wallH, lw, rw,
-        target, speed: CLOSE_SPEED, isClosing: true,
-        type: "wall_pair"
-      };
-      state._objects.push(wObj);
-
-      // Scintillement métallique
-      for (let i = 0; i < 8; i++) {
-        _addTimeout(() => {
-          if (state._isOver) return;
-          _spawnParticle(lx + _rnd(0, 30), wallY + _rnd(0, wallH), {
-            color: cfg.accent, size: _rnd(2, 5), vx: _rnd(0.5, 2), vy: 0, life: 300, shape: "star"
-          });
-          _spawnParticle(rx + _rnd(0, rw), wallY + _rnd(0, wallH), {
-            color: cfg.accent, size: _rnd(2, 5), vx: _rnd(-2, -0.5), vy: 0, life: 300, shape: "star"
-          });
-        }, i * 80);
-      }
-    } else {
-      // Murs haut/bas
-      const wallW = _rnd(80, 180);
-      const wallX = _rnd(0, state.ARENA_W - wallW);
-      const gap   = _rnd(80, 150);
-      const topEl = document.createElement("div");
-      const botEl = document.createElement("div");
-
-      const baseStyle = `position:absolute; pointer-events:none;
-        width:${wallW}px; height:25px; left:${wallX}px;
-        background: linear-gradient(180deg, ${cfg.color}, ${cfg.accent});
-        box-shadow: 0 0 15px ${cfg.color};`;
-      topEl.className = "dp-wall dp-projectile";
-      botEl.className = "dp-wall dp-projectile";
-      topEl.style.cssText = baseStyle + "top:0px; border-radius: 0 0 6px 6px;";
-      botEl.style.cssText = baseStyle + `top:${state.ARENA_H - 25}px; border-radius: 6px 6px 0 0;`;
-
-      state._arena.appendChild(topEl);
-      state._arena.appendChild(botEl);
-
-      state._objects.push({
-        el: topEl, el2: botEl,
-        ty: 0, by: state.ARENA_H - 25,
-        wallX, wallW, wallH: 25,
-        gap, speed: CLOSE_SPEED, isHorizontal: true,
-        type: "wall_pair_h"
-      });
-    }
-  }
-
-  _addInterval(spawnWallPair, Math.max(1500, 3000 - difficulty * 200));
-  _addTimeout(spawnWallPair, 300);
-
-  return function update() {
-    for (let i = state._objects.length - 1; i >= 0; i--) {
-      const o = state._objects[i];
-
-      if (o.type === "wall_pair") {
-        if (o.isClosing) {
-          o.lx = Math.min(o.lx + o.speed, o.target);
-          o.rx = Math.max(o.rx - o.speed, state.ARENA_W - o.target - o.rw);
-          o.el.style.left  = `${o.lx}px`;
-          o.el2.style.left = `${o.rx}px`;
-
-          // Collision
-          if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, o.lx, o.wallY, o.lw, o.wallH)) return true;
-          if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, o.rx, o.wallY, o.rw, o.wallH)) return true;
-
-          if (o.lx >= o.target) {
-            o.isClosing = false;
-            _screenShake(12, 300);
-            _arenaFlash(cfg.color, 200);
-            _addTimeout(() => {
-              o.el.remove(); o.el2.remove();
-              state._objects.splice(state._objects.indexOf(o), 1);
-            }, 800);
-          }
-        }
-      }
-
-      if (o.type === "wall_pair_h") {
-        o.ty = Math.min(o.ty + o.speed, (state.ARENA_H - o.gap) / 2 - o.wallH);
-        o.by = Math.max(o.by - o.speed, (state.ARENA_H + o.gap) / 2);
-        o.el.style.top  = `${o.ty}px`;
-        o.el2.style.top = `${o.by}px`;
-
-        if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, o.wallX, o.ty, o.wallW, o.wallH)) return true;
-        if (_hitRect(state._playerX, state._playerY, state.PLAYER_RADIUS, o.wallX, o.by, o.wallW, o.wallH)) return true;
-
-        if (o.ty >= (state.ARENA_H - o.gap) / 2 - o.wallH) {
-          _screenShake(10, 300);
-          _addTimeout(() => {
-            o.el.remove(); o.el2.remove();
-            const idx = state._objects.indexOf(o);
-            if (idx > -1) state._objects.splice(idx, 1);
-          }, 800);
-        }
-      }
-    }
-    return false;
-  };
-}
 
 // ─── 🧪 POISON : nuage toxique qui envahit progressivement
 function _mechanic_poison_cloud(cfg, difficulty) {
