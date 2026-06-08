@@ -13,7 +13,8 @@ import { _mechanic_flying_gusts } from "./mechanics/_mechanic_flying_gusts.js";
 import { _mechanic_psychic_distort } from "./mechanics/_mechanic_psychic_distort.js";
 import { _mechanic_bug_swarm } from "./mechanics/_mechanic_bug_swarm.js";
 import { _mechanic_ghost_dark } from "./mechanics/_mechanic_ghost_dark.js";
-import { _mechanic_dragon_spiral } from "./mechanics/_mechanic_dragon_spiral.js";
+import { _mechanic_dragon_spiral } from "./mechanics/_mechanic_dragon_spiral.js";3
+import { _mechanic_dark_mines } from "./mechanics/_mechanic_dark_mines.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -232,87 +233,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 // ============================================================
 //   MÉCANIQUES DE JEU (une par type)
 // ============================================================
-
-
-
-// ─── 🌑 TÉNÈBRES : mines à retardement (zones qui explosent)
-function _mechanic_dark_mines(cfg, difficulty) {
-  const DELAY = Math.max(1200, 2500 - difficulty * 150);
-  const BLAST_DURATION = 400;
-
-  function spawnMine() {
-    if (state._isOver) return;
-    const x = _rnd(40, state.ARENA_W - 40);
-    const y = _rnd(40, state.ARENA_H - 40);
-    const size = _rnd(50, 90);
-
-    const el = document.createElement("div");
-    el.className = "dp-mine dp-zone";
-    el.style.cssText = `
-      position:absolute;
-      width:${size}px; height:${size}px;
-      left:${x}px; top:${y}px;
-      transform:translate(-50%,-50%);
-      border-radius:50%;
-      border: 3px solid ${cfg.accent}66;
-      background: radial-gradient(circle, ${cfg.accent}11, transparent 70%);
-      pointer-events:none;
-      animation: minePulse 0.4s linear infinite;
-    `;
-    state._arena.appendChild(el);
-
-    let charging = true;
-    const obj = { el, x, y, r: size / 2, type: "mine", charging: true };
-    state._objects.push(obj);
-
-    // Phase de charge : la mine grossit et devient plus visible
-    let chargeProgress = 0;
-    const chargeInterval = setInterval(() => {
-      if (state._isOver || !charging) { clearInterval(chargeInterval); return; }
-      chargeProgress = Math.min(1, chargeProgress + (16 / DELAY));
-      el.style.border = `3px solid ${cfg.accent}${Math.floor(chargeProgress * 255).toString(16).padStart(2, "0")}`;
-      el.style.boxShadow = `0 0 ${chargeProgress * 30}px ${cfg.accent}`;
-    }, 16);
-    state._intervals.push(chargeInterval);
-
-    // Explosion
-    _addTimeout(() => {
-      if (state._isOver) return;
-      charging = false;
-      clearInterval(chargeInterval);
-      obj.charging = false;
-
-      // Boom visuel
-      el.style.width  = `${size * 2.5}px`;
-      el.style.height = `${size * 2.5}px`;
-      el.style.background = `radial-gradient(circle, ${cfg.accent}, ${cfg.color}, transparent 70%)`;
-      el.style.border = "none";
-      el.style.boxShadow = `0 0 60px ${cfg.accent}, 0 0 100px ${cfg.color}`;
-      el.style.transition = `all ${BLAST_DURATION}ms ease-out`;
-      obj.r = (size * 2.5) / 2;
-
-      _arenaFlash(cfg.color, 200);
-      _burstParticles(x, y, 20, cfg.color, cfg.accent);
-
-      _addTimeout(() => {
-        el.remove();
-        const idx = state._objects.indexOf(obj);
-        if (idx > -1) state._objects.splice(idx, 1);
-      }, BLAST_DURATION);
-    }, DELAY);
-  }
-
-  _addInterval(spawnMine, Math.max(600, 1500 - difficulty * 100));
-  spawnMine();
-
-  return function update() {
-    for (const o of state._objects) {
-      if (o.type !== "mine") continue;
-      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.r)) return true;
-    }
-    return false;
-  };
-}
 
 // ─── ⚙️ ACIER : murs latéraux qui se referment
 function _mechanic_steel_walls(cfg, difficulty) {
