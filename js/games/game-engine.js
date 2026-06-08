@@ -12,6 +12,7 @@ import { _mechanic_rock_boulders } from "./mechanics/_mechanic_rock_boulders.js"
 import { _mechanic_flying_gusts } from "./mechanics/_mechanic_flying_gusts.js";
 import { _mechanic_psychic_distort } from "./mechanics/_mechanic_psychic_distort.js";
 import { _mechanic_bug_swarm } from "./mechanics/_mechanic_bug_swarm.js";
+import { _mechanic_ghost_dark } from "./mechanics/_mechanic_ghost_dark.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -231,77 +232,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 //   MÉCANIQUES DE JEU (une par type)
 // ============================================================
 
-
-
-// ─── 👻 SPECTRE : obscurité + zones fantômes qui apparaissent
-function _mechanic_ghost_dark(cfg, difficulty) {
-  // Overlay d'obscurité
-  const darkOverlay = document.createElement("div");
-  darkOverlay.style.cssText = `
-    position:absolute; inset:0;
-    background: radial-gradient(circle at var(--ox,50%) var(--oy,50%), transparent 60px, rgba(15,10,30,0.92) 120px);
-    pointer-events:none; z-index:5;
-    transition: --ox 0.1s, --oy 0.1s;
-  `;
-  state._arena.appendChild(darkOverlay);
-  state._objects.push({ el: darkOverlay, type: "overlay" });
-
-  function spawnGhost() {
-    if (state._isOver) return;
-    const x = _rnd(30, state.ARENA_W - 30);
-    const y = _rnd(30, state.ARENA_H - 30);
-    const size = _rnd(40, 80);
-    const linger = _rnd(1500, 3000);
-
-    const el = document.createElement("div");
-    el.className = "dp-zone dp-projectile";
-    el.style.cssText = `
-      position:absolute;
-      width:${size}px; height:${size}px;
-      left:${x}px; top:${y}px;
-      transform:translate(-50%,-50%);
-      border-radius:50%;
-      background: radial-gradient(circle, ${cfg.color}44, transparent 70%);
-      border: 2px solid ${cfg.color}88;
-      box-shadow: 0 0 20px ${cfg.color}66;
-      pointer-events:none; z-index:6;
-      animation: ghostPulse 0.8s ease-in-out infinite alternate;
-    `;
-    state._arena.appendChild(el);
-
-    const obj = { el, x, y, r: size / 2, type: "ghost_zone", alive: true };
-    state._objects.push(obj);
-
-    _addTimeout(() => {
-      if (!obj.alive) return;
-      obj.alive = false;
-      el.style.opacity = "0";
-      el.style.transition = "opacity 0.4s";
-      _addTimeout(() => {
-        el.remove();
-        const idx = state._objects.indexOf(obj);
-        if (idx > -1) state._objects.splice(idx, 1);
-      }, 400);
-    }, linger);
-  }
-
-  _addInterval(spawnGhost, Math.max(600, 1500 - difficulty * 100));
-  spawnGhost();
-
-  return function update() {
-    // Déplace le halo de visibilité autour du joueur
-    const px = (state._playerX / state.ARENA_W * 100).toFixed(1);
-    const py = (state._playerY / state.ARENA_H * 100).toFixed(1);
-    darkOverlay.style.setProperty("--ox", `${px}%`);
-    darkOverlay.style.setProperty("--oy", `${py}%`);
-
-    for (const o of state._objects) {
-      if (o.type !== "ghost_zone" || !o.alive) continue;
-      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.r)) return true;
-    }
-    return false;
-  };
-}
 
 // ─── 🐉 DRAGON : météores en spirale centrifuge
 function _mechanic_dragon_spiral(cfg, difficulty) {

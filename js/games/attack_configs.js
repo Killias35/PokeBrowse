@@ -124,7 +124,7 @@ export const ATTACK_CONFIGS = {
 
   // 👻 SPECTRE — obscurité totale + zones mortelles invisibles
   ghost: {
-    attackName: "Ténèbres",
+    attackName: "Ombre Portée",
     color: "#7c3aed",
     accent: "#c4b5fd",
     duration: 6000,
@@ -146,7 +146,7 @@ export const ATTACK_CONFIGS = {
 
   // 🌑 TÉNÈBRES — zones aléatoires qui explosent avec délai
   dark: {
-    attackName: "Jackpot Sombre",
+    attackName: "Vibrobscur",
     color: "#1e1b4b",
     accent: "#818cf8",
     duration: 6000,
