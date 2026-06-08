@@ -560,20 +560,25 @@ export async function startDodgeMinigame(pokemonType, difficulty = 1) {
   state._player.style.top  = `${state._playerY}px`;
 
   // Suivi souris dans l'arène
-  const onMouseMove = (e) => {
+ const onMouseMove = (e) => {
     const rect = arena.getBoundingClientRect();
     const rawX = e.clientX - rect.left;
     const rawY = e.clientY - rect.top;
-    // Inversion PSY
+
+    // Clamp optionnel pour que le joueur reste dans l'arène
+    const clampedX = Math.max(0, Math.min(state.ARENA_W, rawX));
+    const clampedY = Math.max(0, Math.min(state.ARENA_H, rawY));
+
     if (state._invertControls) {
-      state._mouseX = state.ARENA_W - rawX;
-      state._mouseY = state.ARENA_H - rawY;
+        state._mouseX = state.ARENA_W - clampedX;
+        state._mouseY = state.ARENA_H - clampedY;
     } else {
-      state._mouseX = rawX;
-      state._mouseY = rawY;
+        state._mouseX = clampedX;
+        state._mouseY = clampedY;
     }
-  };
-  arena.addEventListener("mousemove", onMouseMove);
+};
+
+document.addEventListener("mousemove", onMouseMove);
 
   // ── Splash intro ──
   await showSplashText("Attaque " + cfg.attackName + " !", 1000);
