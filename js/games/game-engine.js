@@ -13,6 +13,7 @@ import { _mechanic_flying_gusts } from "./mechanics/_mechanic_flying_gusts.js";
 import { _mechanic_psychic_distort } from "./mechanics/_mechanic_psychic_distort.js";
 import { _mechanic_bug_swarm } from "./mechanics/_mechanic_bug_swarm.js";
 import { _mechanic_ghost_dark } from "./mechanics/_mechanic_ghost_dark.js";
+import { _mechanic_dragon_spiral } from "./mechanics/_mechanic_dragon_spiral.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -233,78 +234,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 // ============================================================
 
 
-// ─── 🐉 DRAGON : météores en spirale centrifuge
-function _mechanic_dragon_spiral(cfg, difficulty) {
-  let angle = 0;
-  const orbitRadius  = 80 + difficulty * 10;
-  const orbitSpeed   = 0.04 + difficulty * 0.004;
-  const projectileSpeed = 4 + difficulty * 0.5;
-
-  // Plusieurs bras de la spirale
-  const ARMS = 3;
-
-  function shootSpiral() {
-    if (state._isOver) return;
-    for (let arm = 0; arm < ARMS; arm++) {
-      const a = angle + (arm / ARMS) * Math.PI * 2;
-      const sx = state.ARENA_W / 2 + Math.cos(a) * orbitRadius;
-      const sy = state.ARENA_H / 2 + Math.sin(a) * orbitRadius;
-
-      const el = document.createElement("div");
-      el.className = "dp-projectile";
-      const size = _rnd(12, 22);
-      el.style.cssText = `
-        position:absolute;
-        width:${size}px; height:${size}px;
-        left:${sx}px; top:${sy}px;
-        transform:translate(-50%,-50%);
-        border-radius:${Math.random() < 0.5 ? "50%" : "20%"};
-        background: radial-gradient(circle, ${cfg.accent}, ${cfg.color});
-        box-shadow: 0 0 15px ${cfg.color}, 0 0 25px ${cfg.accent};
-        pointer-events:none;
-      `;
-      state._arena.appendChild(el);
-
-      // Direction : vers l'extérieur depuis le centre
-      const vx = Math.cos(a) * projectileSpeed;
-      const vy = Math.sin(a) * projectileSpeed;
-      state._objects.push({ el, x: sx, y: sy, vx, vy, size, type: "meteor" });
-
-      // Traînée lumineuse
-      _spawnParticle(sx, sy, {
-        color: cfg.color, size: _rnd(4, 10),
-        vx: -vx * 0.3, vy: -vy * 0.3, life: 300
-      });
-    }
-    angle += orbitSpeed * 20;
-  }
-
-  _addInterval(shootSpiral, Math.max(120, 300 - difficulty * 20));
-
-  return function update() {
-    for (let i = state._objects.length - 1; i >= 0; i--) {
-      const o = state._objects[i];
-      if (o.type !== "meteor") continue;
-      o.x += o.vx; o.y += o.vy;
-      o.el.style.left = `${o.x}px`;
-      o.el.style.top  = `${o.y}px`;
-
-      // Traînée
-      if (Math.random() < 0.4) {
-        _spawnParticle(o.x, o.y, {
-          color: cfg.color, size: _rnd(3, 7),
-          vx: -o.vx * 0.2 + _rnd(-1, 1), vy: -o.vy * 0.2 + _rnd(-1, 1), life: 250
-        });
-      }
-
-      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.size / 2)) return true;
-      if (o.x < -40 || o.x > state.ARENA_W + 40 || o.y < -40 || o.y > state.ARENA_H + 40) {
-        o.el.remove(); state._objects.splice(i, 1);
-      }
-    }
-    return false;
-  };
-}
 
 // ─── 🌑 TÉNÈBRES : mines à retardement (zones qui explosent)
 function _mechanic_dark_mines(cfg, difficulty) {
