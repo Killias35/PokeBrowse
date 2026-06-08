@@ -59,8 +59,9 @@ async function usePokeball(pokeball) {
     
     pokeballs.forEach(poke => {
         if(poke.name === pokeball.name) {
+            if(poke.count === poke.maxCount) poke.lastUsed = Date.now();
+            else poke.lastUsed -= poke.cooldown * 60 * 60 * 1000;    // heure a minute a seconde a milliseconde
             poke.count -= 1;
-            poke.lastUsed -= poke.cooldown * 60 * 60 * 1000;    // heure a minute a seconde a milliseconde
         }
     });
     await chrome.storage.local.set({ pokeballs });
