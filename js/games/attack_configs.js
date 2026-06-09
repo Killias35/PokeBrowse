@@ -199,9 +199,9 @@ export const ATTACK_CONFIGS = {
     description: "Évite les cercles enchantés !"
   },
 
-  // 🌋 NORMAL — projectiles classiques (fallback)
+  // 🌋 NORMAL — laser geant
   normal: {
-    attackName: "Giga Impact",
+    attackName: "Ultralaser",
     color: "#a8a29e",
     accent: "#e7e5e4",
     duration: 5000,

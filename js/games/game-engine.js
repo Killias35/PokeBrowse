@@ -19,6 +19,7 @@ import { _mechanic_steel_walls } from "./mechanics/_mechanic_steel_walls.js";
 import { _mechanic_poison_cloud } from "./mechanics/_mechanic_poison_cloud.js";
 import { _mechanic_fighting_punches } from "./mechanics/_mechanic_fighting_punches.js";
 import { _mechanic_fairy_circles } from "./mechanics/_mechanic_fairy_circles.js";
+import { _mechanic_normal_drops } from "./mechanics/_mechanic_normal_drops.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -232,49 +233,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
   const cx = Math.max(rx, Math.min(px, rx + rw));
   const cy = Math.max(ry, Math.min(py, ry + rh));
   return Math.hypot(px - cx, py - cy) < pr;
-}
-
-// ============================================================
-//   MÉCANIQUES DE JEU (une par type)
-// ============================================================
-
-
-// ─── 🔘 NORMAL : projectiles classiques tombants (fallback)
-function _mechanic_normal_drops(cfg, difficulty) {
-  function spawnDrop() {
-    if (state._isOver) return;
-    const x = _rnd(10, state.ARENA_W - 10);
-    const size = _rnd(10, 22);
-    const speed = _rnd(3, 6) * (1 + difficulty * 0.15);
-    const el = document.createElement("div");
-    el.className = "dp-projectile";
-    el.style.cssText = `
-      position:absolute;
-      width:${size}px; height:${size}px;
-      left:${x}px; top:-${size}px;
-      border-radius:50%;
-      background: radial-gradient(circle, ${cfg.accent}, ${cfg.color});
-      box-shadow: 0 0 8px ${cfg.color};
-      pointer-events:none;
-    `;
-    state._arena.appendChild(el);
-    state._objects.push({ el, x, y: -size, vy: speed, size, type: "drop" });
-  }
-
-  _addInterval(spawnDrop, Math.max(300, 700 - difficulty * 60));
-  spawnDrop();
-
-  return function update() {
-    for (let i = state._objects.length - 1; i >= 0; i--) {
-      const o = state._objects[i];
-      if (o.type !== "drop") continue;
-      o.y += o.vy;
-      o.el.style.top = `${o.y}px`;
-      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.size / 2)) return true;
-      if (o.y > state.ARENA_H + 20) { o.el.remove(); state._objects.splice(i, 1); }
-    }
-    return false;
-  };
 }
 
 // Mapping mechanic ID → fonction
