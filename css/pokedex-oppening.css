@@ -1,0 +1,93 @@
+/* --- ANIMATION D'OUVERTURE ULTRA-RAPIDE --- */
+
+/* L'écran de couverture qui bloque la vue au début */
+#pokedex-boot-screen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    /* On reprend le même fond rouge que ton body pour que ça se fonde */
+    background: linear-gradient(180deg, #dc2626, #991b1b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    /* Disparaît avec un effet de zoom vers l'avant */
+    animation: openShell 0.2s ease-in .9s forwards;
+}
+
+/* Le verrou (locket) au centre */
+.locket {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #e5e7eb 30%, #9ca3af 100%);
+    border: 5px solid #111;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+    /* Séquence : petit recul, puis rotation rapide et disparition */
+    animation: unlockSpin 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) .5s forwards;
+}
+
+/* Le centre du verrou (genre trou de serrure/objectif) */
+.locket::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    background: #111;
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: inset 0 2px 5px rgba(255,255,255,0.3);
+}
+
+/* Le flash blanc de l'écran qui s'allume */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: white;
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none;
+    /* Éblouissement très rapide */
+    animation: screenFlash 0.4s ease-out .8s forwards;
+}
+
+/* Animation du container principal (apparition du contenu) */
+.pokedex {
+    opacity: 0;
+    transform: scale(0.85); /* Part d'un peu plus petit */
+    /* Pop et surbrillance comme un écran LCD */
+    animation: appReveal 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) .55s forwards;
+}
+
+/* --- LES TIMINGS (KEYFRAMES) --- */
+
+@keyframes unlockSpin {
+    0% { transform: scale(1) rotate(0deg); }
+    30% { transform: scale(1.1) rotate(-30deg); } /* S'arme légèrement en arrière */
+    100% { transform: scale(0) rotate(360deg); opacity: 0; } /* Tourne et fond */
+}
+
+@keyframes openShell {
+    0% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.2); visibility: hidden; }
+}
+
+@keyframes screenFlash {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@keyframes appReveal {
+    0% { 
+        opacity: 0; 
+        transform: scale(0.85); 
+        filter: brightness(2); /* Très lumineux au début */
+    }
+    100% { 
+        opacity: 1; 
+        transform: scale(1); 
+        filter: brightness(1); /* Revient à la normale */
+    }
+}
