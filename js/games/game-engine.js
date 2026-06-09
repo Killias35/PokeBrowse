@@ -3,7 +3,7 @@ import { _rnd, _rndInt } from "./utils.js";
 import { ATTACK_CONFIGS } from "./attack_configs.js";
 
 import { _mechanic_Hydrocanon } from "./mechanics/_mechanic_hydrocanon.js";
-import { _mechanic_Deflagration } from "./mechanics/_mechanic_deflagration.js";
+import { _mechanic_Deflagration } from "./mechanics/_mechanic_Deflagration.js";
 import { _mechanic_Fatal_Foudre } from "./mechanics/_mechanic_Fatal_Foudre.js";
 import { _mechanic_Tranch_Herbe } from "./mechanics/_mechanic_Tranch_Herbe.js";
 import { _mechanic_Blizzard } from "./mechanics/_mechanic_Blizzard.js";
