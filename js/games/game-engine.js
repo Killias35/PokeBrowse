@@ -18,6 +18,7 @@ import { _mechanic_dark_mines } from "./mechanics/_mechanic_dark_mines.js";
 import { _mechanic_steel_walls } from "./mechanics/_mechanic_steel_walls.js";
 import { _mechanic_poison_cloud } from "./mechanics/_mechanic_poison_cloud.js";
 import { _mechanic_fighting_punches } from "./mechanics/_mechanic_fighting_punches.js";
+import { _mechanic_fairy_circles } from "./mechanics/_mechanic_fairy_circles.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -237,88 +238,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 //   MÉCANIQUES DE JEU (une par type)
 // ============================================================
 
-
-
-
-// ─── 🌟 FÉE : cercles enchantés qui explosent
-function _mechanic_fairy_circles(cfg, difficulty) {
-  const LINGER_MS = Math.max(1000, 2500 - difficulty * 150);
-
-  function spawnCircle() {
-    if (state._isOver) return;
-    const x = _rnd(50, state.ARENA_W - 50);
-    const y = _rnd(50, state.ARENA_H - 50);
-    const size = _rnd(50, 110);
-
-    const el = document.createElement("div");
-    el.className = "dp-ring dp-zone dp-projectile";
-    el.style.cssText = `
-      position:absolute;
-      width:${size}px; height:${size}px;
-      left:${x}px; top:${y}px;
-      transform:translate(-50%,-50%);
-      border-radius:50%;
-      border: 3px solid ${cfg.color};
-      box-shadow: 0 0 20px ${cfg.color}, inset 0 0 15px ${cfg.color}44;
-      background: ${cfg.color}0a;
-      pointer-events:none;
-      animation: fairySpin 2s linear infinite;
-    `;
-    state._arena.appendChild(el);
-
-    // Pétales de fée
-    for (let i = 0; i < 6; i++) {
-      _addTimeout(() => {
-        if (state._isOver) return;
-        const angle = Math.random() * Math.PI * 2;
-        _spawnParticle(x + Math.cos(angle) * size / 2, y + Math.sin(angle) * size / 2, {
-          color: Math.random() < 0.5 ? cfg.color : cfg.accent,
-          size: _rnd(4, 9), vx: Math.cos(angle + 1.5) * 2, vy: Math.sin(angle + 1.5) * 2 - 1, life: 800
-        });
-      }, i * 150);
-    }
-
-    const obj = { el, x, y, r: size / 2, type: "fairy_circle", alive: true };
-    state._objects.push(obj);
-
-    _addTimeout(() => {
-      if (!obj.alive || state._isOver) return;
-      // Explosion féerique
-      _burstParticles(x, y, 25, cfg.color, cfg.accent);
-      _arenaFlash(cfg.color, 250);
-
-      // Zone d'explosion
-      const blastSize = size * 1.8;
-      obj.r = blastSize / 2;
-      el.style.width  = `${blastSize}px`;
-      el.style.height = `${blastSize}px`;
-      el.style.background = `radial-gradient(circle, ${cfg.accent}, ${cfg.color}88, transparent 70%)`;
-      el.style.border = "none";
-      el.style.transition = "all 0.3s ease-out";
-
-      _addTimeout(() => {
-        obj.alive = false;
-        el.style.opacity = "0";
-        _addTimeout(() => {
-          el.remove();
-          const idx = state._objects.indexOf(obj);
-          if (idx > -1) state._objects.splice(idx, 1);
-        }, 300);
-      }, 300);
-    }, LINGER_MS);
-  }
-
-  _addInterval(spawnCircle, Math.max(700, 1800 - difficulty * 120));
-  spawnCircle();
-
-  return function update() {
-    for (const o of state._objects) {
-      if (o.type !== "fairy_circle" || !o.alive) continue;
-      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.r * 0.8)) return true;
-    }
-    return false;
-  };
-}
 
 // ─── 🔘 NORMAL : projectiles classiques tombants (fallback)
 function _mechanic_normal_drops(cfg, difficulty) {

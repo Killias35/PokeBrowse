@@ -61,7 +61,7 @@ function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
 async function startDefenseMinigame(pokemon, baseDifficulty) {
     DEFENSE_STAGE.classList.remove("hidden");
     escapeAttempts++; 
-    pokemon.types = ["fighting"]; // DEBUG
+    pokemon.types = ["fairy"]; // DEBUG
 
     const types = pokemon.types;
     const activeType = types[Math.floor(Math.random() * types.length)];
