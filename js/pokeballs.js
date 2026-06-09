@@ -52,7 +52,7 @@ async function getPokeballs() {
 }
 
 async function usePokeball(pokeball) {
-    return // DEBUG
+    // return // DEBUG
     await setStockPokeball();
     const result = await chrome.storage.local.get("pokeballs");
     const pokeballs = result.pokeballs || [];
