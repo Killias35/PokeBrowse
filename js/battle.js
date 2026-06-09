@@ -17,7 +17,7 @@ const RARITY_SETTINGS = {
     commun:     { resistence: 30, defenseDifficulty: 1, targetCPS: 8, duration: 1.6, targetSize: 80, pitchMax: 280, severity: 1},
     rare:       { resistence: 50, defenseDifficulty: 1.5, targetCPS: 10, duration: 1.0, targetSize: 100,  pitchMax: 380, severity: 1.5 },
     epic:       { resistence: 65, defenseDifficulty: 3, targetCPS: 12, duration: 0.5, targetSize: 125,  pitchMax: 450, severity: 3.5 },
-    legendary:  { resistence: 80, defenseDifficulty: 4, targetCPS: 15, duration: 0.4, targetSize: 150,  pitchMax: 550, severity: 5 },
+    legendary:  { resistence: 80, defenseDifficulty: 4, targetCPS: 15, duration: 0.5, targetSize: 150,  pitchMax: 550, severity: 5 },
 };
 
 function calculateFleeSiccess(puissance, resistance) {
