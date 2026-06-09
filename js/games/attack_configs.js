@@ -179,7 +179,7 @@ export const ATTACK_CONFIGS = {
 
   // 🥊 COMBAT — poing géant qui smash des zones
   fighting: {
-    attackName: "Close Combat",
+    attackName: "Close-Combat",
     color: "#f97316",
     accent: "#fed7aa",
     duration: 5000,

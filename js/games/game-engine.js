@@ -17,6 +17,7 @@ import { _mechanic_dragon_spiral } from "./mechanics/_mechanic_dragon_spiral.js"
 import { _mechanic_dark_mines } from "./mechanics/_mechanic_dark_mines.js";
 import { _mechanic_steel_walls } from "./mechanics/_mechanic_steel_walls.js";
 import { _mechanic_poison_cloud } from "./mechanics/_mechanic_poison_cloud.js";
+import { _mechanic_fighting_punches } from "./mechanics/_mechanic_fighting_punches.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -238,85 +239,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 
 
 
-// ─── 🥊 COMBAT : poings géants qui smashent des zones
-function _mechanic_fighting_punches(cfg, difficulty) {
-  const WARNING_DURATION = Math.max(500, 1000 - difficulty * 60);
-
-  function spawnPunch() {
-    if (state._isOver) return;
-    // Vise légèrement le joueur
-    const targetX = state._playerX + _rnd(-80, 80);
-    const targetY = state._playerY + _rnd(-60, 60);
-    const size = _rnd(60, 100);
-
-    // Zone d'alerte
-    const warn = document.createElement("div");
-    warn.className = "dp-zone";
-    warn.style.cssText = `
-      position:absolute;
-      width:${size}px; height:${size}px;
-      left:${targetX}px; top:${targetY}px;
-      transform:translate(-50%,-50%);
-      border-radius:30% 40% 35% 45%;
-      border: 3px dashed ${cfg.color}aa;
-      background: ${cfg.color}11;
-      pointer-events:none;
-      animation: warnPulse 0.15s linear infinite alternate;
-    `;
-    state._arena.appendChild(warn);
-
-    _addTimeout(() => {
-      if (state._isOver) { warn.remove(); return; }
-      warn.remove();
-
-      // Impact du poing
-      const impact = document.createElement("div");
-      impact.className = "dp-zone dp-projectile";
-      impact.style.cssText = `
-        position:absolute;
-        width:${size}px; height:${size}px;
-        left:${targetX}px; top:${targetY}px;
-        transform:translate(-50%,-50%) scale(0);
-        border-radius:30% 40% 35% 45%;
-        background: radial-gradient(circle, ${cfg.accent}, ${cfg.color} 60%, transparent);
-        box-shadow: 0 0 30px ${cfg.color};
-        pointer-events:none;
-        transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1);
-      `;
-      state._arena.appendChild(impact);
-
-      _addTimeout(() => { impact.style.transform = "translate(-50%,-50%) scale(1)"; }, 10);
-
-      _screenShake(12, 350);
-      _arenaFlash(cfg.color, 120);
-      _burstParticles(targetX, targetY, 18, cfg.color, cfg.accent);
-
-      const obj = { el: impact, x: targetX, y: targetY, r: size / 2, type: "punch_zone" };
-      state._objects.push(obj);
-
-      _addTimeout(() => {
-        impact.style.transition = "opacity 0.3s";
-        impact.style.opacity = "0";
-        _addTimeout(() => {
-          impact.remove();
-          const idx = state._objects.indexOf(obj);
-          if (idx > -1) state._objects.splice(idx, 1);
-        }, 300);
-      }, 300);
-    }, WARNING_DURATION);
-  }
-
-  _addInterval(spawnPunch, Math.max(600, 1400 - difficulty * 100));
-  _addTimeout(spawnPunch, 200);
-
-  return function update() {
-    for (const o of state._objects) {
-      if (o.type !== "punch_zone") continue;
-      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.r * 0.7)) return true;
-    }
-    return false;
-  };
-}
 
 // ─── 🌟 FÉE : cercles enchantés qui explosent
 function _mechanic_fairy_circles(cfg, difficulty) {
