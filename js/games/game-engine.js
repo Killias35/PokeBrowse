@@ -239,7 +239,7 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 const MECHANICS = {
   fire_rings:        _mechanic_Deflagration,
   water_sweep:       _mechanic_Hydrocanon,
-  electric_bolts:    _mechanic_Fatal-Foudre,
+  electric_bolts:    _mechanic_Fatal_Foudre,
   grass_vines:       _mechanic_Tranch_Herbe,
   ice_freeze:        _mechanic_Blizzard,
   ground_shockwaves: _mechanic_Seisme,
@@ -248,7 +248,7 @@ const MECHANICS = {
   psychic_distort:   _mechanic_Psyko,
   bug_swarm:         _mechanic_Dard_Nuee,
   ghost_dark:        _mechanic_Ombre_Portee,
-  dragon_spiral:     _mechanic_Draco-Meteor,
+  dragon_spiral:     _mechanic_Draco_Meteor,
   dark_mines:        _mechanic_Vibrobscur,
   steel_walls:       _mechanic_Mur_de_Fer,
   poison_cloud:      _mechanic_Toxic,
