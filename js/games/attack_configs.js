@@ -190,7 +190,7 @@ export const ATTACK_CONFIGS = {
 
   // 🌟 FÉE — cercles enchantés qui explosent
   fairy: {
-    attackName: "Blizzard Féerique",
+    attackName: "Pouvoir Lunaire",
     color: "#ec4899",
     accent: "#fbcfe8",
     duration: 6000,
