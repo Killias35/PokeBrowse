@@ -16,6 +16,7 @@ import { _mechanic_ghost_dark } from "./mechanics/_mechanic_ghost_dark.js";
 import { _mechanic_dragon_spiral } from "./mechanics/_mechanic_dragon_spiral.js";
 import { _mechanic_dark_mines } from "./mechanics/_mechanic_dark_mines.js";
 import { _mechanic_steel_walls } from "./mechanics/_mechanic_steel_walls.js";
+import { _mechanic_poison_cloud } from "./mechanics/_mechanic_poison_cloud.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -236,61 +237,6 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 // ============================================================
 
 
-// ─── 🧪 POISON : nuage toxique qui envahit progressivement
-function _mechanic_poison_cloud(cfg, difficulty) {
-  const clouds = [];
-  let totalPoisoned = 0; // % de l'arène empoisonnée
-
-  function spawnCloud() {
-    if (state._isOver) return;
-    const x = _rnd(0, state.ARENA_W);
-    const y = _rnd(0, state.ARENA_H);
-    const finalSize = _rnd(80, 160);
-
-    const el = document.createElement("div");
-    el.className = "dp-cloud dp-zone";
-    el.style.cssText = `
-      position:absolute;
-      width:10px; height:10px;
-      left:${x}px; top:${y}px;
-      transform:translate(-50%,-50%);
-      border-radius:50%;
-      background: radial-gradient(circle, ${cfg.color}66, ${cfg.accent}22, transparent 70%);
-      pointer-events:none;
-    `;
-    state._arena.appendChild(el);
-
-    const obj = { el, x, y, r: 5, finalR: finalSize / 2, growSpeed: 0.4, type: "cloud" };
-    state._objects.push(obj);
-    clouds.push(obj);
-
-    // Particules de gaz
-    const gasInterval = setInterval(() => {
-      if (state._isOver || obj.r >= obj.finalR) { clearInterval(gasInterval); return; }
-      _spawnParticle(x + _rnd(-obj.r, obj.r), y + _rnd(-obj.r, obj.r), {
-        color: cfg.color, size: _rnd(3, 8),
-        vx: _rnd(-1, 1), vy: _rnd(-2, -0.5), life: 600, glow: true
-      });
-    }, 80);
-    state._intervals.push(gasInterval);
-  }
-
-  _addInterval(spawnCloud, Math.max(800, 2000 - difficulty * 150));
-  spawnCloud();
-
-  return function update() {
-    for (const o of state._objects) {
-      if (o.type !== "cloud") continue;
-      if (o.r < o.finalR) o.r += o.growSpeed;
-      const d = o.r * 2;
-      o.el.style.width  = `${d}px`;
-      o.el.style.height = `${d}px`;
-
-      if (_hitCircle(state._playerX, state._playerY, state.PLAYER_RADIUS, o.x, o.y, o.r * 0.7)) return true;
-    }
-    return false;
-  };
-}
 
 // ─── 🥊 COMBAT : poings géants qui smashent des zones
 function _mechanic_fighting_punches(cfg, difficulty) {
