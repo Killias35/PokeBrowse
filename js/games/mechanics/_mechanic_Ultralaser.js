@@ -3,7 +3,7 @@ import { _addInterval, _addTimeout, _spawnParticle, _arenaFlash, _screenShake, _
 
 
 // ─── ⚡ NORMAL : Ultralaser — rayon dévastateur avec sweep
-export function _mechanic_normal_drops(cfg, difficulty, state) {
+export function _mechanic_Ultralaser(cfg, difficulty, state) {
 
     // ── Paramètres ────────────────────────────────────────────────────────
 

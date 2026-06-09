@@ -3,7 +3,7 @@ import { _addTimeout, _addInterval, _arenaFlash, _screenShake, _spawnParticle, _
 
 
 // ─── ⚙️ ACIER : Cage d'Acier — murs qui couvrent 2/3 d'un bord en chaîne
-export function _mechanic_steel_walls(cfg, difficulty, state) {
+export function _mechanic_Mur_de_Fer(cfg, difficulty, state) {
 
     // ── Paramètres ────────────────────────────────────────────────────────
 

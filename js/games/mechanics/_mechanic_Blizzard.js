@@ -2,7 +2,7 @@ import { _rnd } from "../utils.js";
 import { _addInterval, _arenaFlash, _burstParticles, _hitCircle } from "../game-engine.js";
 
 // ─── ❄️ GLACE : projectiles froids + gels qui ralentissent
-export function _mechanic_ice_freeze(cfg, difficulty, state) {
+export function _mechanic_Blizzard(cfg, difficulty, state) {
     const spawnDelay = Math.max(40, 100 - difficulty * 8);
     // Direction du blizzard
     const blizzardAngle = Math.random() * Math.PI * 2;

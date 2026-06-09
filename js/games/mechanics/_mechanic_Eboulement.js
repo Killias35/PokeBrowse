@@ -4,7 +4,7 @@ import { _addInterval, _arenaFlash, _burstParticles, _screenShake, _spawnParticl
 
 
 // ─── 🪨 ROCHE : météorites massives avec ombre au sol
-export function _mechanic_rock_boulders(cfg, difficulty, state) {
+export function _mechanic_Eboulement(cfg, difficulty, state) {
     const spawnDelay = Math.max(150, 400 - difficulty * 25);
     const shadowMargin = 10;
 

@@ -2,7 +2,7 @@ import { _rnd, _rndInt } from "../utils.js";
 import { _addInterval, _spawnParticle, _arenaFlash, _burstParticles } from "../game-engine.js";
 
 // ─── 🔥 FEU : anneaux concentriques qui explosent vers l'extérieur
-export function _mechanic_fire_rings(cfg, difficulty, state) {
+export function _mechanic_Deflagration(cfg, difficulty, state) {
   const colors = [cfg.color, cfg.accent, "#ff6a00"];
   let spawnDelay = Math.max(600, 1200 - difficulty * 200);
 

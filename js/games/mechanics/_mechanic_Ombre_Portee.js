@@ -3,7 +3,7 @@ import { _addTimeout, _addInterval, _arenaFlash, _spawnParticle, _hitCircle } fr
 
 
 // ─── 👻 SPECTRE : obscurité, fantômes trompeurs et traversées
-export function _mechanic_ghost_dark(cfg, difficulty, state) {
+export function _mechanic_Ombre_Portee(cfg, difficulty, state) {
     // Rayon de visibilité autour du joueur (px) — rétrécit avec la difficulté
     const visionRadius      = Math.max(55, 160 - difficulty * 11);
 

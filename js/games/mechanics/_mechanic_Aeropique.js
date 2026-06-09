@@ -3,7 +3,7 @@ import { _addTimeout, _addInterval, _arenaFlash, _screenShake, _hitCircle } from
 
 
 // ─── 💨 VOL : rafales de vent qui dévient la pokéball
-export function _mechanic_flying_gusts(cfg, difficulty, state) {
+export function _mechanic_Aeropique(cfg, difficulty, state) {
     const spawnDelay = Math.max(800, 1300 - difficulty * 50);
     const nbProjectile = Math.floor(Math.min(15, 5 + difficulty));
     const projectileSpeed = Math.min(7, 2 + difficulty * 0.5);

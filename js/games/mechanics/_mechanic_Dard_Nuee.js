@@ -3,7 +3,7 @@ import { _addTimeout, _addInterval, _arenaFlash, _screenShake, _spawnParticle, _
 
 
 // ─── 🐛 INSECTE : vagues d'insectes en embuscade, rôdeurs puis attaquants
-export function _mechanic_bug_swarm(cfg, difficulty, state) {
+export function _mechanic_Dard_Nuee(cfg, difficulty, state) {
 
     // ── Paramètres scalés difficulty 1–10 ─────────────────────────────────
 

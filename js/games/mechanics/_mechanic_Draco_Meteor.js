@@ -3,7 +3,7 @@ import { _addTimeout, _addInterval, _arenaFlash, _spawnParticle, _hitCircle } fr
 
 
 // ─── 🐉 DRAGON : spirales imbriquées multi-couches
-export function _mechanic_dragon_spiral(cfg, difficulty, state) {
+export function _mechanic_Draco_Meteor(cfg, difficulty, state) {
 
     // ── Paramètres ────────────────────────────────────────────────────────
 

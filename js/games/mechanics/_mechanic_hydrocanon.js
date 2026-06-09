@@ -2,7 +2,7 @@ import { _rnd, _rndInt } from "../utils.js";
 import { _addInterval, _spawnParticle, _arenaFlash, _burstParticles } from "../game-engine.js";
 
 // ─── 💧 EAU : Hydrocanon façon Gaster Blaster
-export function _mechanic_water_sweep(cfg, difficulty, state) {
+export function _mechanic_Hydrocanon(cfg, difficulty, state) {
 
   const spawnDelay = Math.max(500, 1200 - difficulty * 200);
   const chargeDuration = Math.max(50, 90 - difficulty * 5);

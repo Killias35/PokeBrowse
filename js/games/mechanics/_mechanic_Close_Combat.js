@@ -3,7 +3,7 @@ import { _addTimeout, _addInterval, _arenaFlash, _screenShake, _hitCircle, _burs
 
 
 // ─── 🥊 COMBAT : poings géants qui smashent des zones
-export function _mechanic_fighting_punches(cfg, difficulty, state) {
+export function _mechanic_Close_Combat(cfg, difficulty, state) {
     const spawnDelay = Math.max(250, 800 - difficulty * 55);
     const WARNING_DURATION = Math.max(600, 1000 - difficulty * 40);
     const MAX_SIZE = Math.min(400, 200 + difficulty * 20);

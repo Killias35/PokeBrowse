@@ -3,7 +3,7 @@ import { _addTimeout, _addInterval, _arenaFlash, _burstParticles, _screenShake, 
 
 
 // ─── 🌍 SOL : ondes de choc circulaires depuis le bas
-export function _mechanic_ground_shockwaves(cfg, difficulty, state) {
+export function _mechanic_Seisme(cfg, difficulty, state) {
     const spawnDelay = Math.max(400, 800 - difficulty * 75);
     const startSize = 20                                       // taille de départ
     const maxSize = Math.min(300, startSize * (10 + difficulty * 0.2));               // taille maximale

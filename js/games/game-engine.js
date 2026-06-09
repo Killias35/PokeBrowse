@@ -2,24 +2,24 @@ import { showSplashText } from "../battle-annimation.js";
 import { _rnd, _rndInt } from "./utils.js";
 import { ATTACK_CONFIGS } from "./attack_configs.js";
 
-import { _mechanic_water_sweep } from "./mechanics/_mechanic_water_sweep.js";
-import { _mechanic_fire_rings } from "./mechanics/_mechanic_fire_rings.js";
-import { _mechanic_electric_bolts } from "./mechanics/_mechanic_electric_bolts.js";
-import { _mechanic_grass_vines } from "./mechanics/_mechanic_grass_vines.js";
-import { _mechanic_ice_freeze } from "./mechanics/_mechanic_ice_freeze.js";
-import { _mechanic_ground_shockwaves } from "./mechanics/_mechanic_ground_shockwaves.js";
-import { _mechanic_rock_boulders } from "./mechanics/_mechanic_rock_boulders.js";
-import { _mechanic_flying_gusts } from "./mechanics/_mechanic_flying_gusts.js";
-import { _mechanic_psychic_distort } from "./mechanics/_mechanic_psychic_distort.js";
-import { _mechanic_bug_swarm } from "./mechanics/_mechanic_bug_swarm.js";
-import { _mechanic_ghost_dark } from "./mechanics/_mechanic_ghost_dark.js";
-import { _mechanic_dragon_spiral } from "./mechanics/_mechanic_dragon_spiral.js";
-import { _mechanic_dark_mines } from "./mechanics/_mechanic_dark_mines.js";
-import { _mechanic_steel_walls } from "./mechanics/_mechanic_steel_walls.js";
-import { _mechanic_poison_cloud } from "./mechanics/_mechanic_poison_cloud.js";
-import { _mechanic_fighting_punches } from "./mechanics/_mechanic_fighting_punches.js";
-import { _mechanic_fairy_circles } from "./mechanics/_mechanic_fairy_circles.js";
-import { _mechanic_normal_drops } from "./mechanics/_mechanic_normal_drops.js";
+import { _mechanic_Hydrocanon } from "./mechanics/_mechanic_hydrocanon.js";
+import { _mechanic_Deflagration } from "./mechanics/_mechanic_deflagration.js";
+import { _mechanic_Fatal_Foudre } from "./mechanics/_mechanic_Fatal_Foudre.js";
+import { _mechanic_Tranch_Herbe } from "./mechanics/_mechanic_Tranch_Herbe.js";
+import { _mechanic_Blizzard } from "./mechanics/_mechanic_Blizzard.js";
+import { _mechanic_Seisme } from "./mechanics/_mechanic_Seisme.js";
+import { _mechanic_Eboulement } from "./mechanics/_mechanic_Eboulement.js";
+import { _mechanic_Aeropique } from "./mechanics/_mechanic_Aeropique.js";
+import { _mechanic_Psyko } from "./mechanics/_mechanic_Psyko.js";
+import { _mechanic_Dard_Nuee } from "./mechanics/_mechanic_Dard_Nuee.js";
+import { _mechanic_Ombre_Portee } from "./mechanics/_mechanic_Ombre_Portee.js";
+import { _mechanic_Draco_Meteor } from "./mechanics/_mechanic_Draco_Meteor.js";
+import { _mechanic_Vibrobscur } from "./mechanics/_mechanic_Vibrobscur.js";
+import { _mechanic_Mur_de_Fer } from "./mechanics/_mechanic_Mur_de_Fer.js";
+import { _mechanic_Toxic } from "./mechanics/_mechanic_Toxic.js";
+import { _mechanic_Close_Combat } from "./mechanics/_mechanic_Close_Combat.js";
+import { _mechanic_Pouvoir_Lunaire } from "./mechanics/_mechanic_Pouvoir_Lunaire.js";
+import { _mechanic_Ultralaser } from "./mechanics/_mechanic_Ultralaser.js";
 
 // ─── CONSTANTES GLOBALES ─────────────────────────────────────
 const ARENA_W = 600;
@@ -237,24 +237,24 @@ export function _hitRect(px, py, pr, rx, ry, rw, rh) {
 
 // Mapping mechanic ID → fonction
 const MECHANICS = {
-  fire_rings:        _mechanic_fire_rings,
-  water_sweep:       _mechanic_water_sweep,
-  electric_bolts:    _mechanic_electric_bolts,
-  grass_vines:       _mechanic_grass_vines,
-  ice_freeze:        _mechanic_ice_freeze,
-  ground_shockwaves: _mechanic_ground_shockwaves,
-  rock_boulders:     _mechanic_rock_boulders,
-  flying_gusts:      _mechanic_flying_gusts,
-  psychic_distort:   _mechanic_psychic_distort,
-  bug_swarm:         _mechanic_bug_swarm,
-  ghost_dark:        _mechanic_ghost_dark,
-  dragon_spiral:     _mechanic_dragon_spiral,
-  dark_mines:        _mechanic_dark_mines,
-  steel_walls:       _mechanic_steel_walls,
-  poison_cloud:      _mechanic_poison_cloud,
-  fighting_punches:  _mechanic_fighting_punches,
-  fairy_circles:     _mechanic_fairy_circles,
-  normal_drops:      _mechanic_normal_drops
+  fire_rings:        _mechanic_Deflagration,
+  water_sweep:       _mechanic_Hydrocanon,
+  electric_bolts:    _mechanic_Fatal-Foudre,
+  grass_vines:       _mechanic_Tranch_Herbe,
+  ice_freeze:        _mechanic_Blizzard,
+  ground_shockwaves: _mechanic_Seisme,
+  rock_boulders:     _mechanic_Eboulement,
+  flying_gusts:      _mechanic_Aeropique,
+  psychic_distort:   _mechanic_Psyko,
+  bug_swarm:         _mechanic_Dard_Nuee,
+  ghost_dark:        _mechanic_Ombre_Portee,
+  dragon_spiral:     _mechanic_Draco-Meteor,
+  dark_mines:        _mechanic_Vibrobscur,
+  steel_walls:       _mechanic_Mur_de_Fer,
+  poison_cloud:      _mechanic_Toxic,
+  fighting_punches:  _mechanic_Close_Combat,
+  fairy_circles:     _mechanic_Pouvoir_Lunaire,
+  normal_drops:      _mechanic_Ultralaser
 };
 
 // ============================================================

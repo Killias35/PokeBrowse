@@ -2,7 +2,7 @@ import { _rnd } from "../utils.js";
 import { _addTimeout, _addInterval, _arenaFlash, _screenShake, _spawnParticle, _hitCircle } from "../game-engine.js";
 
 // ─── 🧠 PSY : zones de lag mental + distorsion visuelle + double fantôme
-export function _mechanic_psychic_distort(cfg, difficulty, state) {
+export function _mechanic_Psyko(cfg, difficulty, state) {
     // Fréquence des vagues psy (ms entre chaque activation)
     const psyWaveInterval  = Math.max(2500, 6000 - difficulty * 350);
     // Durée de la vague psy (secondes)

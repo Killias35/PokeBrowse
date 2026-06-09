@@ -3,7 +3,7 @@ import { _addTimeout, _addInterval, _arenaFlash, _screenShake, _spawnParticle, _
 
 
 // ─── 🧪 POISON : anneaux toxiques qui rétrécissent vers leur centre
-export function _mechanic_poison_cloud(cfg, difficulty, state) {
+export function _mechanic_Toxic(cfg, difficulty, state) {
 
     // ── Paramètres ────────────────────────────────────────────────────────
 

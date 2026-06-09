@@ -2,7 +2,7 @@ import { _rnd, _rndInt } from "../utils.js";
 import { _addInterval, _spawnParticle, _arenaFlash, _burstParticles, _addTimeout, _screenShake, _hitRect } from "../game-engine.js";
 
 // ─── ⚡ ÉLECTRIK : zones qui se téléchargent puis frappent
-export function _mechanic_electric_bolts(cfg, difficulty, state) {
+export function _mechanic_Fatal_Foudre(cfg, difficulty, state) {
     const spawnDelay      = Math.max(300, 800 - difficulty * 50);
     const warningDuration = Math.max(600, 1200 - difficulty * 100);
     const strikeDuration  = Math.min(200, difficulty * 30);

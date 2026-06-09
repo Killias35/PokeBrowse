@@ -3,7 +3,7 @@ import { _addTimeout, _addInterval, _arenaFlash, _screenShake, _spawnParticle, _
 
 
 // ─── 🌑 TÉNÈBRES : clone obscur + fausses zones
-export function _mechanic_dark_mines(cfg, difficulty, state) {
+export function _mechanic_Vibrobscur(cfg, difficulty, state) {
 
     // ── Paramètres ────────────────────────────────────────────────────────
 

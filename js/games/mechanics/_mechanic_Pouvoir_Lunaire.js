@@ -3,7 +3,7 @@ import { _addTimeout, _addInterval, _arenaFlash, _screenShake, _spawnParticle, _
 
 
 // ─── 🌟 FÉE : Éclat Astral — constellations qui s'activent
-export function _mechanic_fairy_circles(cfg, difficulty, state) {
+export function _mechanic_Pouvoir_Lunaire(cfg, difficulty, state) {
 
     // ── Paramètres ────────────────────────────────────────────────────────
 

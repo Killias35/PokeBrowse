@@ -3,7 +3,7 @@ import { _addInterval, _spawnParticle, _hitRect } from "../game-engine.js";
 
 
 // ─── 🌿 PLANTE : lianes traversantes (horizontales & verticales)
-export function _mechanic_grass_vines(cfg, difficulty, state) {
+export function _mechanic_Tranch_Herbe(cfg, difficulty, state) {
     const spawnDelay    = Math.max(200, 700 - difficulty * 50);
     const vineSpeed     = Math.min(2.5, 1 + difficulty * 0.15);
     const vineW         = Math.min(9, 5 + difficulty * 0.4);

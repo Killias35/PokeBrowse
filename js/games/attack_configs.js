@@ -157,7 +157,7 @@ export const ATTACK_CONFIGS = {
 
   // ⚙️ ACIER — plaques qui se ferment depuis les bords
   steel: {
-    attackName: "Poing-Éclair",
+    attackName: "Mur de Fer",
     color: "#94a3b8",
     accent: "#e2e8f0",
     duration: 6000,
