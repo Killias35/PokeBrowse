@@ -1,9 +1,14 @@
 import { startEncounter, showSplashText, showScore, playCaptureSequence } from "./battle-annimation.js";
 import { getPokeballs, usePokeball } from "./pokeballs.js";
 import { capturePokemon } from "./utils.js";
-import { startMusic, stopMusic, playCry } from "./sound.js";
+import { playCry } from "./sound.js";
+import { startMusic, stopMusic } from '../musique.js';
 import { setHpStatus, triggerPokemonFlee, phaseChoixBall, phaseAffaiblissement, startCaptureMinigame} from "./battle-minigame.js";
 import { startDodgeMinigame } from "./games/game-engine.js";
+import { getVolumesParam } from "../settingsUtils.js";
+
+const Volumes = await getVolumesParam();
+const GLOBAL_MUSIC_VOLUME = Volumes.musicVolume;
 
 let POKEMON_FIGHTING = null; // Variable globale pour stocker le Pokémon en combat
 let escapeAttempts = 0;
@@ -69,7 +74,6 @@ async function startDefenseMinigame(pokemon, baseDifficulty) {
     const rageMultiplier = 1 + (escapeAttempts * 0.5); 
     const difficulty = baseDifficulty * rageMultiplier;
 
-    console.log("type:", activeType, "difficulty:", difficulty);
     const minigameResult = await startDodgeMinigame(activeType, difficulty);
 
     DEFENSE_STAGE.classList.add("hidden");
@@ -132,9 +136,9 @@ chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
 
     POKEMON_FIGHTING = pokemon;
     if (pokemon.rarity === "legendary" || pokemon.rarity === "epic") {
-        startMusic("rare_capture");
+        startMusic("rare_capture", true, GLOBAL_MUSIC_VOLUME);
     } else {
-        startMusic("capture");
+        startMusic("capture", true, GLOBAL_MUSIC_VOLUME);
     }
 
     await startEncounter(pokemon);

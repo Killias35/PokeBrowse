@@ -1,79 +1,47 @@
-import { getVolumesParam } from './settings.js';
+import { getVolumesParam } from '../settingsUtils.js';
 
-
-
-let GLOBAL_VOLUME;;
-let GLOBAL_MUSIC_VOLUME;
-let GLOBAL_SFX_VOLUME;
+let GLOBAL_VOLUME = null;
+let GLOBAL_MUSIC_VOLUME = null;
+let GLOBAL_SFX_VOLUME = null;
 
 export async function setGlobalVolume() {
-    const Volumes = await getVolumesParam();
+    const volumes = await getVolumesParam();
     
-    GLOBAL_VOLUME = Volumes.globalVolume * .3 || .3;
-    GLOBAL_MUSIC_VOLUME = Volumes.musicVolume * .3 || .3;
-    GLOBAL_SFX_VOLUME = Volumes.sfxVolume * .3 || .3;
+    console.log("volumes reçus:", JSON.stringify(volumes));
+    console.log("globalVolume:", volumes.globalVolume, typeof volumes.globalVolume);
+    console.log("musicVolume:", volumes.musicVolume, typeof volumes.musicVolume);
+
+    const g = parseFloat(volumes.globalVolume);
+    const m = parseFloat(volumes.musicVolume);
+    const s = parseFloat(volumes.sfxVolume);
+
+    console.log("après parseFloat:", g, m, s);
+    console.log("isFinite:", isFinite(g), isFinite(m), isFinite(s));
+
+    GLOBAL_VOLUME       = isFinite(g) ? g * 0.3 : 0.3;
+    GLOBAL_MUSIC_VOLUME = isFinite(m) ? m * 0.3 : 0.3;
+    GLOBAL_SFX_VOLUME   = isFinite(s) ? s * 0.3 : 0.3;
+
+    console.log("FINAL:", GLOBAL_VOLUME, GLOBAL_MUSIC_VOLUME, GLOBAL_SFX_VOLUME);
 }
 
-setGlobalVolume();
+async function ensureVolumes() {
+    if (GLOBAL_VOLUME === null || GLOBAL_MUSIC_VOLUME === null || GLOBAL_SFX_VOLUME === null) await setGlobalVolume();
+}
 
-let Music = null;
 let ctx = null;
 
-export function playCry(pokemon) {
-  const url = chrome.runtime.getURL(`assets/cries/${pokemon.id}.ogg`);
-  const audio = new Audio(url);
+export async function playCry(pokemon) {
+    await ensureVolumes();
+    const url = chrome.runtime.getURL(`assets/cries/${pokemon.id}.ogg`);
+    const audio = new Audio(url);
 
-  audio.onerror = () => {
-    console.warn("Cry introuvable:", pokemon.id);
-  };
+    audio.onerror = () => {
+        console.warn("Cry introuvable:", pokemon.id);
+    };
 
-  audio.play().catch(() => {});
-  audio.volume = GLOBAL_VOLUME * 2;
-}
-
-
-export function startMusic(type, loop = true) {
-    stopMusic();
-    let nbMusic = 4;
-    let path = "routes";
-    if (type === "hunt") {
-        path = "routes";
-        nbMusic = 4;
-    }
-    else if (type === "capture") {
-        path = "fight";
-        nbMusic = 0;
-    }
-    else if (type === "rare_capture") {
-        path = "rare_fight";
-        nbMusic = 0;
-    }
-    else if (type === "captured") {
-        path = "captured";
-        nbMusic = 0;
-    }
-
-    const randomMusic = Math.floor(Math.random() * nbMusic);
-    
-    Music = new Audio(
-        chrome.runtime.getURL(`assets/${path}/${randomMusic}.mp3`)
-    );
-
-    Music.loop = loop;
-    Music.volume = GLOBAL_MUSIC_VOLUME;
-
-    Music.play().catch(err => {
-        console.error("Impossible de lancer la musique :", err);
-        Music = null;
-    });
-}
-
-export function stopMusic() {
-  if (!Music) return;
-
-  Music.pause();
-  Music.currentTime = 0;
-  Music = null;
+    audio.play().catch(() => {});
+    audio.volume = GLOBAL_VOLUME * 2;
 }
 
 const sfxCache = new Map();
@@ -85,7 +53,8 @@ export function preloadSfx(name) {
     sfxCache.set(name, audio);
 }
 
-export function playSfx(name) {
+export async function playSfx(name) {
+    await ensureVolumes();
     let base = sfxCache.get(name);
 
     if (!base) {

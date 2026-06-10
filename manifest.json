@@ -6,8 +6,13 @@
   "permissions": [
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "offscreen"
   ],
+  "background": {
+    "service_worker": "js/Background/background.js",
+    "type": "module"
+  },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; media-src 'self' https://raw.githubusercontent.com https://pokeapi.co"
   },
@@ -20,7 +25,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["js/content-loader.js"],
+      "js": ["js/Injected/content-loader.js"],
       "css": ["css/content.css"]
     }
   ],

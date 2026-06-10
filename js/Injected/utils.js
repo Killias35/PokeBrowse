@@ -1,4 +1,4 @@
-import { getUsernameParam, setUsernameParam } from "./settings.js";
+import { getUsernameParam, setUsernameParam } from "../settingsUtils.js";
 
 // pokeballs au demarrage
 const POKEBALLS = [

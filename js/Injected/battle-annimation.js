@@ -1,4 +1,9 @@
-import { playCry, playShiny, playSuspenseSound, playImpactBoom, playWhooshSound, playHitSound, playSfx, stopMusic, startMusic } from "./sound.js";
+import { playCry, playShiny, playSuspenseSound, playImpactBoom, playWhooshSound, playHitSound, playSfx } from "./sound.js";
+import { startMusic, stopMusic } from '../musique.js';
+import { getVolumesParam } from "../settingsUtils.js";
+
+const Volumes = await getVolumesParam();
+const GLOBAL_MUSIC_VOLUME = Volumes.musicVolume;
 
 function wait(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -655,7 +660,7 @@ async function phaseSuccess(shakeCount) {
     playSfx("pokeball captured");
 
     await wait(900);
-    startMusic("captured", false);
+    startMusic("captured", false, GLOBAL_MUSIC_VOLUME);
     // Message
     const msg = document.getElementById("cap-message");
     msg.textContent = "✦ Pokémon capturé ! ✦";

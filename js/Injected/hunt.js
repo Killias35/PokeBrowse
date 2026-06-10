@@ -1,37 +1,16 @@
-import { playCry, startMusic, stopMusic } from "./sound.js";
+import { playCry } from "./sound.js";
 import { getPokemon, capturePokemon } from "./utils.js";
 
-async function getHunt() {
-  const result = await chrome.storage.local.get("huntActive");
-  return result.huntActive || false;
-}
-
-let setHunt = await getHunt();
-const maxPokemon = 3;
-let currentPokemonCount = 0;
 const shinyChance = 0.005; // 0.5% de chance d'être shiny
-const MaxTimeBeforeSpawn = 10 * 60 * 1000;  // 10 minutes
+const maxPokemon = 5;
+let pokemonCount = 0;
 
-chrome.runtime.onMessage.addListener(
-  async (message) => {
-    if (message.action == "spawnPokemon")
-      await spawnPokemon();
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "spawnPokemon") {
+    spawnPokemon();
   }
-);
 
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.action === "setHunt") {
-    setHunt = msg.value;// déblocage audio
-    const unlock = new Audio();
-    unlock.volume = 0;
-    unlock.play().catch(() => {});
-
-    if (setHunt) {
-      startMusic("hunt");
-    } else {
-      stopMusic();
-    }
-  }
+  return false;
 });
 
 async function spawnPokemon() {
@@ -39,11 +18,15 @@ async function spawnPokemon() {
         console.log("Le dresseur n'est pas sur la page. Spawn annulé.");
         return;
   }
+  else if (pokemonCount >= maxPokemon) {
+    console.log("Trop de pokemon sur la page. Spawn annulé.");
+    return;
+  }
 
-  currentPokemonCount++;
   const randomId = Math.floor(Math.random() * 151) + 1;
   const pokemon = await getPokemon(randomId);
   pokemon.isShiny = Math.random() < shinyChance ? true : false;
+  pokemonCount++;
   
   const img = document.createElement("img");
 
@@ -82,17 +65,16 @@ async function spawnPokemon() {
   });
 
   img.addEventListener("click", async () => { // capture
-    await chrome.storage.local.set({
-      currentBattlePokemon: pokemon
+    pokemonCount--;
+    chrome.runtime.sendMessage({
+      action: "START_BATTLE",
+      pokemon
     });
-
-    stopMusic();
 
     window.open(
       chrome.runtime.getURL("html/battle.html")
     );
     img.remove();
-    currentPokemonCount--;
   });
 
   document.body.appendChild(img);
@@ -101,15 +83,4 @@ async function spawnPokemon() {
   console.log(`Un ${pokemon.name} sauvage est apparu !`);
 }
 
-function loop() {                               // spawn moyen: 5 minutes
-  const delay = Math.random() * MaxTimeBeforeSpawn; // en ms
-
-  setTimeout(async () => {
-    if (setHunt && currentPokemonCount < maxPokemon) {
-      await spawnPokemon();
-    }
-    loop();
-  }, delay);
-}
-
-loop();
+console.log("Hunt loaded");

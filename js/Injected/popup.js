@@ -74,12 +74,10 @@ function updateUI() {
 }
 
 function sendState() {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, {
-      action: "setHunt",
-      value: huntActive
-    });
-  });
+  chrome.runtime.sendMessage({
+    action: "setHunt",
+    value: huntActive
+  })
 
   chrome.storage.local.set({ huntActive });
 }

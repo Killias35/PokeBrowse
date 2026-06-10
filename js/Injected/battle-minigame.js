@@ -1,6 +1,7 @@
-import { startMusic, stopMusic, startRummageSound, stopRummageSound, playHitSound, startTargetingSound, stopTargetingSound, playCry } from "./sound.js";
+import { startRummageSound, stopRummageSound, playHitSound, startTargetingSound, stopTargetingSound, playCry } from "./sound.js";
 import { showScore, showSplashText } from "./battle-annimation.js";
 import { getPokeballs } from "./pokeballs.js";
+import { getVolumesParam } from "../settingsUtils.js";
 
 const POKEBALL_CHOICE_DURATION = 3000; // Durée pour choisir une ball (en ms)
 const COMBO_DURATION = 5000; // Durée de la phase de combo (en ms)
