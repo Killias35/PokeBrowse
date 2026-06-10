@@ -6,27 +6,21 @@ let GLOBAL_SFX_VOLUME = null;
 
 export async function setGlobalVolume() {
     const volumes = await getVolumesParam();
-    
-    console.log("volumes reçus:", JSON.stringify(volumes));
-    console.log("globalVolume:", volumes.globalVolume, typeof volumes.globalVolume);
-    console.log("musicVolume:", volumes.musicVolume, typeof volumes.musicVolume);
 
     const g = parseFloat(volumes.globalVolume);
     const m = parseFloat(volumes.musicVolume);
     const s = parseFloat(volumes.sfxVolume);
 
-    console.log("après parseFloat:", g, m, s);
-    console.log("isFinite:", isFinite(g), isFinite(m), isFinite(s));
-
     GLOBAL_VOLUME       = isFinite(g) ? g * 0.3 : 0.3;
     GLOBAL_MUSIC_VOLUME = isFinite(m) ? m * 0.3 : 0.3;
     GLOBAL_SFX_VOLUME   = isFinite(s) ? s * 0.3 : 0.3;
 
-    console.log("FINAL:", GLOBAL_VOLUME, GLOBAL_MUSIC_VOLUME, GLOBAL_SFX_VOLUME);
+    GLOBAL_SFX_VOLUME   *= GLOBAL_VOLUME;
+    GLOBAL_MUSIC_VOLUME *= GLOBAL_VOLUME;
 }
 
 async function ensureVolumes() {
-    if (GLOBAL_VOLUME === null || GLOBAL_MUSIC_VOLUME === null || GLOBAL_SFX_VOLUME === null) await setGlobalVolume();
+    await setGlobalVolume();
 }
 
 let ctx = null;
@@ -40,8 +34,8 @@ export async function playCry(pokemon) {
         console.warn("Cry introuvable:", pokemon.id);
     };
 
+    audio.volume = GLOBAL_SFX_VOLUME * 1;
     audio.play().catch(() => {});
-    audio.volume = GLOBAL_VOLUME * 2;
 }
 
 const sfxCache = new Map();
@@ -104,7 +98,8 @@ export function playShiny() {  // Bruit d'étoile
     });
 }
 
-export function playSuspenseSound(rarity, durationMs) {
+export async function playSuspenseSound(rarity, durationMs) {
+    await ensureVolumes();
     if(!ctx) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
@@ -115,10 +110,12 @@ export function playSuspenseSound(rarity, durationMs) {
 
     // --- 1. LE NOEUD MASTER (Contrôle global et lissage de fin) ---
     const masterGain = ctx.createGain();
+    const globalVol = GLOBAL_SFX_VOLUME*1.5;
+    console.log("globalVol:", globalVol);
     masterGain.gain.setValueAtTime(0, now);
-    masterGain.gain.linearRampToValueAtTime(1, now + 0.15); // Entrée en douceur (150ms)
-    masterGain.gain.setValueAtTime(1, now + duration - 0.05);
-    masterGain.gain.linearRampToValueAtTime(0, now + duration); // Fondu de sortie de 50ms pour éviter le craquement brusque
+    masterGain.gain.linearRampToValueAtTime(globalVol, now + 0.15);
+    masterGain.gain.setValueAtTime(globalVol, now + duration - 0.05);
+    masterGain.gain.linearRampToValueAtTime(0, now + duration);
 
     // --- CONFIGURATION SÉRIEUSE SELON RARETÉ ---
     let baseFreq = 70;       // Plus bas = plus lourd
@@ -200,7 +197,6 @@ export function playSuspenseSound(rarity, durationMs) {
     subGain.connect(masterGain);
 
     // --- 5. BRANCHEMENT FINAL AU CASQUE/HAUT-PARLEURS ---
-    masterGain.gain.value = GLOBAL_VOLUME * 2;
     masterGain.connect(ctx.destination);
 
     // Start
@@ -232,14 +228,11 @@ export function playImpactBoom() {
     osc.frequency.exponentialRampToValueAtTime(20, now + 0.8);
 
     // --- RÉGLAGE DU VOLUME DU BOOM ---
-    const boomVolume = 1; // Augmenté (était à 0.4). Tu peux tester 1.2 si besoin.
+    const boomVolume = GLOBAL_SFX_VOLUME * 10; // Augmenté (était à 0.4). Tu peux tester 1.2 si besoin.
     
     gainNode.gain.setValueAtTime(boomVolume, now);
     // On rallonge l'extinction à 1.2s pour que la vibration dure un peu plus longtemps
     gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 1.2); 
-
-    // --- BRANCHEMENT ---
-    gainNode.gain.value = GLOBAL_SFX_VOLUME * 10;
 
     osc.connect(gainNode);
     gainNode.connect(ctx.destination);
@@ -277,15 +270,12 @@ export function playWhooshSound() {
 
     const gainNode = ctx.createGain();
     
-    // --- RÉGLAGE DU VOLUME DU WHOOSH ---
-    const whooshVolume = 0.6; 
+    // --- RÉGLAGE DU VOLUME DU WHOOSH --- 
+    const whooshVolume = GLOBAL_SFX_VOLUME * 2;
 
-    gainNode.gain.setValueAtTime(0, now);
-    // C'est cette ligne qui gère le pic de volume du whoosh :
-    gainNode.gain.linearRampToValueAtTime(whooshVolume, now + 0.06); 
-    gainNode.gain.linearRampToValueAtTime(0, now + duration); 
-
-    gainNode.gain.value = GLOBAL_SFX_VOLUME;
+    gainNode.gain.setValueAtTime(0.0001, now);
+    gainNode.gain.linearRampToValueAtTime(whooshVolume, now + 0.06);
+    gainNode.gain.linearRampToValueAtTime(0.0001, now + duration);
 
     noise.connect(filter);
     filter.connect(gainNode);

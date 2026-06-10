@@ -75,14 +75,22 @@ async function getHunt() {
 }
 
 async function startMusic(type) {
-  await setupOffscreenDocument();
-  const volumesParam = await getVolumesParam();
-  const GLOBAL_MUSIC_VOLUME = volumesParam.musicVolume || 0.1;
-  await chrome.runtime.sendMessage({ action: "PLAY_MUSIC", GLOBAL_MUSIC_VOLUME, type });
+    await setupOffscreenDocument();
+    const volumesParam = await getVolumesParam();
+    const GLOBAL_MUSIC_VOLUME = volumesParam.musicVolume || 0.1;
+    try {
+      await chrome.runtime.sendMessage({ action: "PLAY_MUSIC", GLOBAL_MUSIC_VOLUME, type });
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 function stopMusic() {
-  chrome.runtime.sendMessage({ action: "STOP_MUSIC" });
+    try {
+      chrome.runtime.sendMessage({ action: "STOP_MUSIC" });
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 async function spawnPokemon() {

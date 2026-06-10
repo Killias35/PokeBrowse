@@ -19,7 +19,7 @@ async function spawnPokemon() {
         return;
   }
   else if (pokemonCount >= maxPokemon) {
-    console.log("Trop de pokemon sur la page. Spawn annulé.");
+    // console.log("Trop de pokemon sur la page. Spawn annulé.");
     return;
   }
 
