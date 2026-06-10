@@ -35,6 +35,12 @@ chrome.runtime.onMessage.addListener((msg) => {
 });
 
 async function spawnPokemon() {
+  if (document.visibilityState !== 'visible') {
+        console.log("Le dresseur n'est pas sur la page. Spawn annulé.");
+        return;
+  }
+
+  currentPokemonCount++;
   const randomId = Math.floor(Math.random() * 151) + 1;
   const pokemon = await getPokemon(randomId);
   pokemon.isShiny = Math.random() < shinyChance ? true : false;
@@ -101,7 +107,6 @@ function loop() {                               // spawn moyen: 5 minutes
   setTimeout(async () => {
     if (setHunt && currentPokemonCount < maxPokemon) {
       await spawnPokemon();
-      currentPokemonCount++;
     }
     loop();
   }, delay);
