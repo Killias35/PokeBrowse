@@ -1,10 +1,18 @@
 import { playCry, startMusic, stopMusic } from "./sound.js";
 import { getPokemon, capturePokemon } from "./utils.js";
 
-let setHunt = false;
+async function getHunt() {
+  const result = await chrome.storage.local.get("huntActive");
+  console.log(result);
+  return result.huntActive || false;
+}
+
+let setHunt = await getHunt();
+console.log(setHunt);
 const maxPokemon = 3;
 let currentPokemonCount = 0;
 const shinyChance = 0.005; // 0.5% de chance d'être shiny
+const MaxTimeBeforeSpawn = 5 * 60 * 1000;  // 5 minutes
 
 chrome.runtime.onMessage.addListener(
   async (message) => {
@@ -89,11 +97,11 @@ async function spawnPokemon() {
   console.log(`Un ${pokemon.name} sauvage est apparu !`);
 }
 
-function loop() {                               // spawn moyen: 6 pkmn / heure
-  const delay = Math.random() * 300000 + 60000; // entre 1 minute et 6 minutes
+function loop() {                               // spawn moyen: 2.5 minutes
+  const delay = Math.random() * MaxTimeBeforeSpawn; // en ms
 
   setTimeout(async () => {
-    if (Math.random() < 0.35 && setHunt && currentPokemonCount < maxPokemon) {                 // 35% de chance
+    if (setHunt && currentPokemonCount < maxPokemon) {
       await spawnPokemon();
       currentPokemonCount++;
     }

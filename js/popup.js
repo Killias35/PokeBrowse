@@ -11,9 +11,9 @@ async function getDelaiFromLastSpawn() {
 
 async function setStatusBtnSpawn() {
   const hours = await getDelaiFromLastSpawn();
-  const minutesLeft = (1 - hours) * 60;
+  const minutesLeft = (.5 - hours) * 60;
   const btn = document.getElementById("spawn");
-  if(hours >= 1){   // peut spawn
+  if(hours >= .5){   // peut spawn
     btn.classList.remove("closed");
     btn.classList.add("primary")
     btn.textContent = `🎲 Faire apparaître un Pokémon`;
@@ -27,7 +27,7 @@ async function setStatusBtnSpawn() {
 document.getElementById("spawn").addEventListener("click", async () => {
   const hours = await getDelaiFromLastSpawn();
   // if (hours <= 0) return; // DEBUG
-  if (hours <= 0) return;
+  if (hours >= .5) return;
 
   const [tab] = await chrome.tabs.query({
     active: true,
