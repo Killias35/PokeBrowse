@@ -108,6 +108,10 @@ async function setBalls() {
   }
 }
 
+document.getElementById('btn-settings').addEventListener('click', () => {
+    // Redirige vers la page des paramètres (vérifie bien le nom de ton fichier)
+    window.location.href = 'settings.html';
+});
 
 toggleBtn.addEventListener("click", () => {
   huntActive = !huntActive;

@@ -1,3 +1,4 @@
+import { getUsernameParam, setUsernameParam } from "./settings.js";
 
 // pokeballs au demarrage
 const POKEBALLS = [
@@ -150,3 +151,4 @@ export async function getBalls() {
 
 getPokedex();
 getBalls();
+if (getUsernameParam() === "Dresseur") setUsernameParam("User" + Math.floor(Math.random() * 10000));

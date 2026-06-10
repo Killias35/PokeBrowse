@@ -1,0 +1,75 @@
+/* --- CONTENEUR DES PARAMÈTRES --- */
+.settings-container {
+    background: rgba(20, 20, 30, 0.85);
+    border: 2px solid #2a2a3a;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+    /* Protection si le contenu devient trop grand */
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.setting-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.setting-group label {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    font-weight: bold;
+}
+
+.setting-group span {
+    color: #ffcb05; /* Met en valeur la valeur chiffrée */
+}
+
+/* --- CHAMP TEXTE (USERNAME) --- */
+.custom-input {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+.custom-input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+/* --- CURSEURS DE VOLUME (SLIDERS) --- */
+.custom-slider {
+    width: 100%;
+    height: 6px;
+    background: #334155;
+    border-radius: 5px;
+    outline: none;
+}
+
+/* Le petit bouton du slider */
+.custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffcb05;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255, 203, 5, 0.5);
+    transition: 0.2s;
+}
+
+.custom-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: #fff;
+}

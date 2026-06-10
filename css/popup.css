@@ -33,6 +33,7 @@ body {
     padding: 20px;
     border: 4px solid #ef4444;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+    position: relative; 
 }
 
 .header {
@@ -246,4 +247,34 @@ body {
 
 .hyperball-icon {
   border-left: 3px solid #d69e2e;
+}
+
+/* --- BOUTON PARAMÈTRES (ENGRENAGE) --- */
+
+
+.settings-gear-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+    background: #334155;
+    border: 2px solid #1e293b;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+}
+
+.settings-gear-btn:hover {
+    background: #475569;
+    /* Rotation satisfaisante de l'engrenage et léger zoom */
+    transform: rotate(90deg) scale(1.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+    border-color: #ffcb05; /* Petit contour jaune Pokédex au survol */
 }

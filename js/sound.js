@@ -1,6 +1,11 @@
-const GLOBAL_VOLUME = 0.3; // Volume global pour tous les sons (entre 0.0 et 1.0)
-const GLOBAL_MUSIC_VOLUME = 0.3; // Volume spécifique pour la musique de chasse (plus bas que les effets)
-const GLOBAL_SFX_VOLUME = 0.3;
+import { getVolumesParam } from './settings.js';
+
+const Volumes = await getVolumesParam();
+const GLOBAL_VOLUME = Volumes.globalVolume * .3 || .3;
+const GLOBAL_MUSIC_VOLUME = Volumes.musicVolume * .3 || .3;
+const GLOBAL_SFX_VOLUME = Volumes.sfxVolume * .3 || .3;
+
+console.log(Volumes, GLOBAL_VOLUME, GLOBAL_MUSIC_VOLUME, GLOBAL_SFX_VOLUME);
 
 let Music = null;
 let ctx = null;
