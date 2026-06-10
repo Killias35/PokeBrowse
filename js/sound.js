@@ -1,11 +1,20 @@
 import { getVolumesParam } from './settings.js';
 
-const Volumes = await getVolumesParam();
-const GLOBAL_VOLUME = Volumes.globalVolume * .3 || .3;
-const GLOBAL_MUSIC_VOLUME = Volumes.musicVolume * .3 || .3;
-const GLOBAL_SFX_VOLUME = Volumes.sfxVolume * .3 || .3;
 
-console.log(Volumes, GLOBAL_VOLUME, GLOBAL_MUSIC_VOLUME, GLOBAL_SFX_VOLUME);
+
+let GLOBAL_VOLUME;;
+let GLOBAL_MUSIC_VOLUME;
+let GLOBAL_SFX_VOLUME;
+
+export async function setGlobalVolume() {
+    const Volumes = await getVolumesParam();
+    
+    GLOBAL_VOLUME = Volumes.globalVolume * .3 || .3;
+    GLOBAL_MUSIC_VOLUME = Volumes.musicVolume * .3 || .3;
+    GLOBAL_SFX_VOLUME = Volumes.sfxVolume * .3 || .3;
+}
+
+setGlobalVolume();
 
 let Music = null;
 let ctx = null;

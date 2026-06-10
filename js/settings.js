@@ -1,3 +1,5 @@
+import { setGlobalVolume } from "./sound.js";
+
 // 1. Définition des valeurs par défaut
 const defaultSettings = {
     username: "Dresseur",
@@ -26,11 +28,11 @@ export async function getUsernameParam(){
 }
 
 export async function setVolumesParam(volumes){
-    chrome.storage.local.set({volumes});
+    await chrome.storage.local.set({volumes});
 }
 
 export async function setUsernameParam(username){
-    chrome.storage.local.set({username});
+    await chrome.storage.local.set({username});
 }
 
 // 2. Récupération des éléments HTML
@@ -82,14 +84,15 @@ async function initSettings() {
 }
 
 // 4. Fonction pour sauvegarder les paramètres dynamiquement
-function saveSettings() {
+async function saveSettings() {
     const volumes = {
         globalVolume: sliderGlobal.value,
         musicVolume: sliderMusic.value,
         sfxVolume: sliderSfx.value
     };
-    setVolumesParam(volumes);
-    setUsernameParam(inputUsername.value);
+    await setVolumesParam(volumes);
+    await setUsernameParam(inputUsername.value);
+    await setGlobalVolume();
 }
 
 if(inputUsername){
