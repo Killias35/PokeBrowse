@@ -3,16 +3,14 @@ import { getPokemon, capturePokemon } from "./utils.js";
 
 async function getHunt() {
   const result = await chrome.storage.local.get("huntActive");
-  console.log(result);
   return result.huntActive || false;
 }
 
 let setHunt = await getHunt();
-console.log(setHunt);
 const maxPokemon = 3;
 let currentPokemonCount = 0;
 const shinyChance = 0.005; // 0.5% de chance d'être shiny
-const MaxTimeBeforeSpawn = 5 * 60 * 1000;  // 5 minutes
+const MaxTimeBeforeSpawn = 10 * 60 * 1000;  // 10 minutes
 
 chrome.runtime.onMessage.addListener(
   async (message) => {
@@ -97,7 +95,7 @@ async function spawnPokemon() {
   console.log(`Un ${pokemon.name} sauvage est apparu !`);
 }
 
-function loop() {                               // spawn moyen: 2.5 minutes
+function loop() {                               // spawn moyen: 5 minutes
   const delay = Math.random() * MaxTimeBeforeSpawn; // en ms
 
   setTimeout(async () => {
