@@ -30,14 +30,16 @@ const POKEBALLS = [
 ];
 
 export async function getCurrentDomain() {
-  return window.location.hostname;
+  const hostname = window.location.hostname;
+  const domaine = hostname.replace("www.", "").replace("wwws.", "");
+  return domaine;
 }
 
 export async function getCurrentDomainFromTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if(tab.url.startsWith("chrome-extension://")) return null;
   const hostname = new URL(tab.url).hostname;
-  const domaine = hostname.replace("www.", "");
+  const domaine = hostname.replace("www.", "").replace("wwws.", "");
   return domaine;
 }
 

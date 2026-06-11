@@ -60,7 +60,7 @@ async function render() {
         </div>
         <div class="encounter-legend">
             <div class="legend-dot"></div>
-            <span>Garanti sur ce domaine</span>
+            <span>Exclusif sur ce domaine</span>
         </div>
     `;
 
