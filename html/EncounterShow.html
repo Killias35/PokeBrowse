@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon - Zone de rencontres</title>
+    <link rel="stylesheet" href="../css/popup.css">
+    <link rel="stylesheet" href="../css/encounterShow.css">
+</head>
+<body>
+    <div class="pokedex">
+
+        <header class="header">
+            <button class="back-btn" id="btn-back">← Retour</button>
+
+            <div class="encounter-header">
+                <h2>⚔️ Rencontres disponibles</h2>
+                <p class="encounter-domain">
+                    Zone : <span id="domain-label">chargement...</span>
+                </p>
+            </div>
+        </header>
+
+        <div id="encounter-content">
+            <div class="enc-loading">Chargement des Pokémon...</div>
+        </div>
+
+    </div>
+
+    <script type="module" src="../js/Injected/encounterShow.js"></script>
+</body>
+</html>

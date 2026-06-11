@@ -1,0 +1,19 @@
+{
+  "wikipedia.org": [63, 64, 65],
+  "github.com": [150, 137, 82],
+  "archive.org": [151, 132],
+  "youtube.com": [145, 26, 125, 135],
+  "twitch.tv": [146, 6, 136],
+  "weather.com": [144, 87, 131],
+  "reddit.com": [132, 39, 143, 122],
+  "twitter.com": [108, 43],
+  "stackoverflow.com": [138, 140, 14],
+  "amazon.com": [147, 148, 149],
+  "discord.com": [92, 93, 94],
+  "netflix.com": [143, 52],
+  "google.com": [113],
+  "openai.com": [137],
+  "linkedin.com": [122, 128, 115],
+  "pornhub.com": [132, 108, 35, 124],
+  "maps.google.com": [54, 58, 19, 84]
+}

@@ -1,4 +1,5 @@
 import { getUsernameParam, setUsernameParam } from "../settingsUtils.js";
+import { getPokedex } from "./pokedex.js";
 
 // pokeballs au demarrage
 const POKEBALLS = [
@@ -27,6 +28,44 @@ const POKEBALLS = [
     power: 1.25
   }
 ];
+
+export async function getCurrentDomain() {
+  return window.location.hostname;
+}
+
+export async function getCurrentDomainFromTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if(tab.url.startsWith("chrome-extension://")) return null;
+  const hostname = new URL(tab.url).hostname;
+  const domaine = hostname.replace("www.", "");
+  return domaine;
+}
+
+async function loadSpawnConfig() {
+  const url = chrome.runtime.getURL("assets/data/encounters.json");
+  const response = await fetch(url);
+  const config = await response.json();
+  return config;
+}
+
+function domainToSeed(domain) {
+  let hash = 5381;
+  for (let i = 0; i < domain.length; i++) {
+    hash = (hash * 33) ^ domain.charCodeAt(i);
+  }
+  return Math.abs(hash);
+}
+
+// PRNG déterministe (Mulberry32) — toujours la même séquence pour un seed donné
+function createRng(seed) {
+  let s = seed;
+  return function () {
+    s |= 0; s = s + 0x6D2B79F5 | 0;
+    let t = Math.imul(s ^ s >>> 15, 1 | s);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
 
 // recupere un pokemon
 export async function getPokemon(id) {
@@ -86,11 +125,8 @@ export async function capturePokemon(pokemon) {
 }
 
 // charge le pokedex dans le storage
-async function getPokedex() {
-
-  const result = await chrome.storage.local.get("pokedex");
-
-  const pokedex = result.pokedex || [];
+export async function setPokedex() {
+  const pokedex = await getPokedex();
 
   if (pokedex.length === 0) {
     let pokedex = [];
@@ -102,6 +138,8 @@ async function getPokedex() {
     }
     await chrome.storage.local.set({pokedex});
   }
+
+  return pokedex;
 }
 
 // charge les pokeballs dans le storage
@@ -149,6 +187,48 @@ export async function getBalls() {
   }
 }
 
-getPokedex();
+export async function getSpawnsForDomain(domain) {
+  const encoutersTable = await loadSpawnConfig();
+  const pokedex = await setPokedex();
+  const seed = domainToSeed(domain);
+  const rng  = createRng(seed);
+
+  // Nombre de spawns entre 10 et 20, fixe pour ce domaine
+  const spawnCount = 10 + (seed % 11); // 10 + (0..10) = 10..20
+
+  const guaranteed = encoutersTable[domain] ?? [];
+
+  const basePool = [];
+  for (let i = 1; i <= pokedex.length; i++) {
+    if (!guaranteed.includes(i)) basePool.push(i);
+  }
+
+  // Shuffle du pool avec le RNG déterministe (Fisher-Yates)
+  for (let i = basePool.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [basePool[i], basePool[j]] = [basePool[j], basePool[i]];
+  }
+
+  // On prend les N premiers du pool mélangé, puis on ajoute les garantis
+  const needed = Math.max(0, spawnCount - guaranteed.length);
+  const picked  = basePool.slice(0, needed);
+
+  // Les garantis sont toujours présents, peu importe spawnCount
+  const ids = [...new Set([...guaranteed, ...picked])];
+  const pokemonds = [];
+  for(const id of ids) {
+    const pokemon = pokedex[id - 1];
+    for(const g of guaranteed) {
+      if (g === id) {
+        pokemon.isGuaranteed = true;
+        break;
+      }
+    }
+    pokemonds.push(pokemon);
+  }
+  return pokemonds;
+}
+
+setPokedex();
 getBalls();
 if (getUsernameParam() === "Dresseur") setUsernameParam("User" + Math.floor(Math.random() * 10000));

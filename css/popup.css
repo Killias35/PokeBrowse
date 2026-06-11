@@ -278,3 +278,30 @@ body {
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
     border-color: #ffcb05; /* Petit contour jaune Pokédex au survol */
 }
+
+.encounters-grass-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 36px;
+    height: 36px;
+    background: #14532d;
+    border: 2px solid #166534;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 10;
+}
+ 
+.encounters-grass-btn:hover {
+    background: #166534;
+    transform: scale(1.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), 0 0 12px rgba(34, 197, 94, 0.4);
+    border-color: #22c55e;
+}
+ 

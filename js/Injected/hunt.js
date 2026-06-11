@@ -1,5 +1,5 @@
 import { playCry } from "./sound.js";
-import { getPokemon, capturePokemon } from "./utils.js";
+import { getPokemon, capturePokemon, getSpawnsForDomain, getCurrentDomain } from "./utils.js";
 
 const shinyChance = 0.005; // 0.5% de chance d'être shiny
 const maxPokemon = 5;
@@ -22,9 +22,8 @@ async function spawnPokemon() {
     // console.log("Trop de pokemon sur la page. Spawn annulé.");
     return;
   }
-
-  const randomId = Math.floor(Math.random() * 151) + 1;
-  const pokemon = await getPokemon(randomId);
+  const pool = await getSpawnsForDomain(await getCurrentDomain());
+  const pokemon = pool[Math.floor(Math.random() * pool.length)];
   pokemon.isShiny = Math.random() < shinyChance ? true : false;
   pokemonCount++;
   

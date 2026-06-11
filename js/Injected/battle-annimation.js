@@ -1,6 +1,7 @@
 import { playCry, playShiny, playSuspenseSound, playImpactBoom, playWhooshSound, playHitSound, playSfx } from "./sound.js";
 import { startMusic, stopMusic } from '../musique.js';
 import { getVolumesParam } from "../settingsUtils.js";
+import { capturePokemon } from "./utils.js";
 
 const Volumes = await getVolumesParam();
 const GLOBAL_MUSIC_VOLUME = Volumes.musicVolume;
@@ -736,6 +737,7 @@ export async function playCaptureSequence(isCaught, chancePercent, ballObj, poke
     const shakeCount = await phaseShake(isCaught, chancePercent);
 
     if (isCaught) {
+        await capturePokemon(pokemonObj);
         await phaseSuccess(shakeCount);
     } else {
         await phaseEscape(shakeCount);

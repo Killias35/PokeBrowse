@@ -1,5 +1,5 @@
 import { getRemainingTime, getPokeballs } from "./pokeballs.js";
-import { getBalls } from "./utils.js";
+import { getBalls, getSpawnsForDomain } from "./utils.js";
 
 async function getDelaiFromLastSpawn() {
   const lastSpawn = await chrome.storage.local.get("lastSpawn");
@@ -23,43 +23,6 @@ async function setStatusBtnSpawn() {
     btn.textContent = `Apparition dans ${minutesLeft.toFixed(0)} minutes`;
   }
 }
-
-document.getElementById("spawn").addEventListener("click", async () => {
-  const hours = await getDelaiFromLastSpawn();
-  // if (hours <= 0) return; // DEBUG
-  if (hours <= .5) return;
-
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true
-  });
-
-  chrome.tabs.sendMessage(tab.id, {
-    action: "spawnPokemon"
-  });
-
-  await chrome.storage.local.set({
-    lastSpawn: Date.now()
-  });
-
-  setStatusBtnSpawn();
-
-});
-
-document.getElementById("pokedex").addEventListener("click", () => {
-  chrome.tabs.create({
-    url: chrome.runtime.getURL("html/pokedex.html")
-  });
-});
-
-const toggleBtn = document.getElementById("toggleHunt");
-let huntActive = false;
-
-// restore state
-chrome.storage.local.get(["huntActive"], (res) => {
-  huntActive = !!res.huntActive;
-  updateUI();
-});
 
 function updateUI() {
   if (huntActive) {
@@ -106,9 +69,50 @@ async function setBalls() {
   }
 }
 
+const toggleBtn = document.getElementById("toggleHunt");
+let huntActive = false;
+
+// restore state
+chrome.storage.local.get(["huntActive"], (res) => {
+  huntActive = !!res.huntActive;
+  updateUI();
+});
+
+document.getElementById("spawn").addEventListener("click", async () => {
+  const hours = await getDelaiFromLastSpawn();
+  // if (hours <= 0) return; // DEBUG
+  if (hours <= .5) return;
+
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  });
+
+  chrome.tabs.sendMessage(tab.id, {
+    action: "spawnPokemon"
+  });
+
+  await chrome.storage.local.set({
+    lastSpawn: Date.now()
+  });
+
+  setStatusBtnSpawn();
+
+});
+
+document.getElementById("pokedex").addEventListener("click", () => {
+  chrome.tabs.create({
+    url: chrome.runtime.getURL("html/pokedex.html")
+  });
+});
+
 document.getElementById('btn-settings').addEventListener('click', () => {
     // Redirige vers la page des paramètres (vérifie bien le nom de ton fichier)
     window.location.href = 'settings.html';
+});
+
+document.getElementById("btn-encounters").addEventListener("click", () => {
+    window.location.href = "encounterShow.html";
 });
 
 toggleBtn.addEventListener("click", () => {

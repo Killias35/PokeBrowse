@@ -1,6 +1,5 @@
 import { startEncounter, showSplashText, showScore, playCaptureSequence } from "./battle-annimation.js";
 import { getPokeballs, usePokeball } from "./pokeballs.js";
-import { capturePokemon } from "./utils.js";
 import { playCry } from "./sound.js";
 import { startMusic, stopMusic } from '../musique.js';
 import { setHpStatus, triggerPokemonFlee, phaseChoixBall, phaseAffaiblissement, startCaptureMinigame} from "./battle-minigame.js";
@@ -111,7 +110,6 @@ async function lancerSequenceCapture() {
     
         await playCaptureSequence(isCaught, chance, ballChoisie, POKEMON_FIGHTING);
         if (isCaught) {
-            await capturePokemon(POKEMON_FIGHTING);
             if(roll < 1) await showSplashText("Capture critique !", 3000);
             break;
         }
