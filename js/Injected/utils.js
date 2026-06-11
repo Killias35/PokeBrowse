@@ -48,6 +48,14 @@ async function loadSpawnConfig() {
   return config;
 }
 
+function getAllGaranteedSpawns() {
+  const config = loadSpawnConfig();
+  const garanteedSpawns = [];
+  for (const spawns of Object.values(config)) {
+    garanteedSpawns.push(...spawns);
+  }
+}
+
 function domainToSeed(domain) {
   let hash = 5381;
   for (let i = 0; i < domain.length; i++) {
@@ -191,42 +199,48 @@ export async function getSpawnsForDomain(domain) {
   const encoutersTable = await loadSpawnConfig();
   const pokedex = await setPokedex();
   const seed = domainToSeed(domain);
-  const rng  = createRng(seed);
+  const rng = createRng(seed);
 
-  // Nombre de spawns entre 10 et 20, fixe pour ce domaine
-  const spawnCount = 10 + (seed % 11); // 10 + (0..10) = 10..20
+  // Nombre de spawns entre 10 et 20
+  const spawnCount = 10 + (seed % 11);
 
+  // Pokémon garantis pour ce domaine
   const guaranteed = encoutersTable[domain] ?? [];
 
-  const basePool = [];
-  for (let i = 1; i <= pokedex.length; i++) {
-    if (!guaranteed.includes(i)) basePool.push(i);
+  // Tous les Pokémon garantis de tous les domaines
+  const excludedIds = new Set();
+
+  for (const ids of Object.values(encoutersTable)) {
+    for (const id of ids) {
+      excludedIds.add(id);
+    }
   }
 
-  // Shuffle du pool avec le RNG déterministe (Fisher-Yates)
+  // Pool de base sans aucun Pokémon garanti
+  const basePool = [];
+
+  for (let i = 1; i <= pokedex.length; i++) {
+    if (!excludedIds.has(i)) {
+      basePool.push(i);
+    }
+  }
+
+  // Shuffle Fisher-Yates déterministe
   for (let i = basePool.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [basePool[i], basePool[j]] = [basePool[j], basePool[i]];
   }
 
-  // On prend les N premiers du pool mélangé, puis on ajoute les garantis
   const needed = Math.max(0, spawnCount - guaranteed.length);
-  const picked  = basePool.slice(0, needed);
+  const picked = basePool.slice(0, needed);
 
-  // Les garantis sont toujours présents, peu importe spawnCount
+  // Ajout des garantis du domaine
   const ids = [...new Set([...guaranteed, ...picked])];
-  const pokemonds = [];
-  for(const id of ids) {
-    const pokemon = pokedex[id - 1];
-    for(const g of guaranteed) {
-      if (g === id) {
-        pokemon.isGuaranteed = true;
-        break;
-      }
-    }
-    pokemonds.push(pokemon);
-  }
-  return pokemonds;
+
+  return ids.map(id => ({
+    ...pokedex[id - 1],
+    isGuaranteed: guaranteed.includes(id)
+  }));
 }
 
 await setPokedex();
