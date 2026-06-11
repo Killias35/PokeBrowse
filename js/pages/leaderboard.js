@@ -1,27 +1,23 @@
 import { getUserByUsername } from "../API/users.js";
+import { getLeaderboardUnique, getLeaderboardTotal, getLeaderboardShiny } from "../API/leaderboard.js";
 
 const btnSearch = document.getElementById("btn-search-user");
-const btnLeaderboard = document.getElementById("btn-leaderboard-unique");
+const btnLeaderboard = document.getElementById("btn-leaderboard-unique"); // Note : tu peux le renommer btn-leaderboard tout court dans le HTML si tu veux
 
 const searchPanel = document.getElementById("search-panel");
 const leaderboardPanel = document.getElementById("leaderboard-panel");
 
-// Écouteurs d'événements pour les onglets
-btnSearch.addEventListener("click", () => {
-    showPanel("search");
-});
+/* =========================
+   GESTION DES ONGLETS PRINCIPAUX
+========================= */
 
-btnLeaderboard.addEventListener("click", () => {
-    showPanel("leaderboard");
-});
+btnSearch.addEventListener("click", () => showPanel("search"));
+btnLeaderboard.addEventListener("click", () => showPanel("leaderboard"));
 
-// Fonction pour gérer l'affichage des onglets
 function showPanel(type) {
-    // Gestion des boutons
     btnSearch.classList.toggle("active", type === "search");
     btnLeaderboard.classList.toggle("active", type === "leaderboard");
 
-    // Gestion des panneaux (on retire "hidden" et on utilise "active")
     searchPanel.classList.toggle("active", type === "search");
     leaderboardPanel.classList.toggle("active", type === "leaderboard");
 }
@@ -34,15 +30,10 @@ const searchInput = document.getElementById("search-input");
 const searchSubmit = document.getElementById("search-submit");
 const searchResult = document.getElementById("search-result");
 
-searchSubmit.addEventListener("click", () => {
-    onSearchUser();
-});
+searchSubmit.addEventListener("click", onSearchUser);
 
-// Permet aussi de rechercher en appuyant sur "Entrée"
 searchInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-        onSearchUser();
-    }
+    if (e.key === "Enter") onSearchUser();
 });
 
 async function onSearchUser() {
@@ -53,17 +44,13 @@ async function onSearchUser() {
         return;
     }
 
-    // Message d'attente stylisé
-    searchResult.innerHTML = `<div class="loading-msg">⏳ Recherche dans la base de données de Léo...</div>`;
+    searchResult.innerHTML = `<div class="loading-msg">⏳ Recherche dans la base de données...</div>`;
 
     try {
         const user = await getUserByUsername(username);
 
         if (user && user.username) {
-            // Formater la date proprement (ex: 11/06/2026)
             const dateCreation = new Date(user.created_at).toLocaleDateString('fr-FR');
-
-            // Affichage de la carte dresseur
             searchResult.innerHTML = `
                 <div class="trainer-card">
                     <div class="trainer-avatar">🧑‍🚀</div>
@@ -72,7 +59,6 @@ async function onSearchUser() {
                         <p class="trainer-desc">"${user.description || "Aucune description"}"</p>
                         <div class="trainer-stats">
                             <span>📅 Inscrit le : ${dateCreation}</span>
-                            <span>🆔 ID : ${user.identifiant}</span>
                         </div>
                     </div>
                 </div>
@@ -82,24 +68,86 @@ async function onSearchUser() {
         }
     } catch (error) {
         console.error("Erreur de recherche :", error);
-        searchResult.innerHTML = `<div class="error-msg">⚠️ Erreur de connexion au PC réseau.</div>`;
+        searchResult.innerHTML = `<div class="error-msg">⚠️ Erreur de connexion au réseau PC.</div>`;
     }
 }
 
 /* =========================
-   LEADERBOARD
+   LEADERBOARD & SOUS-ONGLETS
 ========================= */
 
-async function loadLeaderboard() {
-    // TODO: À compléter quand tu auras ta fonction API pour le classement global.
-    // En attendant, on peut mettre un message par défaut.
-    const leaderboardList = document.getElementById("leaderboard-list");
-    if(leaderboardList.innerHTML === "") {
-        leaderboardList.innerHTML = `<div class="loading-msg">Chargement du classement mondial...</div>`;
+const lbSubBtns = document.querySelectorAll(".lb-sub-btn");
+const leaderboardList = document.getElementById("leaderboard-list");
+
+// Écouteurs pour les sous-onglets (Unique, Total, Shiny)
+lbSubBtns.forEach(btn => {
+    btn.addEventListener("click", (e) => {
+        // Gérer le style visuel des boutons
+        lbSubBtns.forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        
+        // Charger le bon leaderboard
+        const type = e.target.getAttribute("data-type");
+        loadLeaderboard(type);
+    });
+});
+
+async function loadLeaderboard(type = "unique") {
+    leaderboardList.innerHTML = `<div class="loading-msg">📡 Récupération des données réseau...</div>`;
+
+    try {
+        let response;
+        
+        // Appel à la bonne fonction selon l'onglet
+        if (type === "unique") response = await getLeaderboardUnique();
+        else if (type === "total") response = await getLeaderboardTotal();
+        else if (type === "shiny") response = await getLeaderboardShiny();
+
+        if (response && response.success && response.leaderboard) {
+            leaderboardList.innerHTML = ""; // Vider le chargement
+
+            response.leaderboard.forEach((player, index) => {
+                const rank = index + 1;
+                let rankDisplay = `#${rank}`;
+                
+                // Médailles pour le Top 3
+                if (rank === 1) rankDisplay = "🥇";
+                if (rank === 2) rankDisplay = "🥈";
+                if (rank === 3) rankDisplay = "🥉";
+
+                // Création de la carte
+                const card = document.createElement("div");
+                card.className = "lb-card clickable"; // Ajout de 'clickable' pour le CSS
+                
+                card.innerHTML = `
+                    <div class="lb-rank">${rankDisplay}</div>
+                    <div class="lb-name">${player.username}</div>
+                    <div class="lb-score">${player.score}</div>
+                `;
+
+                // ✨ Fonctionnalité magique : Redirection vers la recherche
+                card.addEventListener("click", () => {
+                    triggerSearchForUser(player.username);
+                });
+
+                leaderboardList.appendChild(card);
+            });
+        } else {
+            leaderboardList.innerHTML = `<div class="error-msg">Aucune donnée trouvée pour ce classement.</div>`;
+        }
+    } catch (error) {
+        console.error("Erreur Leaderboard:", error);
+        leaderboardList.innerHTML = `<div class="error-msg">⚠️ Erreur de connexion aux serveurs.</div>`;
     }
 }
 
+// Fonction pour automatiser la recherche au clic
+function triggerSearchForUser(username) {
+    showPanel("search"); // Basculer sur l'onglet recherche
+    searchInput.value = username; // Remplir l'input
+    onSearchUser(); // Lancer la recherche automatiquement
+}
+
 // Initialisation au lancement
-loadLeaderboard();
-// Afficher le panneau du leaderboard par défaut (vu qu'il a la classe active dans ton HTML)
+loadLeaderboard("unique");
 showPanel("leaderboard");

@@ -22,9 +22,11 @@ async function spawnPokemon() {
     // console.log("Trop de pokemon sur la page. Spawn annulé.");
     return;
   }
-  const pool = await getSpawnsForDomain(await getCurrentDomain());
+  const domaine = await getCurrentDomain();
+  const pool = await getSpawnsForDomain(domaine);
   const pokemon = pool[Math.floor(Math.random() * pool.length)];
   pokemon.isShiny = Math.random() < shinyChance ? true : false;
+  pokemon.domaine = domaine;
   pokemonCount++;
   
   const img = document.createElement("img");

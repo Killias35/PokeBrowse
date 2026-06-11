@@ -1,5 +1,6 @@
 import { getUsernameParam, setUsernameParam, setIdentifiantParam } from "../settingsUtils.js";
 import { getPokedex } from "./pokedex.js";
+import { capturePokemonAPI } from "../API/app.js";
 
 // pokeballs au demarrage
 const POKEBALLS = [
@@ -124,14 +125,13 @@ export async function getPokemon(id) {
 
 // capture un pokemon
 export async function capturePokemon(pokemon) {
-
   const result = await chrome.storage.local.get("collection");
 
   const collection = result.collection || [];
 
   collection.push(pokemon);
-
-  await chrome.storage.local.set({collection});
+  if (await capturePokemonAPI(pokemon.id, pokemon.isShiny, pokemon.domaine))
+    await chrome.storage.local.set({collection});
 }
 
 // charge le pokedex dans le storage

@@ -9,9 +9,13 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Exo 2', sans-serif;
-    background: #05070a; /* Noir presque pur */
+    background: #05070a;
     color: #e5e7eb;
-    height: 100vh;
+    
+    /* Si c'est une popup Chrome, on fixe la même taille que le Pokédex */
+    width: 450px; 
+    height: 580px; 
+    
     overflow: hidden;
     display: flex;
     justify-content: center;
@@ -20,15 +24,15 @@ body {
 
 /* L'ÉCRAN PRINCIPAL (Effet moniteur CRT) */
 .pc-screen {
-    width: 95%;
-    height: 95vh;
-    max-width: 800px; /* Pour ne pas que ça soit trop large sur grand écran */
-    border-radius: 20px;
+    width: 100%; /* Prend toute la largeur de la popup */
+    height: 100%; /* Prend toute la hauteur de la popup */
+    max-width: none; /* Enlève la limite qu'on avait mise */
+    border-radius: 0; /* Optionnel : enlever les bords arrondis pour faire plein écran */
     display: flex;
     flex-direction: column;
     background: #111827;
-    border: 10px solid #374151; /* Cadre plastique du moniteur */
-    box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.5);
+    border: 8px solid #374151; 
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
     position: relative;
     overflow: hidden;
 }
@@ -359,4 +363,63 @@ input:focus {
     padding: 10px;
     font-style: italic;
     animation: simplePulse 1.5s infinite;
+}
+
+/* =========================================
+   SOUS-NAVIGATION LEADERBOARD
+   ========================================= */
+
+.lb-subnav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 5px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.lb-sub-btn {
+    flex: 1;
+    padding: 6px 0;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    font-family: 'Exo 2', sans-serif;
+    transition: all 0.2s;
+}
+
+.lb-sub-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
+
+.lb-sub-btn.active {
+    background: #374151;
+    color: #ffcb05;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+/* =========================================
+   CARTES CLIQUABLES
+   ========================================= */
+
+.lb-card.clickable {
+    cursor: pointer;
+}
+
+.lb-card.clickable:hover {
+    /* Accentue l'effet de survol pour montrer que c'est un bouton */
+    background: linear-gradient(145deg, #283548, #111827);
+    border-color: #3b82f6;
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+}
+
+.lb-card.clickable:active {
+    transform: scale(0.98) translateX(2px);
 }
