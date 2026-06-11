@@ -1,0 +1,149 @@
+body {
+    margin: 0;
+    padding: 0;
+
+    font-family: Arial, Helvetica, sans-serif;
+
+    background: #0b1020;
+    color: #e5e7eb;
+}
+
+/* SCREEN PRINCIPAL */
+.pc-screen {
+    width: 100%;
+    height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+
+    background: linear-gradient(180deg, #0f172a, #020617);
+}
+
+/* HEADER */
+.pc-header {
+    padding: 15px;
+    text-align: center;
+
+    border-bottom: 2px solid #1f2937;
+
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(10px);
+}
+
+.pc-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffcb05;
+}
+
+.pc-subtitle {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* NAV */
+.pc-nav {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    justify-content: center;
+
+    border-bottom: 1px solid #1f2937;
+}
+
+.pc-btn {
+    padding: 8px 12px;
+
+    border-radius: 8px;
+    border: 1px solid #334155;
+
+    background: #1e293b;
+    color: white;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+    font-size: 12px;
+}
+
+.pc-btn:hover {
+    background: #334155;
+    transform: translateY(-1px);
+}
+
+.pc-btn.active {
+    border-color: #ffcb05;
+    box-shadow: 0 0 10px rgba(255, 203, 5, 0.3);
+}
+
+/* CONTENT */
+.pc-content {
+    flex: 1;
+
+    padding: 15px;
+    overflow-y: auto;
+}
+
+/* PANELS */
+.panel {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.panel.active {
+    display: flex;
+}
+
+.panel h2 {
+    font-size: 14px;
+    color: #ffcb05;
+}
+
+/* INPUT */
+input {
+    padding: 8px;
+    border-radius: 6px;
+
+    border: 1px solid #334155;
+
+    background: #0f172a;
+    color: white;
+}
+
+/* LIST */
+#leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* CARD */
+.lb-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 10px;
+
+    border-radius: 8px;
+
+    background: linear-gradient(145deg, #111827, #0b1220);
+
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.lb-rank {
+    color: #ffcb05;
+    font-weight: bold;
+}
+
+.lb-name {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.lb-score {
+    color: #22c55e;
+    font-weight: bold;
+}

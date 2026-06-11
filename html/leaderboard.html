@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon PC - Leaderboard</title>
+
+    <link rel="stylesheet" href="../css/popup.css">
+    <link rel="stylesheet" href="../css/leaderboard.css">
+</head>
+
+<body>
+
+    <div class="pc-screen">
+
+        <!-- HEADER -->
+        <div class="pc-header">
+            <div class="pc-title">📺 Pokémon Storage System</div>
+            <div class="pc-subtitle">Classements & Dresseurs</div>
+        </div>
+
+        <!-- NAV -->
+        <div class="pc-nav">
+
+            <button id="btn-search-user" class="pc-btn">
+                🔎 Rechercher un dresseur
+            </button>
+
+            <button id="btn-leaderboard-unique" class="pc-btn active">
+                🏆 Pokédex Complété
+            </button>
+
+        </div>
+
+        <!-- CONTENT -->
+        <div class="pc-content">
+
+            <div id="search-panel" class="panel hidden">
+
+                <h2>Recherche de dresseur</h2>
+
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="Nom du dresseur..."
+                />
+
+                <button id="search-submit" class="pc-btn">
+                    Rechercher
+                </button>
+
+                <div id="search-result"></div>
+
+            </div>
+
+            <div id="leaderboard-panel" class="panel">
+
+                <h2>🏆 Classement Pokédex Complété</h2>
+
+                <div id="leaderboard-list"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script type="module" src="../js/pages/leaderboard.js"></script>
+
+</body>
+</html>

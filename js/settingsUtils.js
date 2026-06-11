@@ -1,5 +1,10 @@
+function generateUUID() {
+    return crypto.randomUUID();
+}
+
 const defaultSettings = {
     username: "Dresseur",
+    description: "Salut ! Je suis un dresseur de Pokémon !",
     volGlobal: 1.0,
     volMusic: 1.0,
     volSfx: 1.0
@@ -28,10 +33,32 @@ export async function getUsernameParam(){
     return res.username;
 }
 
+export async function getDescriptionParam(){
+    const res = await chrome.storage.local.get(["description"]);
+    if (!res.description) return defaultSettings.description;
+    return res.description;
+}
+
+export async function getIdentifiantParam(){
+    const res = await chrome.storage.local.get(["identifiant"]);
+    if (!res.identifiant) return "";
+    return res.identifiant;
+}
+
 export async function setVolumesParam(volumes){
     await chrome.storage.local.set({volumes});
 }
 
 export async function setUsernameParam(username){
     await chrome.storage.local.set({username});
+}
+
+export async function setDescriptionParam(description){
+    await chrome.storage.local.set({description});
+}
+
+export async function setIdentifiantParam(){
+    const identifiant = await getIdentifiantParam();
+    if(identifiant !== "") return;
+    await chrome.storage.local.set({identifiant: generateUUID()});
 }

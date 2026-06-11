@@ -305,3 +305,45 @@ body {
     border-color: #22c55e;
 }
  
+.leaderboard-btn {
+    position: absolute;
+    top: 60px;
+    left: 15px;
+
+    width: 36px;
+    height: 36px;
+
+    border-radius: 50%;
+    border: 2px solid #ffcb05;
+
+    background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+    color: #ffcb05;
+
+    font-size: 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    box-shadow: 0 0 12px rgba(255, 203, 5, 0.25);
+
+    transition: all 0.2s ease;
+    animation: leaderboardPulse 2.5s infinite;
+}
+
+.leaderboard-btn:hover {
+    transform: scale(1.15) rotate(5deg);
+    box-shadow: 0 0 18px rgba(255, 203, 5, 0.6);
+    background: radial-gradient(circle, #2a3448 0%, #0f172a 100%);
+}
+
+@keyframes leaderboardPulse {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(255, 203, 5, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 18px rgba(255, 203, 5, 0.5);
+    }
+}

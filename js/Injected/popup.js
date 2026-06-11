@@ -1,5 +1,7 @@
 import { getRemainingTime, getPokeballs } from "./pokeballs.js";
 import { getBalls, getSpawnsForDomain } from "./utils.js";
+import { tryRegister } from "../API/users.js";
+import { getUsernameParam, getIdentifiantParam, getDescriptionParam } from "../settingsUtils.js";
 
 async function getDelaiFromLastSpawn() {
   const lastSpawn = await chrome.storage.local.get("lastSpawn");
@@ -115,11 +117,21 @@ document.getElementById("btn-encounters").addEventListener("click", () => {
     window.location.href = "encounterShow.html";
 });
 
+document.getElementById("btn-leaderboard").addEventListener("click", async () => {
+  window.location.href = "leaderboard.html";
+});
+
 toggleBtn.addEventListener("click", () => {
   huntActive = !huntActive;
   updateUI();
   sendState();
 });
+
+
+const username = await getUsernameParam();
+const description = await getDescriptionParam();
+const identifiant = await getIdentifiantParam();
+await tryRegister(username, description, identifiant);
 
 await getBalls();
 await setBalls();

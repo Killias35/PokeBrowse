@@ -1,4 +1,4 @@
-import { getUsernameParam, setUsernameParam } from "../settingsUtils.js";
+import { getUsernameParam, setUsernameParam, setIdentifiantParam } from "../settingsUtils.js";
 import { getPokedex } from "./pokedex.js";
 
 // pokeballs au demarrage
@@ -229,6 +229,7 @@ export async function getSpawnsForDomain(domain) {
   return pokemonds;
 }
 
-setPokedex();
-getBalls();
+await setPokedex();
+await getBalls();
+await setIdentifiantParam();
 if (getUsernameParam() === "Dresseur") setUsernameParam("User" + Math.floor(Math.random() * 10000));
