@@ -127,13 +127,12 @@ toggleBtn.addEventListener("click", () => {
   sendState();
 });
 
+await getBalls();
+await setBalls();
+await setStatusBtnSpawn();
 
 const username = await getUsernameParam();
 const description = await getDescriptionParam();
 const identifiant = await getIdentifiantParam();
 if (!await tryRegister(username, description, identifiant))
   console.log("Already registered or error");
-
-await getBalls();
-await setBalls();
-await setStatusBtnSpawn();
