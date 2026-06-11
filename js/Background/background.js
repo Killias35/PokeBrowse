@@ -81,15 +81,15 @@ async function startMusic(type) {
     try {
       await chrome.runtime.sendMessage({ action: "PLAY_MUSIC", GLOBAL_MUSIC_VOLUME, type });
     } catch (error) {
-        console.error(error);
+        // console.error(error);
     }
 }
 
-function stopMusic() {
+async function stopMusic() {
     try {
-      chrome.runtime.sendMessage({ action: "STOP_MUSIC" });
+      await chrome.runtime.sendMessage({ action: "STOP_MUSIC" });
     } catch (error) {
-        console.error(error);
+        // console.error(error);
     }
 }
 
@@ -102,7 +102,7 @@ async function spawnPokemon() {
     if (!tab?.id) return;
 
     try {
-        chrome.tabs.sendMessage(tab.id, {
+        await chrome.tabs.sendMessage(tab.id, {
             action: "spawnPokemon"
         });
     } catch (error) {
