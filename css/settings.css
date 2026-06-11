@@ -9,8 +9,16 @@
     gap: 15px;
     box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
     /* Protection si le contenu devient trop grand */
-    max-height: 220px;
-    overflow-y: auto;
+}
+
+.confirm{
+    background: #05ff44;
+    color: #111;
+}
+
+.confirm[disabled] {
+    background: #111;
+    color: #05ff44;
 }
 
 .setting-group {

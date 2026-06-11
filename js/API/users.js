@@ -6,7 +6,7 @@ import { API_BASE_URL } from "./app.js";
 
 export async function tryRegister(username, description, identifiant) {
     const user = await getUserByUsername(username);
-    if (user) return false;
+    if (user !== undefined) return false;
     await registerUser(username, description, identifiant);
     return true;
 }
@@ -29,7 +29,7 @@ export async function registerUser(username, description, identifiant) {
         return data;
     }
     catch (error) {
-        console.error(error);
+        // console.error(error);
     }
 }
 
@@ -50,7 +50,7 @@ export async function getUserById(userId) {
         return data;
     }
     catch (error) {
-        console.error(error);
+        // console.error(error);
     }
 }
 
@@ -67,9 +67,29 @@ export async function getUserByUsername(username) {
         return data;
     }
     catch (error) {
-        console.error(error);
+        // console.error(error);
     }
 }
 
+export async function updateUser(username, description, identifiant) {
+    try{
+        const response = await fetch(`${API_BASE_URL}/users/${identifiant}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                description
+            })
+        });
+    
+        const data = await response.json();
+        return data;
+    }
+    catch (error) {
+        // console.error(error);
+    }
+}
 // console.log(await registerUser("kblebg", "je suis un super utilisateur", "test"));
 // console.log(await getUserById(1));

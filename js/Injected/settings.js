@@ -1,8 +1,9 @@
 import { setGlobalVolume } from "./sound.js";
-import { getVolumesParam, getUsernameParam, setVolumesParam, setUsernameParam } from "../settingsUtils.js";
+import { getVolumesParam, getUsernameParam, getDescriptionParam, saveToApiParams, setVolumesParam } from "../settingsUtils.js";
 
 // 2. Récupération des éléments HTML
 const inputUsername = document.getElementById('username');
+const inputDescription = document.getElementById('description');
 const sliderGlobal = document.getElementById('vol-global');
 const sliderMusic = document.getElementById('vol-music');
 const sliderSfx = document.getElementById('vol-sfx');
@@ -11,6 +12,7 @@ const valGlobal = document.getElementById('val-global');
 const valMusic = document.getElementById('val-music');
 const valSfx = document.getElementById('val-sfx');
 
+const btnConfirm = document.getElementById('btn-confirm');
 const btnBack = document.getElementById('btn-back');
 const btnTraining = document.getElementById('btn-training');
 
@@ -19,9 +21,11 @@ async function initSettings() {
     // On vérifie si des paramètres existent déjà dans le localStorage, sinon on prend les valeurs par défaut
     const volumes = await getVolumesParam();
     const username = await getUsernameParam();
+    const description = await getDescriptionParam();
     
     // Appliquer les valeurs aux éléments HTML
     inputUsername.value = username;
+    inputDescription.value = description;
     if(volumes.globalVolume){
         sliderGlobal.value = volumes.globalVolume;
         valGlobal.textContent = volumes.globalVolume;
@@ -56,35 +60,33 @@ async function saveSettings() {
         sfxVolume: sliderSfx.value
     };
     await setVolumesParam(volumes);
-    await setUsernameParam(inputUsername.value);
     await setGlobalVolume();
+    
+    if (await saveToApiParams(inputUsername.value, inputDescription.value)){
+        alert("Les paramètres ont bien été sauvegardés !");
+        btnConfirm.disabled = false;
+    }         
 }
 
 if(inputUsername){
-    // Pour le nom d'utilisateur (sauvegarde quand on tape)
-    inputUsername.addEventListener('input', saveSettings);
-
-    // Pour le volume Global
-    sliderGlobal.addEventListener('input', (e) => {
-        valGlobal.textContent = e.target.value;
-        saveSettings();
+    
+    btnConfirm.addEventListener('click', async () => {
+        btnConfirm.disabled = true;
+        await saveSettings();
     });
 
-    // Pour le volume Musique
-    sliderMusic.addEventListener('input', (e) => {
-        valMusic.textContent = e.target.value;
-        saveSettings();
+    sliderGlobal.addEventListener('input', () => {
+        valGlobal.textContent = sliderGlobal.value;
     });
-
-    // Pour le volume SFX
-    sliderSfx.addEventListener('input', (e) => {
-        valSfx.textContent = e.target.value;
-        saveSettings();
+    sliderMusic.addEventListener('input', () => {
+        valMusic.textContent = sliderMusic.value;
+    });
+    sliderSfx.addEventListener('input', () => {
+        valSfx.textContent = sliderSfx.value;
     });
 
     // 6. Gestion des boutons du bas
     btnBack.addEventListener('click', () => {
-        // Remplace 'index.html' par le nom de ta page principale
         window.location.href = 'popup.html'; 
     });
 

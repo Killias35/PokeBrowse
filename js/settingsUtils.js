@@ -1,3 +1,5 @@
+import { updateUser } from "./API/users.js";
+
 function generateUUID() {
     return crypto.randomUUID();
 }
@@ -61,4 +63,16 @@ export async function setIdentifiantParam(){
     const identifiant = await getIdentifiantParam();
     if(identifiant !== "") return;
     await chrome.storage.local.set({identifiant: generateUUID()});
+}
+
+export async function saveToApiParams(username, description) {
+    const identifiant = await getIdentifiantParam();
+    const ret = await updateUser(username, description, identifiant);
+    if(!ret) {
+        alert("Erreur de connection avec l'API !");
+        return false;
+    }
+    await setUsernameParam(username);
+    await setDescriptionParam(description);
+    return true
 }
