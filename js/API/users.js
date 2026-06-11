@@ -4,14 +4,15 @@ import { API_BASE_URL } from "./app.js";
    REGISTER USER
 ========================= */
 
-export async function tryRegister(username, description, identifiant) {
+export async function tryRegister(image, username, description, identifiant) {
+    console.log("tryRegister", image, username, description, identifiant);
     const user = await getUserByUsername(username);
     if (user !== undefined) return false;
-    await registerUser(username, description, identifiant);
+    await registerUser(image, username, description, identifiant);
     return true;
 }
 
-export async function registerUser(username, description, identifiant) {
+export async function registerUser(image, username, description, identifiant) {
     try{
         const response = await fetch(`${API_BASE_URL}/users/register`, {
             method: "POST",
@@ -19,6 +20,7 @@ export async function registerUser(username, description, identifiant) {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
+                image,
                 username,
                 description,
                 identifiant
@@ -29,7 +31,7 @@ export async function registerUser(username, description, identifiant) {
         return data;
     }
     catch (error) {
-        // console.error(error);
+        console.error(error);
     }
 }
 
@@ -68,11 +70,11 @@ export async function getUserByUsername(username) {
         return user;
     }
     catch (error) {
-        // console.error(error);
+        console.error(error);
     }
 }
 
-export async function updateUser(username, description, identifiant) {
+export async function updateUser(image, username, description, identifiant) {
     try{
         const response = await fetch(`${API_BASE_URL}/users/${identifiant}`, {
             method: "PATCH",
@@ -80,6 +82,7 @@ export async function updateUser(username, description, identifiant) {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
+                image,
                 username,
                 description
             })
@@ -89,7 +92,7 @@ export async function updateUser(username, description, identifiant) {
         return data;
     }
     catch (error) {
-        // console.error(error);
+        console.error(error);
     }
 }
 // console.log(await registerUser("kblebg", "je suis un super utilisateur", "test"));

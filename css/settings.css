@@ -1,83 +1,129 @@
 /* --- CONTENEUR DES PARAMÈTRES --- */
 .settings-container {
-    background: rgba(20, 20, 30, 0.85);
-    border: 2px solid #2a2a3a;
+    background: rgba(15, 23, 42, 0.9);
+    border: 2px solid #334155;
     border-radius: 12px;
-    padding: 15px;
+    padding: 12px; /* Réduit de 18px à 12px */
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
-    /* Protection si le contenu devient trop grand */
+    gap: 10px; /* Réduit de 18px à 10px */
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 5px 15px rgba(0,0,0,0.3);
+    /* On enlève le max-height et le overflow-y pour éviter la scrollbar inutile */
 }
 
-.confirm{
-    background: #05ff44;
-    color: #111;
-}
+/* Scrollbar custom */
+.settings-container::-webkit-scrollbar { width: 6px; }
+.settings-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+.settings-container::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
 
+/* Bouton Confirm spécifique */
+.confirm {
+    background: linear-gradient(145deg, #16a34a, #22c55e);
+    color: white;
+    border: 1px solid #4ade80;
+}
+.confirm:hover { box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); transform: translateY(-2px); }
 .confirm[disabled] {
-    background: #111;
-    color: #05ff44;
+    background: #334155;
+    color: #94a3b8;
+    border-color: #1e293b;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
+/* --- GROUPES ET LABELS --- */
 .setting-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px; /* Réduit de 10px à 4px */
 }
 
 .setting-group label {
-    font-size: 0.85rem;
+    font-size: 0.75rem; /* Légèrement plus petit */
     color: #cbd5e1;
-    font-weight: bold;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.setting-group span {
-    color: #ffcb05; /* Met en valeur la valeur chiffrée */
-}
-
-/* --- CHAMP TEXTE (USERNAME) --- */
-.custom-input {
-    background: #0f172a;
+/* Badge pour les valeurs numériques */
+.val-badge {
+    background: #1e293b;
+    padding: 1px 6px; /* Réduit */
+    border-radius: 6px;
+    color: #ffcb05;
     border: 1px solid #334155;
+    font-family: 'VT323', monospace, sans-serif;
+    font-size: 0.95rem; /* Réduit */
+}
+.image-preview-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#image-preview {
+    width: 35px; /* Réduit de 45px à 35px */
+    height: 35px; /* Réduit de 45px à 35px */
+    border-radius: 8px;
+    border: 2px solid #3b82f6;
+    object-fit: cover;
+    background: #0f172a;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+    flex-shrink: 0;
+}
+
+/* --- CHAMP TEXTE --- */
+.custom-input {
+    flex: 1;
+    background: #0b1020;
+    border: 1px solid #475569;
     color: white;
-    padding: 10px;
+    padding: 7px 10px; /* Réduit pour gagner de la hauteur */
     border-radius: 8px;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 0.85rem; /* Légèrement plus petit */
     outline: none;
-    transition: 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .custom-input:focus {
     border-color: #3b82f6;
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), 0 0 10px rgba(59, 130, 246, 0.4);
 }
 
 /* --- CURSEURS DE VOLUME (SLIDERS) --- */
 .custom-slider {
     width: 100%;
-    height: 6px;
-    background: #334155;
+    height: 6px; /* Réduit de 8px à 6px */
+    background: #1e293b;
     border-radius: 5px;
     outline: none;
+    border: 1px solid #0f172a;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.6);
+    margin-top: 2px;
 }
 
-/* Le petit bouton du slider */
+/* Couleurs spécifiques par slider pour plus de style */
+.global-slider::-webkit-slider-thumb { background: #ffcb05; box-shadow: 0 0 10px rgba(255, 203, 5, 0.6); }
+.music-slider::-webkit-slider-thumb { background: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.6); }
+.sfx-slider::-webkit-slider-thumb { background: #06b6d4; box-shadow: 0 0 10px rgba(6, 182, 212, 0.6); }
+
+/* Bouton du slider (plus petit) */
 .custom-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
+    width: 14px; /* Réduit de 18px à 14px */
+    height: 14px; /* Réduit de 18px à 14px */
     border-radius: 50%;
-    background: #ffcb05;
     cursor: pointer;
-    box-shadow: 0 0 10px rgba(255, 203, 5, 0.5);
-    transition: 0.2s;
+    border: 2px solid white;
+    transition: 0.2s transform cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-
 .custom-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-    background: #fff;
+    transform: scale(1.3);
 }

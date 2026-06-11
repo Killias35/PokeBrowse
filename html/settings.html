@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="../css/settings.css">
 </head>
 <body>
-
     <div class="pokedex">
         <header class="header">
             <h1>⚙️ Paramètres</h1>
@@ -24,34 +23,41 @@
 
             <div class="setting-group">
                 <label for="description">Description</label>
-                <input type="text" id="description" class="custom-input" placeholder="Ex: Dresseur de Pokémon" autocomplete="off">
+                <input type="text" id="description" class="custom-input" placeholder="Ex: Maître de la Ligue" autocomplete="off">
             </div>
 
             <div class="setting-group">
-                <label for="vol-global">Volume Global : <span id="val-global">1.0</span></label>
-                <input type="range" id="vol-global" class="custom-slider" min="0.01" max="1.0" step="0.01">
+                <label for="image">Avatar (Lien image)</label>
+                <div class="image-preview-container">
+                    <img id="image-preview" src="" alt="Aperçu">
+                    <input type="text" id="image" class="custom-input" placeholder="URL de l'image..." autocomplete="off">
+                </div>
             </div>
 
             <div class="setting-group">
-                <label for="vol-music">Volume Musique : <span id="val-music">1.0</span></label>
-                <input type="range" id="vol-music" class="custom-slider" min="0.01" max="1.0" step="0.01">
+                <label for="vol-global">Volume Global : <span id="val-global" class="val-badge">1.0</span></label>
+                <input type="range" id="vol-global" class="custom-slider global-slider" min="0.01" max="1.0" step="0.01">
             </div>
 
             <div class="setting-group">
-                <label for="vol-sfx">Volume SFX : <span id="val-sfx">1.0</span></label>
-                <input type="range" id="vol-sfx" class="custom-slider" min="0.01" max="1.0" step="0.01">
+                <label for="vol-music">Volume Musique : <span id="val-music" class="val-badge">1.0</span></label>
+                <input type="range" id="vol-music" class="custom-slider music-slider" min="0.01" max="1.0" step="0.01">
+            </div>
+
+            <div class="setting-group">
+                <label for="vol-sfx">Volume SFX : <span id="val-sfx" class="val-badge">1.0</span></label>
+                <input type="range" id="vol-sfx" class="custom-slider sfx-slider" min="0.01" max="1.0" step="0.01">
             </div>
 
         </div>
 
-        <div class="menu" style="margin-top: 20px;">
+        <div class="menu" style="margin-top: 10px;">
             <button id="btn-confirm" class="action-btn confirm">
                 ✔️ Enregistrer
             </button>
             <button id="btn-training" class="action-btn primary">
                 💪 Mode Entraînement
             </button>
-
             <button id="btn-back" class="action-btn closed">
                 ⬅️ Retour au menu
             </button>

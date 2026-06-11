@@ -7,6 +7,7 @@ function generateUUID() {
 const defaultSettings = {
     username: "Dresseur",
     description: "Salut ! Je suis un dresseur de Pokémon !",
+    image: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
     volGlobal: 1.0,
     volMusic: 1.0,
     volSfx: 1.0
@@ -27,6 +28,12 @@ export async function getVolumesParam() {
     }
 
     return res.volumes;
+}
+
+export async function getImageParam(){
+    const res = await chrome.storage.local.get(["image"]);
+    if (!res.image) return defaultSettings.image;
+    return res.image;
 }
 
 export async function getUsernameParam(){
@@ -51,6 +58,10 @@ export async function setVolumesParam(volumes){
     await chrome.storage.local.set({volumes});
 }
 
+export async function setImageParam(image){
+    await chrome.storage.local.set({image});
+}
+
 export async function setUsernameParam(username){
     await chrome.storage.local.set({username});
 }
@@ -65,13 +76,15 @@ export async function setIdentifiantParam(){
     await chrome.storage.local.set({identifiant: generateUUID()});
 }
 
-export async function saveToApiParams(username, description) {
+export async function saveToApiParams(image, username, description) {
     const identifiant = await getIdentifiantParam();
-    const ret = await updateUser(username, description, identifiant);
+    const ret = await updateUser(image, username, description, identifiant);
     if(!ret) {
         alert("Erreur de connection avec l'API !");
         return false;
     }
+
+    await setImageParam(image);
     await setUsernameParam(username);
     await setDescriptionParam(description);
     return true

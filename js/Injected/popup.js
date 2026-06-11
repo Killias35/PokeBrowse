@@ -1,7 +1,7 @@
 import { getRemainingTime, getPokeballs } from "./pokeballs.js";
 import { getBalls, getSpawnsForDomain } from "./utils.js";
 import { tryRegister } from "../API/users.js";
-import { getUsernameParam, getIdentifiantParam, getDescriptionParam } from "../settingsUtils.js";
+import { getImageParam, getUsernameParam, getIdentifiantParam, getDescriptionParam } from "../settingsUtils.js";
 
 async function getDelaiFromLastSpawn() {
   const lastSpawn = await chrome.storage.local.get("lastSpawn");
@@ -131,8 +131,9 @@ await getBalls();
 await setBalls();
 await setStatusBtnSpawn();
 
+const image = await getImageParam();
 const username = await getUsernameParam();
 const description = await getDescriptionParam();
 const identifiant = await getIdentifiantParam();
-if (!await tryRegister(username, description, identifiant))
+if (!await tryRegister(image, username, description, identifiant))
   console.log("Already registered or error");
