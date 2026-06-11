@@ -2,7 +2,7 @@ import { getVolumesParam } from '../settingsUtils.js';
 
 let creatingOffscreen;
 
-const MaxTimeBeforeSpawn = .001 * 60 * 1000;  // 10 minutes, /2 = moyenne, 1 pokemon par 5 minutes
+const MaxTimeBeforeSpawn = 10 * 60 * 1000;  // 10 minutes, /2 = moyenne, 1 pokemon par 5 minutes
 let setHunt = false;
 
 let offscreenReady = false;
