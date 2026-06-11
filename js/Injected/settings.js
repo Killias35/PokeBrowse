@@ -22,7 +22,6 @@ async function initSettings() {
     
     // Appliquer les valeurs aux éléments HTML
     inputUsername.value = username;
-    console.log(volumes);
     if(volumes.globalVolume){
         sliderGlobal.value = volumes.globalVolume;
         valGlobal.textContent = volumes.globalVolume;

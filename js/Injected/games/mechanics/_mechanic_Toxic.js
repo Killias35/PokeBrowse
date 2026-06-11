@@ -45,8 +45,6 @@ export function _mechanic_Toxic(cfg, difficulty, state) {
         lastCenterX  = cx;
         lastCenterY  = cy;
 
-        console.log("Spawn anneau:", MARGIN, state.ARENA_W - MARGIN, lastCenterX + Math.cos(angle) * dist);
-
         // Indicateur du centre (point cible)
         const dotEl  = document.createElement("div");
         dotEl.style.cssText = `

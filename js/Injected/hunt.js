@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 async function spawnPokemon() {
   if (document.visibilityState !== 'visible') {
-        console.log("Le dresseur n'est pas sur la page. Spawn annulé.");
+        //nconsole.log("Le dresseur n'est pas sur la page. Spawn annulé.");
         return;
   }
   else if (pokemonCount >= maxPokemon) {
@@ -81,5 +81,3 @@ async function spawnPokemon() {
   playCry(pokemon);
   console.log(`Un ${pokemon.name} sauvage est apparu !`);
 }
-
-console.log("Hunt loaded");

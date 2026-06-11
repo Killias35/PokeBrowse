@@ -2,7 +2,6 @@ import { getPokemon, setPokedex, getSpawnsForDomain, getCurrentDomainFromTab } f
 import { isCaptured } from "./pokedex.js";
 
 function buildCard(pokemon, isGuaranteed, unlocked) {
-    console.log(pokemon);
     const card = document.createElement("div");
     card.className = `enc-card${unlocked ? "" : " locked"}`;
 

@@ -81,7 +81,6 @@ export function _mechanic_Mur_de_Fer(cfg, difficulty, state) {
         lastSide        = pickNextSide(side, step++);
         step            += 1;
 
-        console.log(delay);
         _addTimeout(() => spawnWall(delay), delay);
         await playStrike(side, rect, previewMs, activeMs, retractMs, step, duration);
     }
