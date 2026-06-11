@@ -64,7 +64,8 @@ export async function getUserByUsername(username) {
         });
     
         const data = await response.json();
-        return data;
+        const user = data.user;
+        return user;
     }
     catch (error) {
         // console.error(error);
