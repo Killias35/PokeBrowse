@@ -68,17 +68,19 @@ async function saveSettings() {
     
     await setVolumesParam(volumes);
     await setGlobalVolume(); // Applique le volume
+    const volumesParam = await getVolumesParam();
+    const GLOBAL_MUSIC_VOLUME = volumesParam.musicVolume * volumesParam.globalVolume;
+    await chrome.runtime.sendMessage({ action: "RELOAD_MUSIC", GLOBAL_MUSIC_VOLUME, type: "hunt" });
     
     try {
         if (await saveToApiParams(inputImage.value, inputUsername.value, inputDescription.value)){
             // Changer le texte du bouton temporairement pour confirmer
-            const originalText = btnConfirm.innerHTML;
             btnConfirm.innerHTML = "✅ Sauvegardé !";
             btnConfirm.classList.remove('confirm');
             
             setTimeout(() => {
                 btnConfirm.disabled = false;
-                btnConfirm.innerHTML = originalText;
+                btnConfirm.innerHTML = "✔️ Enregistrer";
                 btnConfirm.classList.add('confirm');
             }, 1500);
         } else {

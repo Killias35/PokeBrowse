@@ -77,7 +77,7 @@ async function getHunt() {
 async function startMusic(type) {
     await setupOffscreenDocument();
     const volumesParam = await getVolumesParam();
-    const GLOBAL_MUSIC_VOLUME = volumesParam.musicVolume || 0.1;
+    const GLOBAL_MUSIC_VOLUME = volumesParam.musicVolume * volumesParam.globalVolume;
     try {
       await chrome.runtime.sendMessage({ action: "PLAY_MUSIC", GLOBAL_MUSIC_VOLUME, type });
     } catch (error) {

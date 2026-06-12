@@ -1,6 +1,6 @@
 import { getVolumesParam } from './settingsUtils.js';
 
-let Music = null;
+export let Music = null;
 
 export async function startMusic(type, loop = true, GLOBAL_MUSIC_VOLUME = .3) {
     stopMusic();
@@ -30,7 +30,7 @@ export async function startMusic(type, loop = true, GLOBAL_MUSIC_VOLUME = .3) {
     );
 
     Music.loop = loop;
-    Music.volume = GLOBAL_MUSIC_VOLUME *.1;
+    Music.volume = GLOBAL_MUSIC_VOLUME *.5;
 
     Music.play().catch(err => {
         console.error("Impossible de lancer la musique :", err);
