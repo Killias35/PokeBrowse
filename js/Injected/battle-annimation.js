@@ -48,10 +48,10 @@ function spawnParticles(rarity, containerId = "particles-container") {
     }
 }
 
-function spawnShinyStars(starCount = 35) {
+async function spawnShinyStars(starCount = 35) {
     const container = document.getElementById("particles-container");
     if (!container) return;
-    playShiny(); // Joue le son de capture Shiny
+    await playShiny(); // Joue le son de capture Shiny
 
     // S'assurer que le conteneur lui-même n'est pas bloqué derrière
     container.style.zIndex = "999"; 
@@ -185,7 +185,7 @@ export async function startEncounter(pokemon) {
     // Les étincelles
     spawnParticles(rarity);
     if (isShiny) {
-        spawnShinyStars(35 * shakeLevel);
+        await spawnShinyStars(35 * shakeLevel);
     }
     // Disparition de l'ombre
     shadow.classList.remove("shadow-enter");

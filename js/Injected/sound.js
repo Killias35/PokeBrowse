@@ -61,7 +61,8 @@ export async function playSfx(name) {
     clone.play().catch(() => {});
 }
 
-export function playShiny() {  // Bruit d'étoile
+export async function playShiny() {  // Bruit d'étoile
+    await ensureVolumes();
     if(!ctx) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
@@ -72,7 +73,7 @@ export function playShiny() {  // Bruit d'étoile
     const frequencies = [1046.50, 1318.51, 1567.98, 2093.00, 2637.02, 3135.96];
     
     // --- RÉGLAGE DU VOLUME MAXIMUM (Entre 0.1 et 1.0) ---
-    const maxVolume = GLOBAL_SFX_VOLUME * 0.5; 
+    const maxVolume = GLOBAL_SFX_VOLUME; 
 
     frequencies.forEach((freq, index) => {
         // On accélère un poil le rythme (50ms au lieu de 60ms) pour cumuler la puissance des notes

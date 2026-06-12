@@ -1,5 +1,5 @@
 import { getPokedex, loadCollection, freePokemons } from "../Injected/pokedex.js";
-
+import { playShiny } from "../Injected/sound.js";
 
 // --- MISE À JOUR DU BADGE ---
 function updateBadge(percent) {
@@ -71,9 +71,9 @@ async function init() {
             const imgEl = card.querySelector(".pkmn-img");
             const shinyBtn = card.querySelector(".shiny-toggle");
 
-            shinyBtn.addEventListener("click", () => {
+            shinyBtn.addEventListener("click", async () => {
                 showingShiny = !showingShiny;
-                if (showingShiny) playShiny(); 
+                if (showingShiny) await playShiny(); 
                 imgEl.style.transform = "scale(0)";
                 setTimeout(() => {
                     imgEl.src = showingShiny ? shinySprite : normalSprite;

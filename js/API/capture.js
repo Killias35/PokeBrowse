@@ -1,6 +1,6 @@
 import { API_BASE_URL } from "./app.js";
 
-export async function capturePokemon(identifiant, pokemonId, isShiny, domainName) {
+export async function capturePokemon(username, identifiant, pokemonId, isShiny, domainName) {
     try{
         const response = await fetch(`${API_BASE_URL}/pokemon/capture`, {
             method: "POST",
@@ -8,6 +8,7 @@ export async function capturePokemon(identifiant, pokemonId, isShiny, domainName
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
+                username,
                 identifiant,
                 pokemonId,
                 isShiny,
@@ -24,10 +25,32 @@ export async function capturePokemon(identifiant, pokemonId, isShiny, domainName
     }
 }
 
-export async function freePokemonsAPI(identifiants) {
+export async function freePokemonsAPI(username, identifiant) {
     try{
-        const response = await fetch(`${API_BASE_URL}/pokemon/free/${identifiants}`, {
+        const response = await fetch(`${API_BASE_URL}/pokemon/free/`, {
             method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                identifiant
+            })
+        });
+    
+        const data = await response.json();
+        return data;
+    }
+    catch (error) {
+        // console.error(error);
+        return {success: false};
+    }
+}
+
+export async function getCaptures(username){
+    try{
+        const response = await fetch(`${API_BASE_URL}/pokemon/capture/${username}`, {
+            method: "GET",
             headers: {
                 "Content-Type": "application/json"
             }
@@ -38,6 +61,6 @@ export async function freePokemonsAPI(identifiants) {
     }
     catch (error) {
         // console.error(error);
-        return {success: false};
+        return {success: false, message: error.message};
     }
 }
