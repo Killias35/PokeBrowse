@@ -77,12 +77,14 @@ export async function setIdentifiantParam(){
 }
 
 export async function saveToApiParams(image, username, description) {
+    console.log("saveToApiParams", image, username, description);
     const identifiant = await getIdentifiantParam();
     const ret = await updateUser(image, username, description, identifiant);
     if(!ret) {
         alert("Erreur de connection avec l'API !");
         return false;
     }
+    console.log(ret);
 
     await setImageParam(image);
     await setUsernameParam(username);

@@ -423,3 +423,57 @@ input:focus {
 .lb-card.clickable:active {
     transform: scale(0.98) translateX(2px);
 }
+
+/* =========================================
+   IMAGE AVATAR
+   ========================================= */
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Permet à l'image de remplir le cercle sans s'écraser */
+    border-radius: 50%; /* Rend l'image parfaitement ronde */
+}
+
+/* Assure-toi que .trainer-avatar n'a pas de padding qui écraserait l'image */
+.trainer-avatar {
+    /* Tu as déjà ces propriétés, ajoute juste overflow: hidden si besoin */
+    overflow: hidden; 
+}
+
+/* =========================================
+   AVATAR DANS LE LEADERBOARD
+   ========================================= */
+
+.lb-card {
+    /* Si tu ne l'as pas déjà, ajoute ceci pour bien aligner le tout : */
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    /* ...garde tes autres propriétés comme le background, border, etc. */
+}
+
+.lb-avatar-wrapper {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid #3b82f6; /* Petit contour bleu style holo */
+    background: #0f172a;
+    flex-shrink: 0; /* Empêche l'image de s'écraser si le nom est long */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lb-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Remplit parfaitement le cercle */
+}
+
+/* Optionnel : ajuste la largeur du rang pour que les images soient toutes bien alignées verticalement */
+.lb-rank {
+    width: 35px;
+    text-align: center;
+    font-weight: bold;
+}

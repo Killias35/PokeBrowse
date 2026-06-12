@@ -48,12 +48,19 @@ async function onSearchUser() {
 
     try {
         const user = await getUserByUsername(username);
-
+        console.log(user);
         if (user && user.username) {
             const dateCreation = new Date(user.created_at).toLocaleDateString('fr-FR');
+            
+            // On définit l'image par défaut (Pikachu) si user.image est vide
+            const DEFAULT_AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
+            const avatarUrl = user.image ? user.image : DEFAULT_AVATAR;
+
             searchResult.innerHTML = `
                 <div class="trainer-card">
-                    <div class="trainer-avatar">🧑‍🚀</div>
+                    <div class="trainer-avatar">
+                        <img src="${avatarUrl}" alt="Avatar" class="avatar-img" onerror="this.src='${DEFAULT_AVATAR}'">
+                    </div>
                     <div class="trainer-info">
                         <h3>${user.username} <span class="trainer-id">#${user.id}</span></h3>
                         <p class="trainer-desc">"${user.description || "Aucune description"}"</p>
@@ -115,17 +122,25 @@ async function loadLeaderboard(type = "unique") {
                 if (rank === 2) rankDisplay = "🥈";
                 if (rank === 3) rankDisplay = "🥉";
 
+                // Gestion de l'avatar avec le Pikachu par défaut
+                const DEFAULT_AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
+                const avatarUrl = player.image ? player.image : DEFAULT_AVATAR;
+
                 // Création de la carte
                 const card = document.createElement("div");
-                card.className = "lb-card clickable"; // Ajout de 'clickable' pour le CSS
+                card.className = "lb-card clickable"; 
                 
+                // On ajoute l'image juste après le rang
                 card.innerHTML = `
                     <div class="lb-rank">${rankDisplay}</div>
+                    <div class="lb-avatar-wrapper">
+                        <img src="${avatarUrl}" alt="Avatar" class="lb-avatar-img" onerror="this.src='${DEFAULT_AVATAR}'">
+                    </div>
                     <div class="lb-name">${player.username}</div>
                     <div class="lb-score">${player.score}</div>
                 `;
 
-                // ✨ Fonctionnalité magique : Redirection vers la recherche
+                // Redirection vers la recherche
                 card.addEventListener("click", () => {
                     triggerSearchForUser(player.username);
                 });
