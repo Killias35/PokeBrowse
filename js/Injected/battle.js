@@ -32,8 +32,8 @@ function calculateFleeSiccess(puissance, resistance) {
 }
 
 function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
-    let baseSkill = Math.min(100, Math.round((puissance + capture) /2 * ballPower));
-    let finalChance = baseSkill - resistance;
+    let baseSkill = Math.min(100, Math.round((puissance + capture) /2));
+    let finalChance = (baseSkill - resistance) * ballPower;
 
     if (finalChance > 100) finalChance = 100;
     if (finalChance < 0) finalChance = 0;
