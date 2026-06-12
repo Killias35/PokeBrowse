@@ -1,4 +1,4 @@
-import { getPokedex, loadCollection } from "./pokedex.js";
+import { getPokedex, loadCollection, freePokemons } from "../Injected/pokedex.js";
 
 
 // --- MISE À JOUR DU BADGE ---
@@ -183,8 +183,7 @@ function openPokemonModal(pokemon, isCaught, hasShiny) {
 document.getElementById("reset-collection").addEventListener("click", async () => {
     const confirmation = confirm("⚠️ Es-tu sûr de vouloir relâcher tous tes Pokémon ? Cette action est définitive !");
     if (confirmation) {
-        await chrome.storage.local.set({ collection: [] });
-        alert("Tous les Pokémon ont été relâchés dans la nature !");
+        await freePokemons();
         location.reload();
     }
 });

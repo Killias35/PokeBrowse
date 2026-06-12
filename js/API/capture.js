@@ -23,3 +23,21 @@ export async function capturePokemon(identifiant, pokemonId, isShiny, domainName
         return {success: false};
     }
 }
+
+export async function freePokemonsAPI(identifiants) {
+    try{
+        const response = await fetch(`${API_BASE_URL}/pokemon/free/${identifiants}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+    
+        const data = await response.json();
+        return data;
+    }
+    catch (error) {
+        // console.error(error);
+        return {success: false};
+    }
+}

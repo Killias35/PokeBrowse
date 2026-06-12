@@ -1,4 +1,6 @@
 import { playShiny } from "./sound.js";
+import { freePokemonsAPI } from "../API/capture.js";
+import { getIdentifiantParam } from "../settingsUtils.js";
 
 export async function getPokedex() {
     const result = await chrome.storage.local.get("pokedex");
@@ -31,4 +33,15 @@ export async function isCaptured(pokemonId) {
     // return true; // DEBUG
     const collection = await loadCollection();
     return !!collection[pokemonId];
+}
+
+export async function freePokemons(){
+    const identifiant = await getIdentifiantParam();
+    const ret = await freePokemonsAPI(identifiant);
+    console.log(ret);
+    if(ret.success == true) {
+        await chrome.storage.local.remove("collection");
+        alert("Tous les Pokémon ont été relâchés dans la nature !");
+
+    }
 }
