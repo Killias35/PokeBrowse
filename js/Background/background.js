@@ -2,7 +2,7 @@ import { getVolumesParam } from '../settingsUtils.js';
 
 let creatingOffscreen;
 
-const MaxTimeBeforeSpawn = 10 * 60 * 1000;  // 10 minutes, /2 = moyenne, 1 pokemon par 5 minutes
+const MaxTimeBeforeSpawn = 60 * 1000;  // 1 minutes, /2 = moyenne, 1 pokemon par 30 secondes
 let setHunt = false;
 
 let offscreenReady = false;
@@ -110,18 +110,18 @@ async function spawnPokemon() {
     }
 }
 
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+    if (alarm.name === "pokemonSpawn") {
+        await spawnPokemon();
+
+        chrome.alarms.create("pokemonSpawn", {
+            delayInMinutes: Math.random()
+        });
+    }
+});
+
 
 getHunt();
-
-function loop() {                               // spawn moyen: 5 minutes
-  const delay = Math.random() * MaxTimeBeforeSpawn; // en ms
-
-  setTimeout(async () => {
-    if (setHunt) {
-      await spawnPokemon();
-    }
-    loop();
-  }, delay);
-}
-
-loop();
+chrome.alarms.create("pokemonSpawn", {
+    delayInMinutes: 0.5
+});
