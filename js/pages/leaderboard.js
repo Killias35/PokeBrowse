@@ -64,7 +64,7 @@ async function onSearchUser() {
             searchResult.innerHTML = `
                 <div class="trainer-card">
                     <div class="trainer-avatar">
-                        <img src="${avatarUrl}" alt="Avatar" class="avatar-img" onerror="this.src='${DEFAULT_AVATAR}'">
+                        <img src="${avatarUrl}" alt="Avatar" class="avatar-img">
                     </div>
                     <div class="trainer-info">
                         <h3>${user.username} <span class="trainer-id">#${user.id}</span></h3>
@@ -110,7 +110,7 @@ async function loadAllUsers() {
 
                 card.innerHTML = `
                     <div class="lb-avatar-wrapper">
-                        <img src="${avatarUrl}" alt="Avatar" class="lb-avatar-img" onerror="this.src='${DEFAULT_AVATAR}'">
+                        <img src="${avatarUrl}" alt="Avatar" class="lb-avatar-img">
                     </div>
                     <div class="us-info">
                         <span class="us-name">${user.username}</span>
@@ -181,7 +181,7 @@ async function loadLeaderboard(type = "unique") {
                 card.innerHTML = `
                     <div class="lb-rank">${rankDisplay}</div>
                     <div class="lb-avatar-wrapper">
-                        <img src="${avatarUrl}" alt="Avatar" class="lb-avatar-img" onerror="this.src='${DEFAULT_AVATAR}'">
+                        <img src="${avatarUrl}" alt="Avatar" class="lb-avatar-img">
                     </div>
                     <div class="lb-name">${player.username}</div>
                     <div class="lb-score">${player.score}</div>
