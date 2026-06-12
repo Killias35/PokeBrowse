@@ -94,6 +94,8 @@ async function stopMusic() {
 }
 
 async function spawnPokemon() {
+    await getHunt();
+    if(!setHunt) return;
     const [tab] = await chrome.tabs.query({
         active: true,
         currentWindow: true
