@@ -1,37 +1,28 @@
 import { getVolumesParam } from '../settingsUtils.js';
 
-let creatingOffscreen;
-
-const MaxTimeBeforeSpawn = 60 * 1000;  // 1 minutes, /2 = moyenne, 1 pokemon par 30 secondes
-let setHunt = false;
-
 let offscreenReady = false;
 
-
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  (async () => {
     if (msg.action === "OFFSCREEN_READY") {
-      offscreenReady = true;
-    }
-    else if(msg.action === "setHunt") {
-        setHunt = msg.value;
-
-        if (setHunt) {
-        startMusic("hunt");
+        offscreenReady = true;
+    } 
+    else if (msg.action === "setHunt") {
+        // Le popup (ou content script) modifie l'état de la chasse
+        const huntActive = msg.value;
+        if (huntActive) {
+            startMusic("hunt");
         } else {
-        stopMusic();
+            stopMusic();
         }
-    }
+        chrome.storage.local.set({ huntActive });
+    } 
     else if (msg.action === "START_BATTLE") {
-        chrome.storage.local.set({
-            currentBattlePokemon: msg.pokemon
-        });
-
+        chrome.storage.local.set({ currentBattlePokemon: msg.pokemon });
+        chrome.storage.local.set({ huntActive: false });
         stopMusic();
     }
-  })();
-
-  return false;
+    // Indique à Chrome qu'on gère la réponse de manière asynchrone si besoin
+    return false;
 });
 
 async function setupOffscreenDocument() {
@@ -46,9 +37,9 @@ async function setupOffscreenDocument() {
         justification: "Musique Pokémon"
     });
 
-    await new Promise((resolve, reject) => {
+    // On attend que l'offscreen signale qu'il est prêt
+    return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
-            console.error("Offscreen jamais prêt — OFFSCREEN_READY non reçu");
             reject(new Error("Offscreen timeout"));
         }, 3000);
 
@@ -62,68 +53,74 @@ async function setupOffscreenDocument() {
     });
 }
 
-
-async function getHunt() {
-    if (!chrome.storage?.local) {
-        console.error("chrome.storage.local indisponible");
-        return;
-    }
+// Fonction utilitaire dédiée uniquement à vérifier l'état de la chasse
+async function isHuntActive() {
     const result = await chrome.storage.local.get("huntActive");
-    setHunt = result.huntActive || false;
-
-    if (setHunt) startMusic("hunt");
+    return result.huntActive || false;
 }
 
 async function startMusic(type) {
-    await setupOffscreenDocument();
-    const volumesParam = await getVolumesParam();
-    const GLOBAL_MUSIC_VOLUME = volumesParam.musicVolume * volumesParam.globalVolume;
     try {
-      await chrome.runtime.sendMessage({ action: "PLAY_MUSIC", GLOBAL_MUSIC_VOLUME, type });
+        await setupOffscreenDocument();
+        const volumesParam = await getVolumesParam() || {};
+        
+        // Sécurisation des variables avec valeurs par défaut
+        const volMusic = volumesParam.musicVolume !== undefined ? volumesParam.musicVolume : 1.0;
+        const volGlobal = volumesParam.globalVolume !== undefined ? volumesParam.globalVolume : 1.0;
+        const GLOBAL_MUSIC_VOLUME = volMusic * volGlobal;
+        
+        await chrome.runtime.sendMessage({ action: "PLAY_MUSIC", GLOBAL_MUSIC_VOLUME, type });
     } catch (error) {
-        // console.error(error);
+        console.error("Erreur lancement musique:", error);
     }
 }
 
 async function stopMusic() {
     try {
-      await chrome.runtime.sendMessage({ action: "STOP_MUSIC" });
+        await chrome.runtime.sendMessage({ action: "STOP_MUSIC" });
     } catch (error) {
-        // console.error(error);
+        console.error("Erreur arrêt musique:", error);
     }
 }
 
 async function spawnPokemon() {
-    await getHunt();
-    if(!setHunt) return;
-    const [tab] = await chrome.tabs.query({
+    // On lit l'état depuis le storage SANS relancer la musique
+    const active = await isHuntActive();
+    if (!active) return;
+
+    const tabs = await chrome.tabs.query({
         active: true,
         currentWindow: true
     });
 
-    if (!tab?.id) return;
+    if (!tabs || !tabs[0]?.id) return;
 
     try {
-        await chrome.tabs.sendMessage(tab.id, {
+        await chrome.tabs.sendMessage(tabs[0].id, {
             action: "spawnPokemon"
         });
     } catch (error) {
-        // pas de hunt.js active
+        // Ignoré : le content script n'est pas actif sur cette page (ex: page de paramètres Chrome)
     }
 }
+
+// --- GESTION DES ALARMES ---
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === "pokemonSpawn") {
         await spawnPokemon();
 
+        // On recrée l'alarme avec un délai minimum pour éviter le spam (ex: min 0.3 min + random)
+        const delay = 0.1 + Math.random(); 
         chrome.alarms.create("pokemonSpawn", {
-            delayInMinutes: Math.random()
+            delayInMinutes: delay
         });
     }
 });
 
-
-getHunt();
-chrome.alarms.create("pokemonSpawn", {
-    delayInMinutes: 0.5
+// À l'initialisation ou au réveil du Service Worker, on s'assure que l'alarme tourne
+chrome.alarms.get("pokemonSpawn", (alarm) => {
+    if (!alarm) {
+        chrome.alarms.create("pokemonSpawn", { delayInMinutes: Math.random() });
+    }
 });

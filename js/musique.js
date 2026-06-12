@@ -1,10 +1,12 @@
 import { getVolumesParam } from './settingsUtils.js';
 
 export let Music = null;
+export let lastMusicIndex = null;
 
-export async function startMusic(type, loop = true, GLOBAL_MUSIC_VOLUME = .3) {
+export async function startMusic(type, loop = true, GLOBAL_MUSIC_VOLUME = .3, i = null) {
     stopMusic();
     let nbMusic = 4;
+    lastMusicIndex = i;
     let path = "routes";
     if (type === "hunt") {
         path = "routes";
@@ -23,8 +25,9 @@ export async function startMusic(type, loop = true, GLOBAL_MUSIC_VOLUME = .3) {
         nbMusic = 0;
     }
 
-    const randomMusic = Math.floor(Math.random() * nbMusic);
-    
+    let randomMusic = Math.floor(Math.random() * nbMusic);
+    if(lastMusicIndex) randomMusic = lastMusicIndex;
+
     Music = new Audio(
         chrome.runtime.getURL(`assets/${path}/${randomMusic}.mp3`)
     );
