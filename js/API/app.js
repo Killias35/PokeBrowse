@@ -1,7 +1,7 @@
 import { capturePokemon } from "./capture.js";
 import { getIdentifiantParam, getUsernameParam } from "../settingsUtils.js";
 
-export const API_BASE_URL = "http://localhost:3000";
+export const API_BASE_URL = "http://157.180.75.205:3000";
 
 
 export async function capturePokemonAPI(pokemonId, isShiny, domainName){
