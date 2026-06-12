@@ -79,6 +79,15 @@ async function startDefenseMinigame(pokemon, baseDifficulty) {
     return minigameResult;
 }
 
+async function closeTabAfter20s() {
+    const tab = await chrome.tabs.getCurrent();
+
+    if (!tab?.id) return;
+    setTimeout(() => {
+        chrome.tabs.remove(tab.id);
+    }, 20000);
+}
+
 async function lancerSequenceCapture() {
     const config = RARITY_SETTINGS[POKEMON_FIGHTING.rarity];
     const baseDifficulty = config.defenseDifficulty;
@@ -123,6 +132,7 @@ async function lancerSequenceCapture() {
         };
     }
 
+    await closeTabAfter20s();
 }
 
 chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
