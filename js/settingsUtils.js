@@ -91,3 +91,17 @@ export async function saveToApiParams(image, username, description) {
     await setDescriptionParam(description);
     return true
 }
+
+export async function deleteSettings() {    // Deconnecter
+    await chrome.storage.local.remove("volumes");
+    await chrome.storage.local.remove("image");
+    await chrome.storage.local.remove("username");
+    await chrome.storage.local.remove("identifiant");
+    await chrome.storage.local.remove("description");
+    await chrome.storage.local.remove("collection");
+    await chrome.storage.local.remove("huntActive");
+    await chrome.storage.local.remove("pokeballs");
+    await chrome.storage.local.remove("pokedex");
+    await chrome.storage.local.remove("currentBattlePokemon");
+    console.log("Paramètres supprimés.");
+}

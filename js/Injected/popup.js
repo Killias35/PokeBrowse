@@ -1,7 +1,7 @@
 import { getRemainingTime, getPokeballs } from "./pokeballs.js";
 import { getBalls, getSpawnsForDomain } from "./utils.js";
 import { tryRegister } from "../API/users.js";
-import { getImageParam, getUsernameParam, getIdentifiantParam, getDescriptionParam } from "../settingsUtils.js";
+import { getImageParam, getUsernameParam, getIdentifiantParam, getDescriptionParam, deleteSettings } from "../settingsUtils.js";
 
 async function getDelaiFromLastSpawn() {
   const lastSpawn = await chrome.storage.local.get("lastSpawn");
@@ -119,6 +119,14 @@ document.getElementById("btn-encounters").addEventListener("click", () => {
 
 document.getElementById("btn-leaderboard").addEventListener("click", async () => {
   window.location.href = "leaderboard.html";
+});
+
+document.getElementById("btn-deconnection").addEventListener("click", async () => {
+  const confirmation = confirm("⚠️ Es-tu sûr de vouloir te déconnecter ?");
+    if (confirmation) {
+      await deleteSettings();
+      location.reload();
+    }
 });
 
 toggleBtn.addEventListener("click", () => {
