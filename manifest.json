@@ -9,6 +9,9 @@
     "scripting",
     "offscreen"
   ],
+  "icons": {
+    "128": "/assets/balls/pokeball.png"
+  },
   "background": {
     "service_worker": "js/Background/background.js",
     "type": "module"
@@ -20,7 +23,8 @@
     "https://pokeapi.co/*"
   ],
   "action": {
-    "default_popup": "html/popup.html"
+    "default_popup": "html/popup.html",
+    "default_icon": "/assets/balls/pokeball.png"
   },
   "content_scripts": [
     {
