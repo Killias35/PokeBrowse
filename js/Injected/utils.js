@@ -1,4 +1,4 @@
-import { getUsernameParam, setUsernameParam, setIdentifiantParam } from "../settingsUtils.js";
+import { getUsernameParam, setUsernameParam, setIdentifiantParam, getImageParam, getDescriptionParam, saveToApiParams } from "../settingsUtils.js";
 import { getPokedex } from "./pokedex.js";
 import { capturePokemonAPI } from "../API/app.js";
 
@@ -249,7 +249,13 @@ async function init() {
   await setPokedex();
   await getBalls();
   await setIdentifiantParam();
-  if (getUsernameParam() === "Dresseur") setUsernameParam("User" + Math.floor(Math.random() * 10000));
+  if (await getUsernameParam() === "Dresseur") {
+    const username = "User" + Math.floor(Math.random() * 10000);
+    const image = await getImageParam();
+    const description = await getDescriptionParam();
+    console.log("Set default params", username, image, description);
+    await saveToApiParams(image, username, description);
+  }
   if(loading) loading.classList.add("hidden");
 }
 

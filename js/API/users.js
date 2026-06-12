@@ -6,7 +6,7 @@ import { API_BASE_URL } from "./app.js";
 
 export async function tryRegister(image, username, description, identifiant) {
     console.log("tryRegister", image, username, description, identifiant);
-    const user = await getUserByUsername(username);
+    const user = await getUserByIdentifiant(identifiant);
     if (user !== undefined) return false;
     await registerUser(image, username, description, identifiant);
     return true;
@@ -39,13 +39,16 @@ export async function registerUser(image, username, description, identifiant) {
    GET USER BY ID
 ========================= */
 
-export async function getUserById(userId) {
+export async function getUserByIdentifiant(identifiant) {
     try{
-        const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        const response = await fetch(`${API_BASE_URL}/users/login`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
-            }
+            },
+            body: JSON.stringify({
+                identifiant
+            })
         });
     
         const data = await response.json();
