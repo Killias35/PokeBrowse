@@ -1,18 +1,6 @@
 import { API_BASE_URL } from "./app.js";
 
-/* =========================
-   REGISTER USER
-========================= */
-
-export async function tryRegister(image, username, description, identifiant) {
-    console.log("tryRegister", image, username, description, identifiant);
-    const user = await getUserByIdentifiant(identifiant);
-    if (user !== undefined) return false;
-    await registerUser(image, username, description, identifiant);
-    return true;
-}
-
-export async function registerUser(image, username, description, identifiant) {
+export async function register(username, identifiant, image, description) {
     try{
         const response = await fetch(`${API_BASE_URL}/users/register`, {
             method: "POST",
@@ -32,6 +20,7 @@ export async function registerUser(image, username, description, identifiant) {
     }
     catch (error) {
         console.error(error);
+        return {success: false};
     }
 }
 
@@ -39,14 +28,15 @@ export async function registerUser(image, username, description, identifiant) {
    GET USER BY ID
 ========================= */
 
-export async function getUserByIdentifiant(identifiant) {
+export async function login(username, identifiant) {
     try{
         const response = await fetch(`${API_BASE_URL}/users/login`, {
-            method: "GET",
+            method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
+                username,
                 identifiant
             })
         });
@@ -56,7 +46,13 @@ export async function getUserByIdentifiant(identifiant) {
     }
     catch (error) {
         // console.error(error);
+        return {success: false};
     }
+}
+
+export async function isLoged(username, identifiant) {
+    const user = await login(username, identifiant);
+    return user.success === true;
 }
 
 export async function getUserByUsername(username) {
@@ -79,7 +75,7 @@ export async function getUserByUsername(username) {
 
 export async function updateUser(image, username, description, identifiant) {
     try{
-        const response = await fetch(`${API_BASE_URL}/users/${identifiant}`, {
+        const response = await fetch(`${API_BASE_URL}/users/`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json"
@@ -87,6 +83,7 @@ export async function updateUser(image, username, description, identifiant) {
             body: JSON.stringify({
                 image,
                 username,
+                identifiant,
                 description
             })
         });

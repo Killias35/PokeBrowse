@@ -22,15 +22,31 @@
             </div>
 
             <div class="setting-group">
-                <label for="description">Description</label>
-                <input type="text" id="description" class="custom-input" placeholder="Ex: Maître de la Ligue" autocomplete="off">
+                <label for="identifiant">Identifiant Secret</label>
+                <input type="password" id="identifiant" class="custom-input" placeholder="Ton code secret" autocomplete="off">
             </div>
 
-            <div class="setting-group">
-                <label for="image">Avatar (Lien image)</label>
-                <div class="image-preview-container">
-                    <img id="image-preview" src="" alt="Aperçu">
-                    <input type="text" id="image" class="custom-input" placeholder="URL de l'image..." autocomplete="off">
+            <div id="auth-message" class="auth-message hidden"></div>
+
+            <div id="auth-buttons" class="auth-buttons">
+                <button id="btn-login" class="action-btn primary">🔑 Connexion</button>
+                <button id="btn-register" class="action-btn">📝 Créer un compte</button>
+            </div>
+
+            <hr class="separator">
+
+            <div id="profile-section" class="hidden">
+                <div class="setting-group">
+                    <label for="description">Description</label>
+                    <input type="text" id="description" class="custom-input" placeholder="Ex: Maître de la Ligue" autocomplete="off">
+                </div>
+
+                <div class="setting-group">
+                    <label for="image">Avatar (Lien image)</label>
+                    <div class="image-preview-container">
+                        <img id="image-preview" src="" alt="Aperçu">
+                        <input type="text" id="image" class="custom-input" placeholder="URL de l'image..." autocomplete="off">
+                    </div>
                 </div>
             </div>
 
@@ -53,7 +69,7 @@
 
         <div class="menu" style="margin-top: 10px;">
             <button id="btn-confirm" class="action-btn confirm">
-                ✔️ Enregistrer
+                ✔️ Enregistrer (Profil & Audio)
             </button>
             <button id="btn-training" class="action-btn primary">
                 💪 Mode Entraînement

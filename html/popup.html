@@ -8,6 +8,13 @@
     <link rel="stylesheet" href="../css/pokedex-oppening.css">
 </head>
 <body>
+    <div id="login-overlay" class="hidden">
+        <div class="overlay-content">
+            <p>⚠️ Vous devez être connecté</p>
+            <p>Cliquez sur l'engrenage pour configurer votre profil.</p>
+        </div>
+    </div>
+
     <div id="loading-indicator" class="loading-indicator hidden">
         <div class="loading-spinner"></div>
         <span>Chargement des données...</span>
@@ -32,7 +39,7 @@
             <div class="pokeball"></div>
 
             <h1>Pokémon Hunter</h1>
-            <p>Attrapez-les tous !</p>
+            <p><span id="name"></span> Attrape-les tous !</p>
         </header>
 
         <div class="menu">

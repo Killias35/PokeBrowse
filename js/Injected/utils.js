@@ -248,14 +248,6 @@ async function init() {
   if(loading) loading.classList.remove("hidden");
   await setPokedex();
   await getBalls();
-  await setIdentifiantParam();
-  if (await getUsernameParam() === "Dresseur") {
-    const username = "User" + Math.floor(Math.random() * 10000);
-    const image = await getImageParam();
-    const description = await getDescriptionParam();
-    console.log("Set default params", username, image, description);
-    await saveToApiParams(image, username, description);
-  }
   if(loading) loading.classList.add("hidden");
 }
 

@@ -4,7 +4,7 @@ function generateUUID() {
     return crypto.randomUUID();
 }
 
-const defaultSettings = {
+export const defaultSettings = {
     username: "Dresseur",
     description: "Salut ! Je suis un dresseur de Pokémon !",
     image: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
@@ -70,30 +70,28 @@ export async function setDescriptionParam(description){
     await chrome.storage.local.set({description});
 }
 
-export async function setIdentifiantParam(){
-    const identifiant = await getIdentifiantParam();
-    if(identifiant !== "") return;
-    await chrome.storage.local.set({identifiant: generateUUID()});
+export async function setIdentifiantParam(identifiant){
+    await chrome.storage.local.set({identifiant });
 }
 
-export async function saveToApiParams(image, username, description) {
-    console.log("saveToApiParams", image, username, description);
-    const identifiant = await getIdentifiantParam();
+export async function saveToApiParams(username, identifiant, image, description) {
     const ret = await updateUser(image, username, description, identifiant);
     if(!ret) {
         alert("Erreur de connection avec l'API !");
         return false;
     }
-    console.log(ret);
-
-    await setImageParam(image);
-    await setUsernameParam(username);
-    await setDescriptionParam(description);
+    await saveParams(username, identifiant, image, description);
     return true
 }
 
+export async function saveParams(username, identifiant, image, description) {
+    await setUsernameParam(username);
+    await setIdentifiantParam(identifiant);
+    await setImageParam(image);
+    await setDescriptionParam(description);
+}
+
 export async function deleteSettings() {    // Deconnecter
-    await chrome.storage.local.remove("volumes");
     await chrome.storage.local.remove("image");
     await chrome.storage.local.remove("username");
     await chrome.storage.local.remove("identifiant");
