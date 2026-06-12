@@ -141,9 +141,7 @@ export async function setPokedex() {
   if (pokedex.length === 0) {
     let pokedex = [];
     for (let i = 1; i <= 151; i++) {
-
       const pokemon = await getPokemon(i);
-
       pokedex.push(pokemon);
     }
     await chrome.storage.local.set({pokedex});
@@ -245,7 +243,14 @@ export async function getSpawnsForDomain(domain) {
   }));
 }
 
-await setPokedex();
-await getBalls();
-await setIdentifiantParam();
-if (getUsernameParam() === "Dresseur") setUsernameParam("User" + Math.floor(Math.random() * 10000));
+async function init() {
+  const loading = document.getElementById("loading-indicator")
+  if(loading) loading.classList.remove("hidden");
+  await setPokedex();
+  await getBalls();
+  await setIdentifiantParam();
+  if (getUsernameParam() === "Dresseur") setUsernameParam("User" + Math.floor(Math.random() * 10000));
+  if(loading) loading.classList.add("hidden");
+}
+
+await init();
