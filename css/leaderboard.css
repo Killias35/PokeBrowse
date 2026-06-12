@@ -477,3 +477,76 @@ input:focus {
     text-align: center;
     font-weight: bold;
 }
+
+/* =========================================
+   ADAPTATION NAV POUR 3 ONGLETS
+   ========================================= */
+.pc-nav {
+    display: flex;
+    gap: 4px; /* Un mini espace pour aérer */
+    padding: 10px 15px 0; /* Légère réduction du padding horizontal */
+}
+
+.pc-btn {
+    flex: 1; /* Les 3 boutons prennent exactement la même largeur */
+    text-align: center;
+    padding: 10px 2px; /* Évite les retours à la ligne du texte */
+    font-size: 12px; /* Ajustement subtil pour le mode popup */
+}
+
+/* =========================================
+   LISTE DE TOUS LES UTILISATEURS (Slick Network)
+   ========================================= */
+#users-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.us-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #1f2937, #111827);
+    border: 1px solid rgba(255,255,255,0.03);
+    border-left: 4px solid #3b82f6; /* Ligne bleue style réseau/holo */
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.us-card:hover {
+    transform: scale(1.02) translateX(5px);
+    border-color: #3b82f6;
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2);
+}
+
+.us-card:active {
+    transform: scale(0.98);
+}
+
+.us-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.us-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: white;
+}
+
+.us-joined {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.us-arrow {
+    color: #3b82f6;
+    font-size: 14px;
+    font-family: 'VT323', monospace;
+}

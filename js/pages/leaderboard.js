@@ -1,10 +1,12 @@
-import { getUserByUsername } from "../API/users.js";
+import { getUserByUsername, getAll } from "../API/users.js"; // Ajout de getAll
 import { getLeaderboardUnique, getLeaderboardTotal, getLeaderboardShiny } from "../API/leaderboard.js";
 
 const btnSearch = document.getElementById("btn-search-user");
-const btnLeaderboard = document.getElementById("btn-leaderboard-unique"); // Note : tu peux le renommer btn-leaderboard tout court dans le HTML si tu veux
+const btnAllUsers = document.getElementById("btn-all-users"); // Nouveau bouton
+const btnLeaderboard = document.getElementById("btn-leaderboard-unique");
 
 const searchPanel = document.getElementById("search-panel");
+const usersPanel = document.getElementById("users-panel"); // Nouveau panel
 const leaderboardPanel = document.getElementById("leaderboard-panel");
 
 /* =========================
@@ -12,13 +14,19 @@ const leaderboardPanel = document.getElementById("leaderboard-panel");
 ========================= */
 
 btnSearch.addEventListener("click", () => showPanel("search"));
+btnAllUsers.addEventListener("click", () => {
+    showPanel("users");
+    loadAllUsers(); // Charge la liste dès qu'on clique
+});
 btnLeaderboard.addEventListener("click", () => showPanel("leaderboard"));
 
 function showPanel(type) {
     btnSearch.classList.toggle("active", type === "search");
+    btnAllUsers.classList.toggle("active", type === "users");
     btnLeaderboard.classList.toggle("active", type === "leaderboard");
 
     searchPanel.classList.toggle("active", type === "search");
+    usersPanel.classList.toggle("active", type === "users");
     leaderboardPanel.classList.toggle("active", type === "leaderboard");
 }
 
@@ -48,11 +56,8 @@ async function onSearchUser() {
 
     try {
         const user = await getUserByUsername(username);
-        console.log(user);
         if (user && user.username) {
             const dateCreation = new Date(user.created_at).toLocaleDateString('fr-FR');
-            
-            // On définit l'image par défaut (Pikachu) si user.image est vide
             const DEFAULT_AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
             const avatarUrl = user.image ? user.image : DEFAULT_AVATAR;
 
@@ -80,20 +85,68 @@ async function onSearchUser() {
 }
 
 /* =========================
+   FONCTION : TOUS LES UTILISATEURS
+========================= */
+const usersList = document.getElementById("users-list");
+
+async function loadAllUsers() {
+    usersList.innerHTML = `<div class="loading-msg">📡 Synchronisation du répertoire global...</div>`;
+
+    try {
+        const response = await getAll();
+        // Sécurité au cas où l'API renvoie { success: true, users: [...] } ou directement [...]
+        const users = Array.isArray(response) ? response : (response?.users || []);
+
+        if (users && users.length > 0) {
+            usersList.innerHTML = ""; // Clear loading
+
+            users.forEach(user => {
+                const dateCreation = new Date(user.created_at).toLocaleDateString('fr-FR');
+                const DEFAULT_AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
+                const avatarUrl = user.image ? user.image : DEFAULT_AVATAR;
+
+                const card = document.createElement("div");
+                card.className = "us-card";
+
+                card.innerHTML = `
+                    <div class="lb-avatar-wrapper">
+                        <img src="${avatarUrl}" alt="Avatar" class="lb-avatar-img" onerror="this.src='${DEFAULT_AVATAR}'">
+                    </div>
+                    <div class="us-info">
+                        <span class="us-name">${user.username}</span>
+                        <span class="us-joined">Membre depuis le ${dateCreation}</span>
+                    </div>
+                    <div class="us-arrow">SELECT ></div>
+                `;
+
+                // Clic sur un dresseur -> Ouvre sa fiche détaillée via ta fonction existante
+                card.addEventListener("click", () => {
+                    triggerSearchForUser(user.username);
+                });
+
+                usersList.appendChild(card);
+            });
+        } else {
+            usersList.innerHTML = `<div class="error-msg">Aucun dresseur enregistré dans le système.</div>`;
+        }
+    } catch (error) {
+        console.error("Erreur getAll users:", error);
+        usersList.innerHTML = `<div class="error-msg">⚠️ Impossible de charger le répertoire de données.</div>`;
+    }
+}
+
+/* =========================
    LEADERBOARD & SOUS-ONGLETS
 ========================= */
 
 const lbSubBtns = document.querySelectorAll(".lb-sub-btn");
 const leaderboardList = document.getElementById("leaderboard-list");
 
-// Écouteurs pour les sous-onglets (Unique, Total, Shiny)
 lbSubBtns.forEach(btn => {
     btn.addEventListener("click", (e) => {
-        // Gérer le style visuel des boutons
         lbSubBtns.forEach(b => b.classList.remove("active"));
         e.target.classList.add("active");
         
-        // Charger le bon leaderboard
         const type = e.target.getAttribute("data-type");
         loadLeaderboard(type);
     });
@@ -104,33 +157,27 @@ async function loadLeaderboard(type = "unique") {
 
     try {
         let response;
-        
-        // Appel à la bonne fonction selon l'onglet
         if (type === "unique") response = await getLeaderboardUnique();
         else if (type === "total") response = await getLeaderboardTotal();
         else if (type === "shiny") response = await getLeaderboardShiny();
 
         if (response && response.success && response.leaderboard) {
-            leaderboardList.innerHTML = ""; // Vider le chargement
+            leaderboardList.innerHTML = "";
 
             response.leaderboard.forEach((player, index) => {
                 const rank = index + 1;
                 let rankDisplay = `#${rank}`;
                 
-                // Médailles pour le Top 3
                 if (rank === 1) rankDisplay = "🥇";
                 if (rank === 2) rankDisplay = "🥈";
                 if (rank === 3) rankDisplay = "🥉";
 
-                // Gestion de l'avatar avec le Pikachu par défaut
                 const DEFAULT_AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
                 const avatarUrl = player.image ? player.image : DEFAULT_AVATAR;
 
-                // Création de la carte
                 const card = document.createElement("div");
                 card.className = "lb-card clickable"; 
                 
-                // On ajoute l'image juste après le rang
                 card.innerHTML = `
                     <div class="lb-rank">${rankDisplay}</div>
                     <div class="lb-avatar-wrapper">
@@ -140,7 +187,6 @@ async function loadLeaderboard(type = "unique") {
                     <div class="lb-score">${player.score}</div>
                 `;
 
-                // Redirection vers la recherche
                 card.addEventListener("click", () => {
                     triggerSearchForUser(player.username);
                 });
@@ -156,11 +202,10 @@ async function loadLeaderboard(type = "unique") {
     }
 }
 
-// Fonction pour automatiser la recherche au clic
 function triggerSearchForUser(username) {
-    showPanel("search"); // Basculer sur l'onglet recherche
-    searchInput.value = username; // Remplir l'input
-    onSearchUser(); // Lancer la recherche automatiquement
+    showPanel("search");
+    searchInput.value = username;
+    onSearchUser();
 }
 
 // Initialisation au lancement

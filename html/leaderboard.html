@@ -18,11 +18,13 @@
             <div class="pc-title">📺 Pokémon Storage System</div>
             <div class="pc-subtitle">Classements & Dresseurs</div>
         </div>
-
-        <!-- NAV -->
+        
         <div class="pc-nav">
             <button id="btn-search-user" class="pc-btn">
                 🔎 Rechercher
+            </button>
+            <button id="btn-all-users" class="pc-btn">
+                👥 Dresseurs
             </button>
             <button id="btn-leaderboard-unique" class="pc-btn active">
                 🏆 Pokédex
@@ -34,19 +36,21 @@
                 <h2>Recherche de dresseur</h2>
                 <input type="text" id="search-input" placeholder="Nom du dresseur..." />
                 <button id="search-submit" class="pc-btn">Rechercher</button>
-                
                 <div id="search-result"></div> 
+            </div>
+
+            <div id="users-panel" class="panel">
+                <h2>👥 Réseau des Dresseurs</h2>
+                <div id="users-list"></div>
             </div>
 
             <div id="leaderboard-panel" class="panel active">
                 <h2>🏆 Classements Mondiaux</h2>
-
                 <div class="lb-subnav">
                     <button class="lb-sub-btn active" data-type="unique">Unique</button>
                     <button class="lb-sub-btn" data-type="total">Total</button>
                     <button class="lb-sub-btn" data-type="shiny">Shiny</button>
                 </div>
-
                 <div id="leaderboard-list"></div>
             </div>
         </div>

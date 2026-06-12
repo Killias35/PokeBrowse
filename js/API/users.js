@@ -98,5 +98,22 @@ export async function updateUser(image, username, description, identifiant) {
         console.error(error);
     }
 }
+
+export async function getAll() {
+    try{
+        const response = await fetch(`${API_BASE_URL}/users`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+    
+        const data = await response.json();
+        return data;
+    }
+    catch (error) {
+        console.error(error);
+    }
+}
 // console.log(await registerUser("kblebg", "je suis un super utilisateur", "test"));
 // console.log(await getUserById(1));
