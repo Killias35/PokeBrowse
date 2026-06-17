@@ -45,3 +45,10 @@ Une extension Chrome qui transforme la navigation web en une expérience de capt
 - Capture des Pokémon shiny avec des effets visuels spéciaux.
 - Difficulté de capture augmentant selon la rareté du Pokémon.
 - Pokémon légendaires uniques apparaissant sur des domaines spécifiques en lien avec leur nature.
+
+---
+
+Projet non officiel créé par un fan.
+Ce projet est uniquement destiné à des fins éducatives et de divertissement.
+Pokémon et tous les éléments associés (noms, personnages, sons, musiques et images) appartiennent à Nintendo, Game Freak et The Pokémon Company.
+Ce projet n'est ni affilié, ni approuvé, ni soutenu par ces sociétés.
