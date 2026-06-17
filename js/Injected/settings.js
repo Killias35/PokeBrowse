@@ -1,8 +1,10 @@
 import { setGlobalVolume } from "./sound.js";
-import { getVolumesParam, getImageParam, getUsernameParam, getDescriptionParam, saveParams, saveToApiParams, setVolumesParam, getIdentifiantParam, setIdentifiantParam, setUsernameParam, defaultSettings } from "../settingsUtils.js";
+import { getVolumesParam, getImageParam, getUsernameParam, 
+    getDescriptionParam, saveParams, saveToApiParams, 
+    setVolumesParam, getIdentifiantParam, setIdentifiantParam, 
+    setUsernameParam, defaultSettings, base_image, DEFAULT_AVATAR } from "../settingsUtils.js";
 import { isLoged, register, login } from "../API/users.js"; // Ajout de l'API
 
-const DEFAULT_AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
 
 // Éléments HTML
 const inputImage = document.getElementById('image');
@@ -42,8 +44,8 @@ async function initSettings() {
     // On suppose que tu as rajouté getIdentifiantParam() dans tes utils
     const identifiant = await getIdentifiantParam(); 
     
-    inputImage.value = image || "";
-    updateImagePreview(inputImage.value);
+    inputImage.value = image || DEFAULT_AVATAR;
+    await updateImagePreview(inputImage.value);
 
     inputUsername.value = username || "";
     inputIdentifiant.value = identifiant || "";
@@ -68,8 +70,24 @@ async function initSettings() {
     }
 }
 
-function updateImagePreview(url) {
-    imagePreview.src = url ? url : DEFAULT_AVATAR;
+function verifierImage(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+
+    img.src = url;
+  });
+}
+
+async function updateImagePreview(nb) {
+    const url = base_image + nb + ".png";
+    if(await verifierImage(url)) {
+        imagePreview.src = url;
+    } else {
+        imagePreview.src = base_image + DEFAULT_AVATAR + ".png";
+    }
 }
 
 // Fonction pour gérer l'affichage selon l'état de connexion
@@ -203,7 +221,7 @@ async function saveSettings() {
 }
 
 if(inputUsername) {
-    inputImage.addEventListener('input', () => updateImagePreview(inputImage.value));
+    inputImage.addEventListener('input', async () => await updateImagePreview(inputImage.value));
     imagePreview.addEventListener('error', () => imagePreview.src = DEFAULT_AVATAR);
 
     btnConfirm.addEventListener('click', async () => {

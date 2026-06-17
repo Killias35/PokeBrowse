@@ -2,6 +2,9 @@ import { updateUser, getUserByUsername } from "./API/users.js";
 import { getCaptures } from "./API/capture.js";
 import { getPokedex } from "./Injected/pokedex.js";
 
+export const base_image = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/";
+export const DEFAULT_AVATAR = 25;
+
 export const defaultSettings = {
     username: "Dresseur",
     description: "Salut ! Je suis un dresseur de Pokémon !",

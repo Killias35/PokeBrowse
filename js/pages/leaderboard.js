@@ -1,5 +1,6 @@
 import { getUserByUsername, getAll } from "../API/users.js"; // Ajout de getAll
 import { getLeaderboardUnique, getLeaderboardTotal, getLeaderboardShiny } from "../API/leaderboard.js";
+import { DEFAULT_AVATAR, base_image } from "../settingsUtils.js";
 
 const btnSearch = document.getElementById("btn-search-user");
 const btnAllUsers = document.getElementById("btn-all-users"); // Nouveau bouton
@@ -44,6 +45,16 @@ searchInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") onSearchUser();
 });
 
+function nbValide(value) {
+  if (value === null || value === undefined || String(value).trim() === "") {
+    return false;
+  }
+
+  const n = Number(value);
+
+  return Number.isFinite(n) && n >= 0 && n <= 2000;
+}
+
 async function onSearchUser() {
     const username = searchInput.value.trim();
 
@@ -57,9 +68,9 @@ async function onSearchUser() {
     try {
         const user = await getUserByUsername(username);
         if (user && user.username) {
+            if(!nbValide(user.image) || !user.image) user.image = DEFAULT_AVATAR;
             const dateCreation = new Date(user.created_at).toLocaleDateString('fr-FR');
-            const DEFAULT_AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
-            const avatarUrl = user.image ? user.image : DEFAULT_AVATAR;
+            const avatarUrl = base_image + user.image + ".png";
 
             searchResult.innerHTML = `
                 <div class="trainer-card">
@@ -101,9 +112,9 @@ async function loadAllUsers() {
             usersList.innerHTML = ""; // Clear loading
 
             users.forEach(user => {
+                if(!nbValide(user.image) || !user.image) user.image = DEFAULT_AVATAR;
                 const dateCreation = new Date(user.created_at).toLocaleDateString('fr-FR');
-                const DEFAULT_AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
-                const avatarUrl = user.image ? user.image : DEFAULT_AVATAR;
+                const avatarUrl = base_image + user.image + ".png";
 
                 const card = document.createElement("div");
                 card.className = "us-card";
@@ -164,7 +175,8 @@ async function loadLeaderboard(type = "unique") {
         if (response && response.success && response.leaderboard) {
             leaderboardList.innerHTML = "";
 
-            response.leaderboard.forEach((player, index) => {
+            response.leaderboard.forEach((user, index) => {
+                if(!nbValide(user.image) || !user.image) user.image = DEFAULT_AVATAR;
                 const rank = index + 1;
                 let rankDisplay = `#${rank}`;
                 
@@ -172,8 +184,7 @@ async function loadLeaderboard(type = "unique") {
                 if (rank === 2) rankDisplay = "🥈";
                 if (rank === 3) rankDisplay = "🥉";
 
-                const DEFAULT_AVATAR = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png";
-                const avatarUrl = player.image ? player.image : DEFAULT_AVATAR;
+                const avatarUrl = base_image + user.image + ".png";
 
                 const card = document.createElement("div");
                 card.className = "lb-card clickable"; 
@@ -183,12 +194,12 @@ async function loadLeaderboard(type = "unique") {
                     <div class="lb-avatar-wrapper">
                         <img src="${avatarUrl}" alt="Avatar" class="lb-avatar-img">
                     </div>
-                    <div class="lb-name">${player.username}</div>
-                    <div class="lb-score">${player.score}</div>
+                    <div class="lb-name">${user.username}</div>
+                    <div class="lb-score">${user.score}</div>
                 `;
 
                 card.addEventListener("click", () => {
-                    triggerSearchForUser(player.username);
+                    triggerSearchForUser(user.username);
                 });
 
                 leaderboardList.appendChild(card);
