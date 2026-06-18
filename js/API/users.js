@@ -51,6 +51,7 @@ export async function login(username, identifiant) {
 }
 
 export async function isLoged(username, identifiant) {
+    console.log("trying to log in", username, identifiant);
     try{
         const response = await fetch(`${API_BASE_URL}/users/isLoged`, {
             method: "POST",

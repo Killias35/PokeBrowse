@@ -94,8 +94,9 @@ const identifiant = await getIdentifiantParam();
 
 // Vérification de la connexion
 const logged = await isLoged(username, identifiant);
-
-if (!logged) {
+const isLogged = logged && logged.success === true;
+console.log("is logged:", isLogged);
+if (!isLogged) {
   document.getElementById("spawn").textContent = "Veuillez vous connecter depuis les paramètres";
 } 
 else {

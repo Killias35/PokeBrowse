@@ -48,7 +48,6 @@ async function initSettings() {
     await updateImagePreview(inputImage.value);
 
     inputUsername.value = username || "";
-    inputIdentifiant.value = identifiant || "";
     inputDescription.value = description || "";
     
     // Volumes avec fallback
