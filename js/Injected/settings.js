@@ -133,9 +133,10 @@ btnLogin.addEventListener('click', async () => {
     const rep = await login(u, i);
     const logged = rep.success === true;
     const user = rep.user;
+    const token = rep.token;
     
     if (logged) {
-        await saveParams(u, i, user.image, user.description);
+        await saveParams(u, token, user.image, user.description);
         setLoggedInState(true);
     } else {
         showMessage("Identifiants incorrects.", "error");
@@ -144,7 +145,7 @@ btnLogin.addEventListener('click', async () => {
     btnLogin.disabled = false;
     btnLogin.textContent = "🔑 Connexion";
 
-    location.reload();
+    //location.reload();
 });
 
 btnRegister.addEventListener('click', async () => {
@@ -159,7 +160,8 @@ btnRegister.addEventListener('click', async () => {
     const response = await register(u, i, defaultSettings.image, defaultSettings.description);
     
     if (response.success) {
-        await setIdentifiantParam(i);
+        const token = response.token;
+        await setIdentifiantParam(token);
         await setUsernameParam(u);
         setLoggedInState(true);
         showMessage("Compte créé avec succès !", "success");

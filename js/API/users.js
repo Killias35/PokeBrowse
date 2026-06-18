@@ -51,8 +51,25 @@ export async function login(username, identifiant) {
 }
 
 export async function isLoged(username, identifiant) {
-    const user = await login(username, identifiant);
-    return user.success === true;
+    try{
+        const response = await fetch(`${API_BASE_URL}/users/isLoged`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                identifiant
+            })
+        });
+    
+        const data = await response.json();
+        return data;
+    }
+    catch (error) {
+        // console.error(error);
+        return {success: false};
+    }
 }
 
 export async function getUserByUsername(username) {

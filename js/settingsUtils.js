@@ -115,6 +115,7 @@ export async function saveToApiParams(username, identifiant, image, description)
 }
 
 export async function saveParams(username, identifiant, image, description) {
+    console.log("saveToUser", username, identifiant, image, description);
     await setUsernameParam(username);
     await setIdentifiantParam(identifiant);
     await setImageParam(image);
