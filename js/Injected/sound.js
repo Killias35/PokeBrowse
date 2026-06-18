@@ -112,7 +112,6 @@ export async function playSuspenseSound(rarity, durationMs) {
     // --- 1. LE NOEUD MASTER (Contrôle global et lissage de fin) ---
     const masterGain = ctx.createGain();
     const globalVol = GLOBAL_SFX_VOLUME*1.5;
-    console.log("globalVol:", globalVol);
     masterGain.gain.setValueAtTime(0, now);
     masterGain.gain.linearRampToValueAtTime(globalVol, now + 0.15);
     masterGain.gain.setValueAtTime(globalVol, now + duration - 0.05);

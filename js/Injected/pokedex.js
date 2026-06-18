@@ -38,7 +38,6 @@ export async function freePokemons(){
     const identifiant = await getIdentifiantParam();
     const username = await getUsernameParam();
     const ret = await freePokemonsAPI(username, identifiant);
-    console.log(ret);
     if(ret.success == true) {
         await getCollection();
         alert("Tous les Pokémon ont été relâchés dans la nature !");
