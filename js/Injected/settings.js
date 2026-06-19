@@ -63,7 +63,7 @@ async function initSettings() {
     // Vérification de la connexion automatique
     if (username && identifiant) {
         const logged = await isLoged(username, identifiant);
-        setLoggedInState(logged);
+        setLoggedInState(logged.success === true);
     } else {
         setLoggedInState(false);
     }
@@ -144,7 +144,7 @@ btnLogin.addEventListener('click', async () => {
     btnLogin.disabled = false;
     btnLogin.textContent = "🔑 Connexion";
 
-    //location.reload();
+    location.reload();
 });
 
 btnRegister.addEventListener('click', async () => {
