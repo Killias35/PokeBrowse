@@ -36,14 +36,6 @@ export async function getCurrentDomain() {
   return domaine;
 }
 
-export async function getCurrentDomainFromTab() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if(tab.url.startsWith("chrome-extension://")) return null;
-  const hostname = new URL(tab.url).hostname;
-  const domaine = hostname.replace("www.", "").replace("wwws.", "");
-  return domaine;
-}
-
 async function loadSpawnConfig() {
   const url = chrome.runtime.getURL("assets/data/encounters.json");
   const response = await fetch(url);

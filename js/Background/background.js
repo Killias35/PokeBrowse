@@ -1,8 +1,18 @@
-import { getVolumesParam } from '../settingsUtils.js';
+import { getVolumesParam, getUsernameParam, getIdentifiantParam } from '../settingsUtils.js';
+import { getSpawned } from '../API/spawn.js';
+import { startFight } from '../API/capture.js';
+
+async function getCurrentDomainFromTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if(tab.url.startsWith("chrome-extension://")) return null;
+  const hostname = new URL(tab.url).hostname;
+  const domaine = hostname.replace("www.", "").replace("wwws.", "");
+  return domaine;
+}
 
 let offscreenReady = false;
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
     if (msg.action === "OFFSCREEN_READY") {
         offscreenReady = true;
     } 
@@ -19,7 +29,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     else if (msg.action === "START_BATTLE") {
         chrome.storage.local.set({ currentBattlePokemon: msg.pokemon });
         chrome.storage.local.set({ huntActive: false });
+        
+        const username = await getUsernameParam();
+        const identifiant = await getIdentifiantParam();
+        
+        await startFight(username, identifiant, msg.pokemon.encounter_id);
         stopMusic();
+    }
+    else if(msg.action === "getSpawnedPokemon") {
+        await getSpawnedPokemon();
     }
     // Indique à Chrome qu'on gère la réponse de manière asynchrone si besoin
     return false;
@@ -83,7 +101,7 @@ async function stopMusic() {
     }
 }
 
-async function spawnPokemon() {
+async function getSpawnedPokemon() {
     // On lit l'état depuis le storage SANS relancer la musique
     const active = await isHuntActive();
     if (!active) return;
@@ -94,10 +112,16 @@ async function spawnPokemon() {
     });
 
     if (!tabs || !tabs[0]?.id) return;
-
+    const username = await getUsernameParam();
+    const identifiant = await getIdentifiantParam();
+    const domaineName = await getCurrentDomainFromTab();
+    const ret = await getSpawned(username, identifiant, domaineName);
+    if (ret.success === false) return;
+    const spawned = ret.spawned;
     try {
         await chrome.tabs.sendMessage(tabs[0].id, {
-            action: "spawnPokemon"
+            action: "spawnPokemon",
+            spawned
         });
     } catch (error) {
         // Ignoré : le content script n'est pas actif sur cette page (ex: page de paramètres Chrome)
@@ -108,10 +132,10 @@ async function spawnPokemon() {
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
     if (alarm.name === "pokemonSpawn") {
-        await spawnPokemon();
+        await getSpawnedPokemon();
 
         // On recrée l'alarme avec un délai minimum pour éviter le spam (ex: min 0.3 min + random)
-        const delay = 0.1 + Math.random(); 
+        const delay = 0.1; 
         chrome.alarms.create("pokemonSpawn", {
             delayInMinutes: delay
         });
@@ -121,6 +145,6 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 // À l'initialisation ou au réveil du Service Worker, on s'assure que l'alarme tourne
 chrome.alarms.get("pokemonSpawn", (alarm) => {
     if (!alarm) {
-        chrome.alarms.create("pokemonSpawn", { delayInMinutes: Math.random() });
+        chrome.alarms.create("pokemonSpawn", { delayInMinutes: 0.1 });
     }
 });

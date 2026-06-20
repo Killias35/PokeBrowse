@@ -1,86 +1,128 @@
 import { playCry } from "./sound.js";
-import { getPokemon, capturePokemon, getSpawnsForDomain, getCurrentDomain } from "./utils.js";
+import { getPokemon, capturePokemon, getCurrentDomain } from "./utils.js";
+import { injectPokemonStyles } from "./css/pokemons.js";
+import { isCaptured } from "./pokedex.js";
 
-let shinyChance = 0.005; // 0.5% de chance d'être shiny
-const maxPokemon = 5;
-let pokemonCount = 0;
+// id (spawn id, pas pokemon_id) -> { wrapper, timeoutId, entry, info }
+let spawned = {};
+const domain_name = await getCurrentDomain();
+
+injectPokemonStyles();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "spawnPokemon") {
-    spawnPokemon();
+    handleSpawnBatch(message.spawned);
   }
-
   return false;
 });
 
-async function spawnPokemon() {
-  if (document.visibilityState !== 'visible') {
-        //nconsole.log("Le dresseur n'est pas sur la page. Spawn annulé.");
-        return;
-  }
-  else if (pokemonCount >= maxPokemon) {
-    // console.log("Trop de pokemon sur la page. Spawn annulé.");
+
+/**
+ * Traite un lot de spawns reçus du background : filtre ceux qui nous
+ * concernent, puis affiche chaque nouveau pokemon.
+ */
+async function handleSpawnBatch(list) {
+  if (document.visibilityState !== "visible") {
+    // L'onglet n'est pas affiché, on attend le prochain lot.
     return;
   }
-  shinyChance = Math.min(0.05, shinyChance + 0.0025);
-  const domaine = await getCurrentDomain();
-  const pool = await getSpawnsForDomain(domaine);
-  const pokemon = pool[Math.floor(Math.random() * pool.length)];
-  pokemon.isShiny = Math.random() < shinyChance ? true : false;
-  pokemon.domaine = domaine;
-  pokemonCount++;
-  
+
+  for (const entry of list) {
+    if (spawned[entry.id]) continue; // déjà affiché
+    if (entry.domain_name !== domain_name) continue; // pas pour ce domaine
+    if (new Date(entry.expires_at).getTime() <= Date.now()) continue; // déjà expiré
+
+    await displayPokemon(entry);
+  }
+}
+
+/**
+ * Affiche un pokemon sauvage à partir d'un spawn serveur (entry) et des
+ * infos statiques (nom, sprites) récupérées via getPokemon.
+ */
+async function displayPokemon(entry) {
+  const info = await getPokemon(entry.pokemon_id);
+  if (!info) return;
+
+  const pokemon = {...info};
+
+  const is_shiny = Boolean(entry.is_shiny);
+  const is_captured = (await isCaptured(pokemon.id)) || false;
+
+  pokemon.encounter_id = entry.id;
+  pokemon.is_shiny = is_shiny;
+  pokemon.is_captured = is_captured;
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "wild-pokemon-wrapper";
+
   const img = document.createElement("img");
+  img.className = "wild-pokemon-sprite" + (is_shiny ? " is-shiny" : "") + (is_captured ? " is-captured" : "");
+  img.src = is_shiny ? info.shiny : info.sprites;
+  img.alt = is_shiny ? `${info.name} (shiny)` : "???";
 
   const pageWidth = Math.max(
     document.body.scrollWidth,
     document.documentElement.scrollWidth
   );
-
   const pageHeight = Math.max(
     document.body.scrollHeight,
     document.documentElement.scrollHeight
   );
 
-  const x = Math.floor(Math.random() * (pageWidth - 100));
-  const y = Math.floor(Math.random() * (pageHeight - 100));
+  const x = Math.floor(Math.random() * Math.max(0, pageWidth - 120));
+  const y = Math.floor(Math.random() * Math.max(0, pageHeight - 120));
+  wrapper.style.left = `${x}px`;
+  wrapper.style.top = `${y}px`;
 
-  img.src = pokemon.isShiny ? pokemon.shiny : pokemon.sprites;
+  wrapper.appendChild(img);
+  document.body.appendChild(wrapper);
 
-  img.style.position = "absolute";
-  img.style.left = `${x}px`;
-  img.style.top = `${y}px`;
-  img.style.filter = "brightness(0)";
+  spawned[pokemon.encounter_id] = { wrapper, entry, info, timeoutId: null };
 
-  img.style.width = "96px";
-  img.style.zIndex = "999999";
-  img.style.cursor = "pointer";
+  playCry(info);
 
-  img.style.transition = "transform 0.2s ease";
+  // Disparition automatique à l'expiration du spawn (le pokemon s'enfuit)
+  const msUntilExpire = new Date(entry.expires_at).getTime() - Date.now();
+  spawned[pokemon.encounter_id].timeoutId = setTimeout(() => {
+    despawnPokemon(pokemon.encounter_id, "fled");
+  }, Math.max(msUntilExpire, 0));
 
-  img.addEventListener("mouseenter", () => {  // annimation
-    img.style.transform = "scale(1.2)";
-  });
+  img.addEventListener("click", async () => {
+    // Évite tout double-clic / capture en double
+    img.style.pointerEvents = "none";
 
-  img.addEventListener("mouseleave", () => {  // annimation
-    img.style.transform = "scale(1)";
-  });
-
-  img.addEventListener("click", async () => { // capture
-    pokemonCount--;
     chrome.runtime.sendMessage({
       action: "START_BATTLE",
-      pokemon
+      pokemon: pokemon,
     });
 
-    window.open(
-      chrome.runtime.getURL("html/battle.html")
-    );
-    img.remove();
+    window.open(chrome.runtime.getURL("html/battle.html"));
+
+    despawnPokemon(pokemon.encounter_id, "captured");
   });
 
-  document.body.appendChild(img);
-
-  playCry(pokemon);
-  console.log(`Un ${pokemon.name} sauvage est apparu !`);
+  console.log(`Un ${info.name ?? "Pokémon"} sauvage est apparu !`);
 }
+
+
+function despawnPokemon(id, reason = "fled") {
+  const record = spawned[id];
+  if (!record) return;
+
+  clearTimeout(record.timeoutId);
+  delete spawned[id];
+
+  const { wrapper } = record;
+
+  if (reason === "captured") {
+    const sprite = wrapper.querySelector(".wild-pokemon-sprite");
+    sprite?.classList.remove("is-shiny"); // évite tout conflit d'animation
+    sprite?.classList.add("is-captured");
+  }
+
+  wrapper.classList.add(reason === "captured" ? "is-captured" : "is-fled");
+  wrapper.addEventListener("animationend", () => wrapper.remove(), { once: true });
+}
+
+await chrome.runtime.sendMessage({ action: "getSpawnedPokemon" });

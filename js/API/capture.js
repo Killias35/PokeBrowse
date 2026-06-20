@@ -64,3 +64,28 @@ export async function getCaptures(username){
         return {success: false, message: error.message};
     }
 }
+
+
+export async function startFight(username, identifiant, encounter_id) {
+    try{
+        const response = await fetch(`${API_BASE_URL}/pokemon/start`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                identifiant,
+                encounter_id
+            })
+        });
+    
+        const data = await response.json();
+        console.log(data);
+        return data;
+    }
+    catch (error) {
+        console.error(error);
+        return {success: false};
+    }
+}
