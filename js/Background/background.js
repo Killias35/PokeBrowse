@@ -21,6 +21,7 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
         const huntActive = msg.value;
         if (huntActive) {
             startMusic("hunt");
+            await getSpawnedPokemon();
         } else {
             stopMusic();
         }
