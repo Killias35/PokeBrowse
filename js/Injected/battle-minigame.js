@@ -104,7 +104,7 @@ export async function phaseChoixBall() {
                 <img src="../assets/balls/${ball.name}.png" alt="${ball.name}" class="ball-img">
                 <span class="ball-name">${ball.name}</span>
                 <span class="ball-count">x${ball.quantity}</span>
-                <span class="ball-remaining_time">+${ball.remaining_time}</span>
+                <span class="ball-remaining_time">${ball.remaining_time}</span>
             `;
             
             // Si on clique sur une ball valide
