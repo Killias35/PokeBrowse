@@ -1,6 +1,6 @@
 import { getVolumesParam, getUsernameParam, getIdentifiantParam } from '../settingsUtils.js';
 import { getSpawned } from '../API/spawn.js';
-import { startFight } from '../API/capture.js';
+import { startBattle } from '../API/battle.js';
 
 async function getCurrentDomainFromTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -27,13 +27,14 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
         chrome.storage.local.set({ huntActive });
     } 
     else if (msg.action === "START_BATTLE") {
-        chrome.storage.local.set({ currentBattlePokemon: msg.pokemon });
+        // chrome.storage.local.set({ currentBattlePokemon: msg.pokemon });
         chrome.storage.local.set({ huntActive: false });
         
         const username = await getUsernameParam();
         const identifiant = await getIdentifiantParam();
         
-        await startFight(username, identifiant, msg.pokemon.encounter_id);
+        // On démarre le combat côté serveur
+        await startBattle(identifiant, msg.pokemon.encounter_id);
         stopMusic();
     }
     else if(msg.action === "getSpawnedPokemon") {

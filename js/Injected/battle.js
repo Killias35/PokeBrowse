@@ -5,11 +5,15 @@ import { startMusic, stopMusic } from '../musique.js';
 import { setHpStatus, triggerPokemonFlee, phaseChoixBall, phaseAffaiblissement, startCaptureMinigame} from "./battle-minigame.js";
 import { startDodgeMinigame } from "./games/game-engine.js";
 import { getVolumesParam } from "../settingsUtils.js";
+import { getBattle, capture } from "../API/battle.js";
+import { getIdentifiantParam } from "../settingsUtils.js";
+import { getPokemon } from "./utils.js";
 
 const Volumes = await getVolumesParam();
 const GLOBAL_MUSIC_VOLUME = Volumes.musicVolume;
 
 let POKEMON_FIGHTING = null; // Variable globale pour stocker le Pokémon en combat
+let BATTLE_DATA = null; // Variable globale pour stocker les données du combat
 let escapeAttempts = 0;
 const DEFENSE_STAGE = document.getElementById("defense-stage");
 
@@ -29,37 +33,6 @@ function calculateFleeSiccess(puissance, resistance) {
     const roll = (Math.random() * 100).toFixed(2);
     const hasFled = roll <= chance;
     return hasFled;
-}
-
-function calculateCaptureSuccess(puissance, capture, ballPower, resistance) {
-    let baseSkill = Math.min(100, Math.round((puissance + capture) /2));
-    let finalChance = (baseSkill - resistance) * ballPower;
-
-    if (finalChance > 100) finalChance = 100;
-    if (finalChance < 0) finalChance = 0;
-
-    const roll = (Math.random() * 100).toFixed(2);
-    let isCaught;
-    let distance = Math.abs(finalChance - roll);
-    console.log("baseSkill:", baseSkill, "finalChance:", finalChance, "roll:", roll, "distance:", distance);
-    if (roll <= 1){         // Capture critique
-        isCaught = true;
-        console.log("Capture critique !");
-    }
-    else if (roll >= 99){   // Echec critique
-        isCaught = false;
-        console.log("Echec critique !");
-    }
-    else if (roll <= finalChance){  // Capture normale
-        isCaught = true;
-    }
-
-    // On retourne le résultat et le pourcentage exact pour l'afficher ou débugger
-    return {
-        isCaught: isCaught,
-        chance: distance,
-        roll: roll
-    };
 }
 
 async function startDefenseMinigame(pokemon, baseDifficulty) {
@@ -114,8 +87,16 @@ async function lancerSequenceCapture() {
         const captureScore = await startCaptureMinigame(config);
         const resistence = config.resistence;
         await usePokeball(ballChoisie);
-
-        const {isCaught, chance, roll} = calculateCaptureSuccess(puissance, captureScore, ballChoisie.power, resistence);
+        
+        const score = (puissance + captureScore) / 2;
+        const ret = await capture(identifiant, score, ballChoisie.id);
+        console.log("Résultat de la capture :", ret, identifiant, score, ballChoisie.id);
+        if(!ret.success) {
+            await showSplashText("Erreur de connection avec l'API !", 5000);
+            stopMusic();
+            return;
+        }
+        const {isCaught, chance, roll} = ret;
     
         await playCaptureSequence(isCaught, chance, ballChoisie, POKEMON_FIGHTING);
         if (isCaught) {
@@ -135,14 +116,22 @@ async function lancerSequenceCapture() {
     await closeTabAfter20s();
 }
 
-chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
-    const pokemon = result.currentBattlePokemon;
-    if (!pokemon) return;
-    await chrome.storage.local.remove("currentBattlePokemon");   // DEBUG
+// recuperation du combat en cours depuis le serveur
+const identifiant = await getIdentifiantParam();
+const battleResult = await getBattle(identifiant);
+
+if(battleResult.success) {
+    const pokemon = await getPokemon(battleResult.battle.pokemon_id);
+    pokemon.rarity = battleResult.battle.rarity;
+    pokemon.isShiny = battleResult.battle.is_shiny;
+    pokemon.domain_name = battleResult.battle.domain_name;
+    
     // pokemon.rarity = "legendary"    // DEBUG
     // pokemon.isShiny = true       // DEBUG
 
     POKEMON_FIGHTING = pokemon;
+    BATTLE_DATA = battleResult.battle;
+
     if (pokemon.rarity === "legendary" || pokemon.rarity === "epic") {
         startMusic("rare_capture", true, GLOBAL_MUSIC_VOLUME);
     } else {
@@ -151,4 +140,4 @@ chrome.storage.local.get(["currentBattlePokemon"], async (result) => {
 
     await startEncounter(pokemon);
     await lancerSequenceCapture();
-});
+}
