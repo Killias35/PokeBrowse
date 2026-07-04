@@ -1,5 +1,4 @@
 import { startEncounter, showSplashText, showScore, playCaptureSequence } from "./battle-annimation.js";
-import { getPokeballs, usePokeball } from "./pokeballs.js";
 import { playCry } from "./sound.js";
 import { startMusic, stopMusic } from '../musique.js';
 import { setHpStatus, triggerPokemonFlee, phaseChoixBall, phaseAffaiblissement, startCaptureMinigame} from "./battle-minigame.js";
@@ -86,19 +85,17 @@ async function lancerSequenceCapture() {
         }
         const captureScore = await startCaptureMinigame(config);
         const resistence = config.resistence;
-        await usePokeball(ballChoisie);
         
         const score = (puissance + captureScore) / 2;
         const ret = await capture(identifiant, score, ballChoisie.id);
-        console.log("Résultat de la capture :", ret, identifiant, score, ballChoisie.id);
         if(!ret.success) {
             await showSplashText("Erreur de connection avec l'API !", 5000);
             stopMusic();
             return;
         }
-        const {isCaught, chance, roll} = ret;
-    
-        await playCaptureSequence(isCaught, chance, ballChoisie, POKEMON_FIGHTING);
+        const {isCaught, distance, roll} = ret;
+        console.log(`Capture attempt: score=${score}, distance=${distance}, roll=${roll}, isCaught=${isCaught}`);
+        await playCaptureSequence(isCaught, distance, ballChoisie, POKEMON_FIGHTING);
         if (isCaught) {
             if(roll < 1) await showSplashText("Capture critique !", 3000);
             break;

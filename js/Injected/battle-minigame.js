@@ -99,15 +99,16 @@ export async function phaseChoixBall() {
         container.innerHTML = "";
         balls.forEach(ball => {
             const btn = document.createElement("div");
-            btn.className = `ball-btn ${ball.count <= 0 ? 'disabled' : ''}`;
+            btn.className = `ball-btn ${ball.quantity <= 0 ? 'disabled' : ''}`;
             btn.innerHTML = `
                 <img src="../assets/balls/${ball.name}.png" alt="${ball.name}" class="ball-img">
                 <span class="ball-name">${ball.name}</span>
-                <span class="ball-count">x${ball.count}</span>
+                <span class="ball-count">x${ball.quantity}</span>
+                <span class="ball-remaining_time">+${ball.remaining_time}</span>
             `;
             
             // Si on clique sur une ball valide
-            if (ball.count > 0) {
+            if (ball.quantity > 0) {
                 btn.addEventListener("click", () => {
                     cancelAnimationFrame(timerFrame); // Arrête le timer
                     ui.classList.add("hidden"); // Cache l'UI

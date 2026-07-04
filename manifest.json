@@ -21,7 +21,8 @@
     "extension_pages": "script-src 'self'; object-src 'self'; media-src 'self' https://raw.githubusercontent.com https://pokeapi.co"
   },
   "host_permissions": [
-    "https://pokeapi.co/*"
+    "https://pokeapi.co/*",
+    "http://localhost:3000/*"
   ],
   "action": {
     "default_popup": "html/popup.html",

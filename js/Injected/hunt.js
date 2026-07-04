@@ -1,5 +1,5 @@
 import { playCry } from "./sound.js";
-import { getPokemon, capturePokemon, getCurrentDomain } from "./utils.js";
+import { getPokemon, getCurrentDomain } from "./utils.js";
 import { injectPokemonStyles } from "./css/pokemons.js";
 import { isCaptured } from "./pokedex.js";
 

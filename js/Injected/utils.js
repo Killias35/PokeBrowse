@@ -1,6 +1,5 @@
 import { getUsernameParam, setUsernameParam, setIdentifiantParam, getImageParam, getDescriptionParam, getCollection, saveToApiParams } from "../settingsUtils.js";
 import { getPokedex } from "./pokedex.js";
-import { capturePokemonAPI } from "../API/app.js";
 
 // pokeballs au demarrage
 const POKEBALLS = [
@@ -113,12 +112,6 @@ export async function getPokemon(id) {
     rarity: rarity,
     cry: pokemon.cries?.latest || pokemon.cries?.legacy || null
   };
-}
-
-// capture un pokemon
-export async function capturePokemon(pokemon) {
-  await capturePokemonAPI(pokemon.id, pokemon.isShiny, pokemon.domaine);
-  await getCollection();
 }
 
 // charge le pokedex dans le storage

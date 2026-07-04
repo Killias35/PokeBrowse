@@ -1,4 +1,4 @@
-import { getRemainingTime, getPokeballs } from "./pokeballs.js";
+import { getPokeballs } from "./pokeballs.js";
 import { getBalls, getSpawnsForDomain } from "./utils.js";
 import { isLoged, register } from "../API/users.js";
 import { getImageParam, getUsernameParam, getIdentifiantParam, getDescriptionParam, deleteSettings } from "../settingsUtils.js";
@@ -56,14 +56,13 @@ async function setBalls() {
     ballCard.classList.add("ball-card");
     ballCard.classList.add(`${pokeball.name}-icon`);
     const nbPerHours = 1 / pokeball.cooldown;
-    const remainingTime = await getRemainingTime(pokeball);
     ballCard.innerHTML = `
-      <img class="ball-img" src="../assets/balls/${pokeball.name}.png">
+      <img class="ball-img" src="${pokeball.sprite}">
       <div class="ball-info">
         <div class="ball-name">${pokeball.name}</div>
-        <div class="ball-count">${pokeball.count} / ${pokeball.maxCount}</div>
+        <div class="ball-count">${pokeball.quantity} / ${pokeball.max_stock}</div>
         <div class="ball-cooldown">+${nbPerHours.toFixed(2)} / heure</div>
-        <div class="ball-time">${remainingTime}</div>
+        <div class="ball-time">${pokeball.remaining_time}</div>
       </div>
     `;
 
