@@ -11,21 +11,6 @@ async function getDelaiFromLastSpawn() {
   return hours;
 }
 
-async function setStatusBtnSpawn() {
-  const hours = await getDelaiFromLastSpawn();
-  const minutesLeft = (.5 - hours) * 60;
-  const btn = document.getElementById("spawn");
-  if(hours >= .5){   // peut spawn
-    btn.classList.remove("closed");
-    btn.classList.add("primary")
-    btn.textContent = `🎲 Faire apparaître un Pokémon`;
-  }else{            // ne peut pas spawn
-    btn.classList.remove("primary");
-    btn.classList.add("closed");
-    btn.textContent = `Apparition dans ${minutesLeft.toFixed(0)} minutes`;
-  }
-}
-
 function updateUI() {
   if (huntActive) {
     toggleBtn.classList.remove("hunt-off");
@@ -95,12 +80,11 @@ const identifiant = await getIdentifiantParam();
 const logged = await isLoged(identifiant);
 const isLogged = logged && logged.success === true;
 if (!isLogged) {
-  document.getElementById("spawn").textContent = "Veuillez vous connecter depuis les paramètres";
+  document.getElementById("pokedex").textContent = "Veuillez vous connecter depuis les paramètres";
 } 
 else {
   document.getElementById("name").textContent = "[" + username + "]";
   await setBalls();
-  await setStatusBtnSpawn();
 
   // restore state
   chrome.storage.local.get(["huntActive"], (res) => {
@@ -112,28 +96,6 @@ else {
     huntActive = !huntActive;
     updateUI();
     sendState();
-  });
-
-  document.getElementById("spawn").addEventListener("click", async () => {
-    const hours = await getDelaiFromLastSpawn();
-    // if (hours <= 0) return; // DEBUG
-    if (hours <= .5) return;
-
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      currentWindow: true
-    });
-
-    chrome.tabs.sendMessage(tab.id, {
-      action: "spawnPokemon"
-    });
-
-    await chrome.storage.local.set({
-      lastSpawn: Date.now()
-    });
-
-    setStatusBtnSpawn();
-
   });
 
   document.getElementById("pokedex").addEventListener("click", () => {
