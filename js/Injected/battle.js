@@ -4,7 +4,7 @@ import { startMusic, stopMusic } from '../musique.js';
 import { setHpStatus, triggerPokemonFlee, phaseChoixBall, phaseAffaiblissement, startCaptureMinigame} from "./battle-minigame.js";
 import { startDodgeMinigame } from "./games/game-engine.js";
 import { getVolumesParam } from "../settingsUtils.js";
-import { getBattle, capture } from "../API/battle.js";
+import { getBattle, capture, flee } from "../API/battle.js";
 import { getIdentifiantParam } from "../settingsUtils.js";
 import { getPokemon } from "./utils.js";
 
@@ -69,6 +69,7 @@ async function lancerSequenceCapture() {
         const ballChoisie = await phaseChoixBall();
 
         if (ballChoisie === null) {
+            await flee(identifiant, BATTLE_DATA.id);
             await triggerPokemonFlee();
             await showSplashText("Trop lent ! Le Pokémon s'enfuit !", 5000);
             stopMusic();
@@ -78,6 +79,7 @@ async function lancerSequenceCapture() {
         const puissance = await phaseAffaiblissement(POKEMON_FIGHTING);
         const hasFled = calculateFleeSiccess(puissance, config.resistence);
         if (hasFled) {
+            await flee(identifiant, BATTLE_DATA.id);
             await triggerPokemonFlee();
             await showSplashText("Le Pokémon n'était pas assez affaibli !", 5000);
             stopMusic();
@@ -102,6 +104,7 @@ async function lancerSequenceCapture() {
         if(roll > 99) await showSplashText("Echec critique !", 3000);
         playCry(POKEMON_FIGHTING);
         if(await startDefenseMinigame(POKEMON_FIGHTING, baseDifficulty) === false) {
+            await flee(identifiant, BATTLE_DATA.id);
             await triggerPokemonFlee();
             await showSplashText("Le Pokémon s'enfuit !", 5000);
             stopMusic();
@@ -116,7 +119,7 @@ async function lancerSequenceCapture() {
 const identifiant = await getIdentifiantParam();
 const battleResult = await getBattle(identifiant);
 
-if(battleResult.success) {
+if(battleResult.success && battleResult.battle.pokemon_id) {
     const pokemon = await getPokemon(battleResult.battle.pokemon_id);
     pokemon.rarity = battleResult.battle.rarity;
     pokemon.isShiny = battleResult.battle.is_shiny;
@@ -133,6 +136,10 @@ if(battleResult.success) {
     } else {
         startMusic("capture", true, GLOBAL_MUSIC_VOLUME);
     }
+
+    window.addEventListener("pagehide", async () => {
+        await flee(identifiant, BATTLE_DATA.id);
+    });
 
     await startEncounter(pokemon);
     await lancerSequenceCapture();

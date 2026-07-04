@@ -61,7 +61,6 @@ export async function loadCollection() {
 export async function isCaptured(pokemonId) {
     // return true; // DEBUG
     const collection = await getCollectionParam();
-    console.log("pokemon:", pokemonId, collection, "isCaptured:", !!collection[pokemonId]);
     return !!collection[pokemonId];
 }
 

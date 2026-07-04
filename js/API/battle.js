@@ -65,3 +65,24 @@ export async function capture(identifiant, score, pokeball_id) {
         return { success: false };
     }
 }
+
+export async function flee(identifiant, battle_id) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/battle/flee`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                identifiant,
+                battle_id
+            })
+        });
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error(error);
+        return { success: false };
+    }
+}
