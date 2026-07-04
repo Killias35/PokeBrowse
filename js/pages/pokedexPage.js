@@ -28,6 +28,7 @@ async function init() {
         const isCaught = !!caughtInfo;
         const captureCount = isCaught ? caughtInfo.count : 0;
         const hasShiny = isCaught ? caughtInfo.hasShiny : false;
+        pokemon.domain_names = isCaught ? caughtInfo.domain_names : [];
         const rarity = pokemon.rarity || 'commun';
 
         const card = document.createElement("div");
@@ -148,6 +149,14 @@ function openPokemonModal(pokemon, isCaught, hasShiny) {
                     <div class="modal-physique" style="margin-top: 15px; justify-content: center;">
                         <span>📏 ${pokemon.height / 10} m</span>
                         <span>⚖️ ${pokemon.weight / 10} kg</span>
+                    </div>
+                    <div class="domain-section">
+                        <h3>Zones de capture</h3>
+                        <div class="domain-list">
+                            ${pokemon.domain_names
+                                .map(name => `<span class="domain-chip">${name}</span>`)
+                                .join("")}
+                        </div>
                     </div>
                 </div>
                 <div class="modal-right">

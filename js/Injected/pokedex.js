@@ -41,16 +41,19 @@ export async function loadCollection() {
         if (!data[pokemon.id]) { 
             data[pokemon.id] = { 
                 count: 1, 
-                hasShiny: pokemon.isShiny || false // Vérifie si cette capture est shiny
+                hasShiny: pokemon.isShiny || false, // Vérifie si cette capture est shiny
+                domain_names: [pokemon.domaine] || []
             };
         } else {
             data[pokemon.id].count++;
             if (pokemon.isShiny) {
                 data[pokemon.id].hasShiny = true; // S'il l'a eu en shiny au moins une fois
             }
+            if (!data[pokemon.id].domain_names.includes(pokemon.domaine)) {
+                data[pokemon.id].domain_names.push(pokemon.domaine);
+            }
         }
     });
-
     await setCollection(data);
     return data;
 }
