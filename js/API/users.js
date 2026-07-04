@@ -50,7 +50,7 @@ export async function login(username, identifiant) {
     }
 }
 
-export async function isLoged(username, identifiant) {
+export async function isLoged(identifiant) {
     try{
         const response = await fetch(`${API_BASE_URL}/users/isLoged`, {
             method: "POST",
@@ -58,7 +58,6 @@ export async function isLoged(username, identifiant) {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                username,
                 identifiant
             })
         });

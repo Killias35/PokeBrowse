@@ -93,7 +93,7 @@ const description = await getDescriptionParam();
 const identifiant = await getIdentifiantParam();
 
 // Vérification de la connexion
-const logged = await isLoged(username, identifiant);
+const logged = await isLoged(identifiant);
 const isLogged = logged && logged.success === true;
 if (!isLogged) {
   document.getElementById("spawn").textContent = "Veuillez vous connecter depuis les paramètres";

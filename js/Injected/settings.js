@@ -61,8 +61,8 @@ async function initSettings() {
     valSfx.textContent = sliderSfx.value;
 
     // Vérification de la connexion automatique
-    if (username && identifiant) {
-        const logged = await isLoged(username, identifiant);
+    if (identifiant) {
+        const logged = await isLoged(identifiant);
         setLoggedInState(logged.success === true);
     } else {
         setLoggedInState(false);

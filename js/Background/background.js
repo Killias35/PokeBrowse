@@ -112,10 +112,9 @@ async function getSpawnedPokemon() {
     });
 
     if (!tabs || !tabs[0]?.id) return;
-    const username = await getUsernameParam();
     const identifiant = await getIdentifiantParam();
     const domaineName = await getCurrentDomainFromTab();
-    const ret = await getSpawned(username, identifiant, domaineName);
+    const ret = await getSpawned(identifiant, domaineName);
     if (ret.success === false) return;
     const spawned = ret.spawned;
     try {

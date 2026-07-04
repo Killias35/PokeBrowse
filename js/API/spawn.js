@@ -1,15 +1,14 @@
 import { API_BASE_URL } from "./app.js";
 
 
-export async function getSpawned(username, identifiant, domainName) {
+export async function getSpawned(identifiant, domainName) {
     try{
-        const response = await fetch(`${API_BASE_URL}/encouters/spawned`, {
+        const response = await fetch(`${API_BASE_URL}/encouters`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                username,
                 identifiant,
                 domainName
             })
