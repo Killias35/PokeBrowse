@@ -78,6 +78,12 @@ export async function setCollection(collection){
     await chrome.storage.local.set({collection});
 }
 
+export async function getCollectionParam(){
+    const res = await chrome.storage.local.get(["collection"]);
+    if (!res.collection) return [];
+    return res.collection;
+}
+
 export async function saveToApiParams(username, identifiant, image, description) {
     const ret = await updateUser(image, username, description, identifiant);
     if(!ret) {
@@ -105,5 +111,6 @@ export async function deleteSettings() {    // Deconnecter
     await chrome.storage.local.remove("huntActive");
     await chrome.storage.local.remove("pokedex");
     await chrome.storage.local.remove("currentBattlePokemon");
+    await chrome.storage.local.remove("collection");
     console.log("Paramètres supprimés.");
 }

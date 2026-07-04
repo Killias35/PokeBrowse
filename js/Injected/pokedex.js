@@ -1,5 +1,5 @@
 import { freePokemonsAPI, getCaptures } from "../API/capture.js";
-import { getIdentifiantParam, getUsernameParam } from "../settingsUtils.js";
+import { getIdentifiantParam, getUsernameParam, getCollectionParam, setCollection } from "../settingsUtils.js";
 
 export async function getPokedex() {
     const result = await chrome.storage.local.get("pokedex");
@@ -50,12 +50,15 @@ export async function loadCollection() {
             }
         }
     });
+
+    await setCollection(data);
     return data;
 }
 
 export async function isCaptured(pokemonId) {
     // return true; // DEBUG
-    const collection = await loadCollection();
+    const collection = await getCollectionParam();
+    console.log("pokemon:", pokemonId, collection, "isCaptured:", !!collection[pokemonId]);
     return !!collection[pokemonId];
 }
 

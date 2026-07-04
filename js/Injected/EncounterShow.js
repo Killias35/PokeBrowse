@@ -1,5 +1,5 @@
 import { getPokemon, setPokedex, getSpawnsForDomain } from "./utils.js";
-import { isCaptured } from "./pokedex.js";
+import { isCaptured, loadCollection } from "./pokedex.js";
 
 async function getCurrentDomainFromTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -45,6 +45,8 @@ function buildCard(pokemon, isGuaranteed, unlocked) {
 // ─── Rendu principal ───────────────────────────────────────────────────────
 
 async function render() {
+    await loadCollection();
+    
     const container = document.getElementById("encounter-content");
     const domainLabel = document.getElementById("domain-label");
 
