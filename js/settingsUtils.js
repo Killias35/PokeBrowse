@@ -60,6 +60,12 @@ export async function getCollection() {
     if(await getUserByUsername(username) !== undefined) {
         const pokedex = await getPokedex();
         const ret = await getCaptures(username);
+
+        if(!ret.success) {
+            await setCollection([]);
+            return [];
+        };
+
         const pokemons = [];
         for(const capture of ret.captures) {
             pokemons.push({id: capture.pokemon_id, isShiny: capture.is_shiny == 1, domaine: capture.domain_name});
