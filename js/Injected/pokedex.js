@@ -1,14 +1,39 @@
-import { freePokemonsAPI } from "../API/capture.js";
-import { getIdentifiantParam, getUsernameParam, getCollection } from "../settingsUtils.js";
+import { freePokemonsAPI, getCaptures } from "../API/capture.js";
+import { getIdentifiantParam, getUsernameParam } from "../settingsUtils.js";
 
 export async function getPokedex() {
     const result = await chrome.storage.local.get("pokedex");
     return result.pokedex || [];
 }
 
+
+export async function getCollection() {
+    const identifiant = await getIdentifiantParam();
+    const ret = await getCaptures(identifiant);
+
+    if(ret.success) {
+        const pokedex = await getPokedex();
+        const pokemons = [];
+        for(const capture of ret.captures) {
+            pokemons.push({id: capture.pokemon_id, isShiny: capture.is_shiny == 1, domaine: capture.domain_name});
+        }
+        
+        const captured = [];
+        for(const pokemon of pokemons){
+            for(const p of pokedex) {
+                if(p.id == pokemon.id) {
+                    captured.push({...p, ...pokemon});
+                    break;
+                }
+            }
+        }
+        return captured;
+    }
+    return [];
+}
+
 export async function loadCollection() {
-    const result = await chrome.storage.local.get("collection");
-    const pokemons = result.collection || [];
+    const pokemons = await getCollection();
     let data = {};
     
     // On agrège les captures

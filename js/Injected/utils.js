@@ -1,4 +1,4 @@
-import { getUsernameParam, setUsernameParam, setIdentifiantParam, getImageParam, getDescriptionParam, getCollection, saveToApiParams } from "../settingsUtils.js";
+import { getUsernameParam, setUsernameParam, setIdentifiantParam, getImageParam, getDescriptionParam, saveToApiParams } from "../settingsUtils.js";
 import { getPokedex } from "./pokedex.js";
 
 // pokeballs au demarrage
@@ -130,51 +130,6 @@ export async function setPokedex() {
   return pokedex;
 }
 
-// charge les pokeballs dans le storage
-export async function getBalls() {
-
-  const result = await chrome.storage.local.get("pokeballs");
-
-  const pokeballs = result.pokeballs || [];
-
-  if (pokeballs.length === 0) { // si pas de pokeballs dans le storage
-    pokeballs.push(...POKEBALLS);
-    await chrome.storage.local.set({pokeballs});
-  }
-  else{ // verification données correctes
-    let valide = true;
-    for (let i = 0; i < POKEBALLS.length; i++) {
-      const pokeball = pokeballs[i];
-      const pokeballBase = POKEBALLS[i]
-
-      if(!pokeball || !pokeballBase) {
-        valide = false;
-        break;
-      }
-      if(pokeball.maxCount > pokeballBase.maxCount) {
-        valide = false;
-        pokeball.maxCount = pokeballBase.maxCount;
-        pokeball.count = 0;
-      }
-      if(pokeball.power !== pokeballBase.power ) {
-        valide = false;
-        pokeball.power = pokeballBase.power;
-      }
-      if(pokeball.cooldown !== pokeballBase.cooldown) {
-        valide = false;
-        pokeball.cooldown = pokeballBase.cooldown;
-        pokeball.count = 0;
-      }
-      pokeballs[i] = pokeball;
-    }
-    if (valide == false) {
-      console.log("Pokeballs non valides, valeurs par defauts appliquées.");
-      await chrome.storage.local.set({pokeballs});
-    }
-
-  }
-}
-
 export async function getSpawnsForDomain(domain) {
   const encoutersTable = await loadSpawnConfig();
   const pokedex = await setPokedex();
@@ -227,7 +182,6 @@ async function init() {
   const loading = document.getElementById("loading-indicator")
   if(loading) loading.classList.remove("hidden");
   await setPokedex();
-  await getBalls();
   if(loading) loading.classList.add("hidden");
 }
 

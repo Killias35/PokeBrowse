@@ -27,7 +27,6 @@ chrome.runtime.onMessage.addListener(async (msg, sender, sendResponse) => {
         chrome.storage.local.set({ huntActive });
     } 
     else if (msg.action === "START_BATTLE") {
-        // chrome.storage.local.set({ currentBattlePokemon: msg.pokemon });
         chrome.storage.local.set({ huntActive: false });
         
         const username = await getUsernameParam();

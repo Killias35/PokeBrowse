@@ -128,5 +128,3 @@ export async function getAll() {
         console.error(error);
     }
 }
-// console.log(await registerUser("kblebg", "je suis un super utilisateur", "test"));
-// console.log(await getUserById(1));

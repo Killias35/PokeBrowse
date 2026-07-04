@@ -1,5 +1,5 @@
 import { getPokeballs } from "./pokeballs.js";
-import { getBalls, getSpawnsForDomain } from "./utils.js";
+import { getSpawnsForDomain } from "./utils.js";
 import { isLoged, register } from "../API/users.js";
 import { getImageParam, getUsernameParam, getIdentifiantParam, getDescriptionParam, deleteSettings } from "../settingsUtils.js";
 
@@ -99,7 +99,6 @@ if (!isLogged) {
 } 
 else {
   document.getElementById("name").textContent = "[" + username + "]";
-  await getBalls();
   await setBalls();
   await setStatusBtnSpawn();
 

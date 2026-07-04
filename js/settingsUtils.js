@@ -1,6 +1,5 @@
 import { updateUser, getUserByUsername } from "./API/users.js";
-import { getCaptures } from "./API/capture.js";
-import { getPokedex } from "./Injected/pokedex.js";
+import { getCollection } from "./Injected/pokedex.js";
 
 export const base_image = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/";
 export const DEFAULT_AVATAR = 25;
@@ -55,37 +54,6 @@ export async function getIdentifiantParam(){
     return res.identifiant;
 }
 
-export async function getCollection() {
-    const username = await getUsernameParam();
-    if(await getUserByUsername(username) !== undefined) {
-        const pokedex = await getPokedex();
-        const ret = await getCaptures(username);
-
-        if(!ret.success) {
-            await setCollection([]);
-            return [];
-        };
-
-        const pokemons = [];
-        for(const capture of ret.captures) {
-            pokemons.push({id: capture.pokemon_id, isShiny: capture.is_shiny == 1, domaine: capture.domain_name});
-        }
-        
-        const captured = [];
-        for(const pokemon of pokemons){
-            for(const p of pokedex) {
-                if(p.id == pokemon.id) {
-                    captured.push({...p, ...pokemon});
-                    break;
-                }
-            }
-        }
-        await setCollection(captured);
-        return captured;
-    }
-    return [];
-}
-
 export async function setVolumesParam(volumes){
     await chrome.storage.local.set({volumes});
 }
@@ -134,9 +102,7 @@ export async function deleteSettings() {    // Deconnecter
     await chrome.storage.local.remove("username");
     await chrome.storage.local.remove("identifiant");
     await chrome.storage.local.remove("description");
-    await chrome.storage.local.remove("collection");
     await chrome.storage.local.remove("huntActive");
-    await chrome.storage.local.remove("pokeballs");
     await chrome.storage.local.remove("pokedex");
     await chrome.storage.local.remove("currentBattlePokemon");
     console.log("Paramètres supprimés.");

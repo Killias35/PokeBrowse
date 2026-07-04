@@ -22,13 +22,16 @@ export async function freePokemonsAPI(username, identifiant) {
     }
 }
 
-export async function getCaptures(username){
+export async function getCaptures(identifiant) {
     try{
-        const response = await fetch(`${API_BASE_URL}/pokemon/capture/${username}`, {
-            method: "GET",
+        const response = await fetch(`${API_BASE_URL}/pokemon/capture`, {
+            method: "POST",
             headers: {
                 "Content-Type": "application/json"
-            }
+            },
+            body: JSON.stringify({
+                identifiant
+            })
         });
     
         const data = await response.json();

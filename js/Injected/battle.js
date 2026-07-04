@@ -94,7 +94,6 @@ async function lancerSequenceCapture() {
             return;
         }
         const {isCaught, distance, roll} = ret;
-        console.log(`Capture attempt: score=${score}, distance=${distance}, roll=${roll}, isCaught=${isCaught}`);
         await playCaptureSequence(isCaught, distance, ballChoisie, POKEMON_FIGHTING);
         if (isCaught) {
             if(roll < 1) await showSplashText("Capture critique !", 3000);
