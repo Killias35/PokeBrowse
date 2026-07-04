@@ -1,5 +1,13 @@
-import { getPokemon, setPokedex, getSpawnsForDomain, getCurrentDomainFromTab } from "./utils.js";
+import { getPokemon, setPokedex, getSpawnsForDomain } from "./utils.js";
 import { isCaptured } from "./pokedex.js";
+
+async function getCurrentDomainFromTab() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if(tab.url.startsWith("chrome-extension://")) return null;
+  const hostname = new URL(tab.url).hostname;
+  const domaine = hostname.replace("www.", "").replace("wwws.", "");
+  return domaine;
+}
 
 function buildCard(pokemon, isGuaranteed, unlocked) {
     const card = document.createElement("div");
