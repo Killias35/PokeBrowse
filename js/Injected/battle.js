@@ -65,6 +65,15 @@ async function lancerSequenceCapture() {
     const baseDifficulty = config.defenseDifficulty;
     while (true) {
         setHpStatus(100, true);
+        if(await startDefenseMinigame(POKEMON_FIGHTING, baseDifficulty) === false) {
+            await flee(identifiant, BATTLE_DATA.id);
+            await triggerPokemonFlee();
+            await showSplashText("Le Pokémon s'enfuit !", 5000);
+            stopMusic();
+            break; 
+        };
+        playCry(POKEMON_FIGHTING);
+
         // while (true) {await startDefenseMinigame(POKEMON_FIGHTING, baseDifficulty); await showSplashText("Retour au combat !", 1000);}   // DEBUG
         const ballChoisie = await phaseChoixBall();
 
@@ -103,13 +112,6 @@ async function lancerSequenceCapture() {
         }
         if(roll > 99) await showSplashText("Echec critique !", 3000);
         playCry(POKEMON_FIGHTING);
-        if(await startDefenseMinigame(POKEMON_FIGHTING, baseDifficulty) === false) {
-            await flee(identifiant, BATTLE_DATA.id);
-            await triggerPokemonFlee();
-            await showSplashText("Le Pokémon s'enfuit !", 5000);
-            stopMusic();
-            break; 
-        };
     }
 
     await closeTabAfter20s();
