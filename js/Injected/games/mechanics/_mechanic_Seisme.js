@@ -33,8 +33,7 @@ export function _mechanic_Seisme(cfg, difficulty, state) {
         state._arena.appendChild(preview);
         
         let previewObj    = { el: preview, cx, cy, r: startSize, speed: expandSpeed, type: "shockwave", spawnDelay, maxSize, alive: true, shockwaves: [], preview: true };
-        for (let ring = 0; ring < 3; ring++) {
-            _addTimeout(() => {
+        _addTimeout(() => {
                 if (state._isOver) return;
                 const shockwave = document.createElement("div");
 
@@ -54,8 +53,7 @@ export function _mechanic_Seisme(cfg, difficulty, state) {
                 previewObj.shockwaves.push(obj);
                 state._objects.push(obj);
                 state._arena.appendChild(shockwave);
-            }, ring * 300);
-        }
+            }, 0);
         state._objects.push(previewObj);
 
     }
