@@ -158,6 +158,12 @@ body {
   animation: pulse 1.5s infinite;
 }
 
+.training {
+  background: #0a2f6b;
+  color: #ffffff;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+}
+
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }

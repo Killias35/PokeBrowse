@@ -54,6 +54,12 @@ export async function getIdentifiantParam(){
     return res.identifiant;
 }
 
+export async function getTrainingParam(){
+    const res = await chrome.storage.local.get(["training"]);
+    if (!res.training) return null;
+    return res.training;
+}
+
 export async function setVolumesParam(volumes){
     await chrome.storage.local.set({volumes});
 }
@@ -76,6 +82,10 @@ export async function setIdentifiantParam(identifiant){
 
 export async function setCollection(collection){
     await chrome.storage.local.set({collection});
+}
+
+export async function setTraining(pokemonData){
+    await chrome.storage.local.set({training: pokemonData});
 }
 
 export async function getCollectionParam(){

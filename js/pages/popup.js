@@ -1,5 +1,5 @@
-import { getPokeballs } from "./pokeballs.js";
-import { getSpawnsForDomain } from "./utils.js";
+import { getPokeballs } from "../Injected/pokeballs.js";
+import { getSpawnsForDomain } from "../Injected/utils.js";
 import { isLoged, register } from "../API/users.js";
 import { getImageParam, getUsernameParam, getIdentifiantParam, getDescriptionParam, deleteSettings } from "../settingsUtils.js";
 
@@ -101,6 +101,13 @@ else {
   document.getElementById("pokedex").addEventListener("click", () => {
     chrome.tabs.create({
       url: chrome.runtime.getURL("html/pokedex.html")
+    });
+  });
+
+  document.getElementById("training").addEventListener("click", () => {
+
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("html/training.html")
     });
   });
 

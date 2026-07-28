@@ -5,7 +5,7 @@ import { setHpStatus, triggerPokemonFlee, phaseChoixBall, phaseAffaiblissement, 
 import { startDodgeMinigame } from "./games/game-engine.js";
 import { getVolumesParam } from "../settingsUtils.js";
 import { getBattle, capture, flee } from "../API/battle.js";
-import { getIdentifiantParam } from "../settingsUtils.js";
+import { getIdentifiantParam, getTrainingParam, setTraining } from "../settingsUtils.js";
 import { getPokemon } from "./utils.js";
 
 const Volumes = await getVolumesParam();
@@ -14,6 +14,8 @@ const GLOBAL_MUSIC_VOLUME = Volumes.musicVolume;
 let POKEMON_FIGHTING = null; // Variable globale pour stocker le Pokémon en combat
 let BATTLE_DATA = null; // Variable globale pour stocker les données du combat
 let escapeAttempts = 0;
+let identifiant = null;
+let battleResult = null;
 const DEFENSE_STAGE = document.getElementById("defense-stage");
 
 // commun : 70% max de capture
@@ -96,9 +98,10 @@ async function lancerSequenceCapture() {
         }
         const captureScore = await startCaptureMinigame(config);
         const resistence = config.resistence;
+        const ballpower = ballChoisie.ball_power;
         
         const score = (puissance + captureScore) / 2;
-        const ret = await capture(identifiant, score, ballChoisie.id);
+        const ret = await capture(identifiant, score, ballChoisie.id, ballpower, resistence);
         if(!ret.success) {
             await showSplashText("Erreur de connection avec l'API !", 5000);
             stopMusic();
@@ -118,14 +121,23 @@ async function lancerSequenceCapture() {
 }
 
 // recuperation du combat en cours depuis le serveur
-const identifiant = await getIdentifiantParam();
-const battleResult = await getBattle(identifiant);
+const training = await getTrainingParam();
+if (!training) {
+    identifiant = await getIdentifiantParam();
+    battleResult = await getBattle(identifiant);
+}
+else{
+    training.success = true;
+    battleResult = training;
+}
 
+await setTraining(null);
 if(battleResult.success && battleResult.battle.pokemon_id) {
     const pokemon = await getPokemon(battleResult.battle.pokemon_id);
     pokemon.rarity = battleResult.battle.rarity;
     pokemon.isShiny = battleResult.battle.is_shiny;
     pokemon.domain_name = battleResult.battle.domain_name;
+    if (training) pokemon.types = training.types;
     
     // pokemon.rarity = "legendary"    // DEBUG
     // pokemon.isShiny = true       // DEBUG

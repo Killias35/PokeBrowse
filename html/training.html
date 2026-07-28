@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="../css/training.css">
+<title>Entrainement Combat - Pokédex</title>
+</head>
+<body>
+
+<div class="pokedex-app">
+    <div class="pokedex-header">
+        <div class="pokeball"></div>
+        <h1>Entrainement Combat</h1>
+        <p>Configure ton adversaire avant l'affrontement</p>
+    </div>
+
+    <div class="pokedex-container">
+
+        <!-- RARETÉ -->
+        <div class="form-section">
+            <h3>Rareté</h3>
+            <div class="rarity-selector" id="raritySelector">
+                <button class="rarity-option rarity-commun" data-rarity="commun">Commun</button>
+                <button class="rarity-option rarity-rare" data-rarity="rare">Rare</button>
+                <button class="rarity-option rarity-epic" data-rarity="epic">Epic</button>
+                <button class="rarity-option rarity-legendary" data-rarity="legendary">Legendary</button>
+            </div>
+        </div>
+
+        <!-- ID POKEMON -->
+        <div class="form-section">
+            <h3>Pokémon</h3>
+            <div class="id-selector">
+                <div class="sprite-preview" id="spritePreviewWrapper">
+                    <img id="spritePreview" src="" alt="sprite" onerror="this.style.opacity=0">
+                    <button class="shiny-toggle-btn" id="shinyToggle" type="button" title="Basculer en shiny">
+                        <span class="shiny-icon">✦</span>
+                    </button>
+                </div>
+                <div class="id-input-group">
+                    <label for="pokemon_id_input">Identifiant national</label>
+                    <div class="id-input-row">
+                        <span class="id-tag">#</span>
+                        <input type="number" id="pokemon_id_input" min="1" max="1025" value="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TYPES -->
+        <div class="form-section">
+            <h3>Types <span class="form-hint">(<span class="selected-count" id="selectedCount">0</span>/2 sélectionné(s))</span></h3>
+            <div class="type-selector" id="typeSelector">
+                <!-- généré en JS -->
+            </div>
+        </div>
+
+        <button class="details-btn start-battle-btn" id="startBattleBtn">Lancer le combat</button>
+        <div class="error-msg" id="errorMsg"></div>
+
+    </div>
+</div>
+
+    <script type="module" src="../js/pages/training.js"></script>
+</body>
+</html>

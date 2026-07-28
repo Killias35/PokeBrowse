@@ -185,4 +185,37 @@ async function init() {
   if(loading) loading.classList.add("hidden");
 }
 
+
+export function calculateCaptureSuccess(score, ballPower, resistance) {
+  let baseSkill = Math.min(100, score);
+  let finalChance = (baseSkill - resistance) * ballPower;
+
+  if (finalChance > 100) finalChance = 100;
+  if (finalChance < 0) finalChance = 0;
+
+  const roll = (Math.random() * 100).toFixed(2);
+  let isCaught;
+  let distance = Math.abs(finalChance - roll);
+  // console.log("baseSkill:", baseSkill, "finalChance:", finalChance, "roll:", roll, "distance:", distance);
+  if (roll <= 1){         // Capture critique
+      isCaught = true;
+  }
+  else if (roll >= 99){   // Echec critique
+      isCaught = false;
+  }
+  else if (roll <= finalChance){  // Capture normale
+      isCaught = true;
+  }
+  else{   // Echec normale
+      isCaught = false;
+  }
+
+  // On retourne le résultat et le pourcentage exact pour l'afficher ou débugger
+  return {
+      isCaught,
+      distance,
+      roll
+  };
+}
+
 await init();

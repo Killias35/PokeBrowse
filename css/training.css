@@ -1,0 +1,440 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0b101e, #1a2235);
+    color: white;
+}
+
+.pokedex-app {
+    max-width: 1000px;
+    margin: auto;
+    padding: 40px 20px;
+}
+
+/* --- HEADER --- */
+.pokedex-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.pokedex-header h1 {
+    font-size: 3rem;
+    color: #ffcb05;
+    text-shadow: 0 0 20px rgba(255, 203, 5, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.pokedex-header p {
+    margin-top: 10px;
+    color: #94a3b8;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+.pokeball {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: linear-gradient(to bottom, #ff1f1f 0%, #ff1f1f 48%, #111 48%, #111 52%, #fff 52%);
+    border: 4px solid #111;
+    position: relative;
+    box-shadow: 0 0 20px rgba(255, 31, 31, 0.4);
+}
+
+.pokeball::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    border: 4px solid #111;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* --- CONTAINER --- */
+.pokedex-container {
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(15px);
+    border-radius: 24px;
+    padding: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* --- VARIABLES DE RARETÉ --- */
+.rarity-commun { --rarity-color: #94a3b8; --bg-glow: rgba(148, 163, 184, 0.1); }
+.rarity-rare { --rarity-color: #3b82f6; --bg-glow: rgba(59, 130, 246, 0.15); }
+.rarity-epic { --rarity-color: #a855f7; --bg-glow: rgba(168, 85, 247, 0.2); }
+.rarity-legendary { --rarity-color: #fbbf24; --bg-glow: rgba(251, 191, 36, 0.25); }
+
+/* --- SCROLLBAR --- */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* Dictionnaire des couleurs de Types */
+.type-normal { background: #A8A77A; } .type-feu { background: #EE8130; }
+.type-eau { background: #6390F0; } .type-electrik { background: #F7D02C; }
+.type-plante { background: #7AC74C; } .type-glace { background: #96D9D6; }
+.type-combat { background: #C22E28; } .type-poison { background: #A33EA1; }
+.type-sol { background: #E2BF65; } .type-vol { background: #A98FF3; }
+.type-psy { background: #F95587; } .type-insecte { background: #A6B91A; }
+.type-roche { background: #B6A136; } .type-spectre { background: #735797; }
+.type-dragon { background: #6F35FC; } .type-tenebre { background: #705848; }
+.type-acier { background: #B7B7CE; } .type-fée { background: #D685AD; }
+
+.details-btn {
+    width: 100%;
+    border-radius: 12px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.details-btn:hover {
+    background: #ffcb05;
+    color: #0f172a;
+    box-shadow: 0 0 15px rgba(255, 203, 5, 0.4);
+    border-color: #ffcb05;
+}
+
+/* =====================================================
+   AJOUTS SPÉCIFIQUES À LA PAGE D'ENTRAÎNEMENT
+   ===================================================== */
+
+.form-section {
+    margin-bottom: 40px;
+}
+
+.form-section:last-of-type {
+    margin-bottom: 30px;
+}
+
+.form-section h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-section h3::after {
+    content: "";
+    flex-grow: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.form-hint {
+    font-size: 0.8rem;
+    color: #475569;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    text-transform: none;
+}
+
+/* --- SELECTEUR DE RARETÉ --- */
+.rarity-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.rarity-option {
+    background: var(--bg-glow);
+    color: var(--rarity-color);
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    padding: 14px 10px;
+    border-radius: 14px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.rarity-option:hover {
+    border-color: var(--rarity-color);
+    transform: translateY(-2px);
+}
+
+.rarity-option.selected {
+    background: var(--rarity-color);
+    color: #0f172a;
+    border-color: var(--rarity-color);
+    box-shadow: 0 8px 20px var(--bg-glow), 0 0 15px var(--rarity-color);
+    transform: translateY(-2px);
+}
+
+/* --- SELECTEUR D'ID / SPRITE --- */
+.id-selector {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sprite-preview {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+    border-radius: 14px;
+}
+
+.sprite-preview img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+}
+
+.id-input-group {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.id-input-group label {
+    font-size: 0.8rem;
+    color: #64748b;
+    letter-spacing: 1px;
+}
+
+.id-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.id-input-row .id-tag {
+    color: #64748b;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+#pokemon_id_input {
+    flex-grow: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    outline: none;
+    transition: border-color 0.25s ease;
+}
+
+#pokemon_id_input:focus {
+    border-color: #ffcb05;
+    box-shadow: 0 0 10px rgba(255, 203, 5, 0.25);
+}
+
+/* --- SELECTEUR DE TYPES --- */
+.type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+}
+
+.type-option {
+    border: none;
+    padding: 12px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    cursor: pointer;
+    opacity: 0.4;
+    transform: scale(0.96);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.type-option:hover {
+    opacity: 0.75;
+    transform: scale(1);
+}
+
+.type-option.selected {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 3px #ffcb05, 0 4px 15px rgba(255, 203, 5, 0.4);
+}
+
+.type-option:disabled {
+    cursor: not-allowed;
+}
+
+.selected-count {
+    color: #ffcb05;
+    font-weight: 700;
+}
+
+/* --- BOUTON DE COMBAT --- */
+.start-battle-btn {
+    margin-top: 10px;
+    background: linear-gradient(135deg, #ffcb05, #ffa500);
+    color: #0f172a;
+    border: none;
+    box-shadow: 0 10px 25px rgba(255, 203, 5, 0.3);
+}
+
+.start-battle-btn:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 12px 30px rgba(255, 203, 5, 0.5);
+    transform: translateY(-2px);
+}
+
+.start-battle-btn:disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: #475569;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.error-msg {
+    color: #ef4444;
+    font-size: 0.85rem;
+    margin-top: 10px;
+    text-align: center;
+    min-height: 18px;
+}
+
+@media (max-width: 600px) {
+    .id-selector { flex-direction: column; text-align: center; }
+    .id-input-row { justify-content: center; }
+}
+
+.shiny-toggle-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 5;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.shiny-icon {
+    font-size: 1rem;
+    color: #64748b;
+    transition: all 0.3s ease;
+}
+
+.shiny-toggle-btn:hover {
+    border-color: #ffcb05;
+    transform: scale(1.1);
+}
+
+.shiny-toggle-btn:hover .shiny-icon {
+    color: #ffcb05;
+}
+
+/* --- État actif --- */
+.shiny-toggle-btn.active {
+    background: linear-gradient(145deg, #ffcb05, #ffa500);
+    border-color: #ffcb05;
+    box-shadow: 0 0 12px rgba(255, 203, 5, 0.7), 0 4px 10px rgba(0, 0, 0, 0.4);
+    transform: scale(1.05) rotate(15deg);
+}
+
+.shiny-toggle-btn.active .shiny-icon {
+    color: #0f172a;
+    animation: shiny-spin 2.5s linear infinite;
+}
+
+@keyframes shiny-spin {
+    0%   { transform: rotate(0deg) scale(1); }
+    50%  { transform: rotate(180deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+
+.sprite-preview {
+    position: relative;
+    overflow: visible;
+}
+
+/* Calque de halo séparé, superposé, qu'on peut transitionner en opacité */
+.sprite-preview::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    background: radial-gradient(circle, rgba(255, 203, 5, 0.35) 0%, transparent 70%);
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.sprite-preview.is-shiny::before {
+    opacity: 1;
+    transform: scale(1.15);
+    animation: shiny-pulse 2.5s ease-in-out infinite 0.6s;
+}
+
+#spritePreview {
+    position: relative;
+    z-index: 1;
+    transition: filter 0.6s ease;
+}
+
+.sprite-preview.is-shiny #spritePreview {
+    filter: drop-shadow(0 0 10px rgba(255, 203, 5, 0.8));
+}
+
+/* Légère respiration du halo une fois établi */
+@keyframes shiny-pulse {
+    0%, 100% { opacity: 1; transform: scale(1.15); }
+    50%      { opacity: 0.7; transform: scale(1.3); }
+}
