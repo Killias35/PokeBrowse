@@ -83,7 +83,7 @@ export function setHpStatus(percent, reset = false) {
 }
 
 // --- LOGIQUE DU MINI-JEU 1 : CHOIX DE LA BALL ---
-export async function phaseChoixBall() {
+export async function phaseChoixBall(training) {
     return new Promise(async (resolve) => {
         setHpStatus(100);
         await showSplashText("CHOISIR UNE BALL !", 500);
@@ -93,7 +93,7 @@ export async function phaseChoixBall() {
         const container = document.getElementById("ball-container");
         const timerBar = document.getElementById("timer-bar");
         
-        const balls = await getPokeballs();
+        const balls = await getPokeballs(training);
         
         // 1. Générer l'interface des Balls
         container.innerHTML = "";

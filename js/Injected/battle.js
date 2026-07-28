@@ -77,7 +77,7 @@ async function lancerSequenceCapture() {
         playCry(POKEMON_FIGHTING);
 
         // while (true) {await startDefenseMinigame(POKEMON_FIGHTING, baseDifficulty); await showSplashText("Retour au combat !", 1000);}   // DEBUG
-        const ballChoisie = await phaseChoixBall();
+        const ballChoisie = await phaseChoixBall(training != null);
 
         if (ballChoisie === null) {
             await flee(identifiant, BATTLE_DATA.id);

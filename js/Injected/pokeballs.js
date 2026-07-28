@@ -19,7 +19,7 @@ async function getPokeballs(training = false) {
         }
         const superball = {
             name: "superball",
-            quantity: 10,
+            quantity: 5,
             remaining_time: "---",
             ball_power: 1.25
         }
